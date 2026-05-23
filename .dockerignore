@@ -1,0 +1,15 @@
+.git
+.gitignore
+.gitattributes
+__pycache__
+*.pyc
+*.parquet
+dataset/
+data/
+.env
+.ipynb_checkpoints/
+docs/
+examples/
+app_web_view/
+*.ipynb
+*.bat

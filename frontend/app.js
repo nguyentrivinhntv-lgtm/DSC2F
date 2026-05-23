@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000";
+const API_URL = window.location.hostname === 'localhost' ? "http://localhost:8000" : window.location.origin;
 
 // --- DOM Elements ---
 const authSection = document.getElementById('auth-section');

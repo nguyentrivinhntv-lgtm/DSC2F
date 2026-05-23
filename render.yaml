@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: cnn-detection-api
+    runtime: docker
+    plan: free
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        value: "mysql://username:password@host:port/database" # Cần cấu hình trên dashboard Render
+      - key: GOOGLE_CLIENT_ID
+        value: "467356155966-9tv52397cuqllc6pe02c9fc32j1nfb8j.apps.googleusercontent.com"
