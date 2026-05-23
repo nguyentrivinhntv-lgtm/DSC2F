@@ -9,6 +9,6 @@ services:
       - key: DEBUG
         value: "False"
       - key: DATABASE_URL
-        value: "mysql://username:password@host:port/database" # Cần cấu hình trên dashboard Render
+        value: "mysql://avnadmin:YOUR_DATABASE_PASSWORD@mysql-2f60f75f-nguyentrivinhntv-6ab4.f.aivencloud.com:12210/defaultdb?ssl-mode=REQUIRED"
       - key: GOOGLE_CLIENT_ID
         value: "467356155966-9tv52397cuqllc6pe02c9fc32j1nfb8j.apps.googleusercontent.com"
