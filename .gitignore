@@ -1,0 +1,7 @@
+dataset/
+*.zip
+*.parquet
+__pycache__/
+data/__pycache__/
+networks/__pycache__/
+results/

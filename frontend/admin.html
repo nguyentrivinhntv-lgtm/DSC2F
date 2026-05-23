@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel | CNN Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <div class="bg-mesh"></div>
+
+    <header class="site-header border-frame">
+        <div class="site-brand">
+            <i class="fa-solid fa-user-shield"></i>
+            <div>
+                <h1>Admin Control Center</h1>
+                <p>Quản lý dữ liệu nhận diện hệ thống</p>
+            </div>
+        </div>
+        <nav class="site-nav">
+            <a id="nav-user-dashboard" href="index.html">User Dashboard</a>
+            <a id="nav-admin-dashboard" href="admin.html" class="active">Admin Dashboard</a>
+        </nav>
+    </header>
+
+    <main class="app-container admin-layout">
+        <section class="glass-panel border-frame admin-topbar">
+            <div>
+                <h2><i class="fa-solid fa-shield"></i> Bảng quản trị</h2>
+                <p id="admin-user-label">Đang xác thực quyền admin...</p>
+            </div>
+            <div class="admin-actions">
+                <button id="refresh-btn" class="btn-analyze admin-btn">
+                    <i class="fa-solid fa-rotate"></i> Làm mới
+                </button>
+                <button id="export-btn" class="nav-btn export-btn">
+                    <i class="fa-solid fa-file-arrow-down"></i> Xuất CSV
+                </button>
+            </div>
+        </section>
+
+        <section class="admin-stats-grid">
+            <article class="glass-panel border-frame stat-card">
+                <p>Tổng lượt phân tích</p>
+                <h3 id="stat-total">0</h3>
+            </article>
+            <article class="glass-panel border-frame stat-card">
+                <p>Tổng người dùng</p>
+                <h3 id="stat-users">0</h3>
+            </article>
+            <article class="glass-panel border-frame stat-card">
+                <p>Tỷ lệ Fake</p>
+                <h3 id="stat-fake-rate">0%</h3>
+            </article>
+            <article class="glass-panel border-frame stat-card">
+                <p>Mô hình phổ biến</p>
+                <h3 id="stat-top-model">-</h3>
+            </article>
+        </section>
+
+        <section class="glass-panel border-frame admin-filters">
+            <div class="filter-control">
+                <label for="search-user">Tìm theo user / tên ảnh</label>
+                <input id="search-user" type="text" placeholder="Nhập user hoặc tên file...">
+            </div>
+            <div class="filter-control">
+                <label for="filter-model">Lọc model</label>
+                <select id="filter-model">
+                    <option value="all">Tất cả model</option>
+                    <option value="dual_stream_enhanced">Dual Stream Enhanced</option>
+                    <option value="dual_stream_resnet">Dual Stream ResNet18</option>
+                    <option value="resnet50">ResNet-50</option>
+                </select>
+            </div>
+            <div class="filter-control">
+                <label for="filter-label">Lọc kết luận</label>
+                <select id="filter-label">
+                    <option value="all">Tất cả</option>
+                    <option value="fake">Fake</option>
+                    <option value="real">Real</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="glass-panel border-frame admin-token-panel">
+            <h3><i class="fa-solid fa-coins"></i> Nạp token cho người dùng</h3>
+            <div class="admin-token-controls">
+                <div class="filter-control">
+                    <label for="topup-username">Username</label>
+                    <input id="topup-username" type="text" placeholder="Nhập username cần nạp token">
+                </div>
+                <div class="filter-control">
+                    <label for="topup-amount">Số token nạp</label>
+                    <input id="topup-amount" type="number" min="1" step="1" value="5">
+                </div>
+                <button id="topup-btn" class="btn-analyze admin-btn">
+                    <i class="fa-solid fa-bolt"></i> Nạp token
+                </button>
+            </div>
+            <p id="topup-message" class="topup-message"></p>
+        </section>
+
+        <section class="glass-panel border-frame admin-table-wrap">
+            <div class="table-responsive">
+                <table class="history-table admin-table">
+                    <thead>
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>User</th>
+                            <th>Tên ảnh</th>
+                            <th>Model</th>
+                            <th>Xác suất fake</th>
+                            <th>Kết luận</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-history-body">
+                        <tr>
+                            <td colspan="6" class="loading-cell">Đang tải dữ liệu...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>
