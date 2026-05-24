@@ -1,4 +1,4 @@
-const API_URL = window.location.hostname === 'localhost' ? "http://localhost:8000" : window.location.origin;
+const API_URL = window.location.hostname === 'localhost' ? "http://localhost:8000" : "https://cnn-detection-api.onrender.com";
 
 // --- DOM Elements ---
 const authSection = document.getElementById('auth-section');

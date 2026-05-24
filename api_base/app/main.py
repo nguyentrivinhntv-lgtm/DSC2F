@@ -92,8 +92,9 @@ def create_app() -> FastAPI:
     app.include_router(history.router)
 
     # --- Mount Frontend Static Files ---
-    if FRONTEND_DIR.exists():
-        app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+    # Đã tắt để giải phóng RAM cho Render, frontend được host trên Vercel
+    # if FRONTEND_DIR.exists():
+    #     app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
 
     # --- Startup Event ---
     @app.on_event("startup")
