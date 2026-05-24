@@ -6,10 +6,10 @@
 class AppConfig {
   // ── BASE URLs ──────────────────────────────────────────────
   /// URL backend FastAPI (không có dấu / ở cuối)
-  static const String apiBaseUrl = 'https://buddhichat.adhightech.com/api/v1';
+  static const String apiBaseUrl = 'https://cnn-detection-api.onrender.com';
 
   /// URL frontend web (không có dấu / ở cuối)
-  static const String webBaseUrl = 'https://buddhichat.adhightech.com';
+  static const String webBaseUrl = 'https://cnn-detection-api.onrender.com/frontend';
 
   // ── OAUTH DEEP LINK ────────────────────────────────────────
   /// Scheme cho Deep Link callback sau Google OAuth
@@ -17,7 +17,7 @@ class AppConfig {
   static const String callbackScheme = 'phatgiaochatbot';
 
   // ── APP INFO ───────────────────────────────────────────────
-  static const String appName = 'Chatbot Phật Giáo';
+  static const String appName = 'CNN Detection';
   static const String appVersion = '1.0.0';
 
   // ── COMPUTED ───────────────────────────────────────────────

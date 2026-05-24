@@ -25,6 +25,9 @@
         <nav class="site-nav">
             <a id="nav-user-dashboard" href="index.html" class="active">User Dashboard</a>
             <a id="nav-admin-dashboard" href="admin.html" class="hidden">Admin Dashboard</a>
+            <a id="nav-download-app" href="CNN_Detection.apk" download style="background: var(--gradient); color: white; padding: 7px 11px; border-radius: 9px; font-weight: 600; text-decoration: none;">
+                <i class="fa-brands fa-android"></i> Tải App Android
+            </a>
         </nav>
     </header>
 
@@ -112,10 +115,7 @@
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span>Lịch Sử Chi Tiết</span>
                         </button>
-                        <button class="sidebar-item" data-tab="api-management">
-                            <i class="fa-solid fa-key"></i>
-                            <span>Tích Hợp API</span>
-                        </button>
+
                         <button class="sidebar-item" data-tab="settings">
                             <i class="fa-solid fa-sliders"></i>
                             <span>Cài Đặt</span>
@@ -376,36 +376,7 @@
                             </div>
                         </div>
 
-                        <div class="tab-content hidden" id="api-management-tab">
-                            <div class="white-card border-frame feature-card">
-                                <h3>JWT Token & API</h3>
-                                <p>Dùng JWT Access Token hiện tại để tạo và test request API nhanh.</p>
-                                <div class="api-key-box">
-                                    <span>JWT Access Token hiện tại:</span>
-                                    <code id="api-token-preview">Chưa đăng nhập</code>
-                                </div>
-                                <div class="api-actions">
-                                    <a href="http://127.0.0.1:8000/docs" target="_blank" rel="noopener noreferrer" class="btn-icon" title="Mở Swagger API Docs">
-                                        <i class="fa-solid fa-book-open"></i>
-                                    </a>
-                                    <a href="http://127.0.0.1:8000/redoc" target="_blank" rel="noopener noreferrer" class="btn-icon" title="Mở ReDoc API Docs">
-                                        <i class="fa-solid fa-file-lines"></i>
-                                    </a>
-                                </div>
-                                <div class="api-actions">
-                                    <select id="api-endpoint-select" class="glass-select">
-                                        <option value="health">GET /</option>
-                                        <option value="models">GET /models</option>
-                                        <option value="history">GET /history/ (JWT auth)</option>
-                                    </select>
-                                    <button id="api-generate-btn" class="btn-icon" title="Tạo lệnh curl"><i class="fa-solid fa-code"></i></button>
-                                    <button id="api-copy-btn" class="btn-icon" title="Copy lệnh"><i class="fa-regular fa-copy"></i></button>
-                                    <button id="api-test-btn" class="btn-icon" title="Test endpoint"><i class="fa-solid fa-vial-circle-check"></i></button>
-                                </div>
-                                <textarea id="api-curl-output" class="code-area" readonly placeholder="Lệnh curl sẽ hiển thị ở đây..."></textarea>
-                                <p id="api-test-result" class="muted-line"></p>
-                            </div>
-                        </div>
+
 
                         <div class="tab-content hidden" id="settings-tab">
                             <div class="white-card border-frame feature-card">
