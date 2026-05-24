@@ -117,7 +117,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   /// Load trang web chính với token (nếu có)
   void _loadAppUrl(String? token) {
     final url = token != null 
-        ? '${AppConfig.webBaseUrl}/?token=$token' 
+        ? '${AppConfig.webBaseUrl}?token=$token' 
         : AppConfig.webBaseUrl;
     _controller.loadRequest(Uri.parse(url));
   }

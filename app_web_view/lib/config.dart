@@ -8,8 +8,8 @@ class AppConfig {
   /// URL backend FastAPI (không có dấu / ở cuối)
   static const String apiBaseUrl = 'https://cnn-detection-api.onrender.com';
 
-  /// URL frontend web (không có dấu / ở cuối)
-  static const String webBaseUrl = 'https://cnn-detection-api.onrender.com/frontend';
+  /// URL frontend web
+  static const String webBaseUrl = 'https://cnn-detection-api.onrender.com/frontend/';
 
   // ── OAUTH DEEP LINK ────────────────────────────────────────
   /// Scheme cho Deep Link callback sau Google OAuth
