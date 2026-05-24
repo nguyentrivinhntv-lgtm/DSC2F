@@ -194,8 +194,25 @@ function showGoogleLoginFallback(message) {
     }
 }
 
+function triggerNativeGoogleLogin() {
+    const sessionId = Math.random().toString(36).substring(2, 15);
+    if (window.FlutterBridge) {
+        window.FlutterBridge.postMessage('GOOGLE_LOGIN:' + sessionId);
+    }
+}
+
 async function initGoogleSignIn() {
     if (!googleLoginContainer || !googleSigninBtn) return;
+
+    if (window.FlutterBridge) {
+        googleSigninBtn.innerHTML = `
+            <button type="button" class="btn-primary" style="width: 100%; max-width: 320px; background: #fff; color: #374151; border: 1px solid #d1d5db;" onclick="triggerNativeGoogleLogin()">
+                <i class="fa-brands fa-google" style="color: #ea4335;"></i> Đăng nhập Google (App)
+            </button>
+        `;
+        googleLoginContainer.classList.remove('hidden');
+        return;
+    }
 
     try {
         const res = await fetch(`${API_URL}/auth/google/config`);
