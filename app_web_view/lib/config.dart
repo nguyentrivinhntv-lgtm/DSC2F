@@ -9,7 +9,7 @@ class AppConfig {
   static const String apiBaseUrl = 'https://cnn-detection-api.onrender.com';
 
   /// URL frontend web
-  static const String webBaseUrl = 'https://dsc-2-f.vercel.app/';
+  static const String webBaseUrl = 'https://dsc-2-f.vercel.app';
 
   // ── OAUTH DEEP LINK ────────────────────────────────────────
   /// Scheme cho Deep Link callback sau Google OAuth
