@@ -282,7 +282,9 @@ async function onGoogleCredentialResponse(response) {
         const data = await res.json();
         if (!res.ok) {
             if (googleLoginError) {
-                googleLoginError.innerText = data.detail || 'Đăng nhập Google thất bại.';
+                let errText = data.detail || 'Đăng nhập Google thất bại.';
+                if (typeof errText === 'object') errText = JSON.stringify(errText);
+                googleLoginError.innerText = errText;
             }
             return;
         }
