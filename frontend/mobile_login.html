@@ -53,7 +53,7 @@
                 const res = await fetch(`${API_URL}/auth/google`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: response.credential, session_id: "" })
+                    body: JSON.stringify({ credential: response.credential })
                 });
                 
                 const data = await res.json();
@@ -62,7 +62,9 @@
                 } else {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('google-btn').style.display = 'block';
-                    document.getElementById('error-msg').innerText = data.detail || "Đăng nhập thất bại.";
+                    let errText = data.detail || "Đăng nhập thất bại.";
+                    if (typeof errText === 'object') errText = JSON.stringify(errText);
+                    document.getElementById('error-msg').innerText = errText;
                 }
             } catch (e) {
                 document.getElementById('loading').style.display = 'none';
