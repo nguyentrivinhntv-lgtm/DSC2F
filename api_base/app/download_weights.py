@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 # ID của các file weights trên Google Drive
 WEIGHTS = {
-    "blur_jpg_prob0.1.pth": "1eEZvapESTeM56Ay5zgc4_KtUHklwn4_u",
+    "blur_jpg_prob0.1.pth": "15l3F7g7JfCqYVajSOnEsBnySiRH3DEf-",
     "enhanced/best_model.pth": "1ObrE8GSEiAeIKm5KgPQbXfCjkbwKrLEM",
     "dual_stream_resnet/best_model.pth": "1BFToU2qaNmm6RWxywcCgl864OO1OBNxc"
 }
