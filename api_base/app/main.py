@@ -23,6 +23,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.download_weights import download_weights_if_needed
 from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
@@ -111,6 +112,10 @@ def create_app() -> FastAPI:
 
         # 1. Init database
         init_db()
+        
+        # Tải weights từ Google Drive nếu thiếu
+        download_weights_if_needed()
+        
         logger.info("Database initialized.")
 
         # 2. Tạo thư mục tạm
