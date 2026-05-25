@@ -59,20 +59,25 @@
                 const data = await res.json();
                 if (res.ok && data.access_token) {
                     const deepLink = `phatgiaochatbot://login?token=${data.access_token}`;
+                    const intentLink = `intent://login?token=${data.access_token}#Intent;scheme=phatgiaochatbot;package=com.app_duyvo26.app_web_view;end`;
                     
-                    // Thử trigger deep link tự động bằng thẻ a
+                    // Thử trigger intent link tự động bằng thẻ a
                     const a = document.createElement('a');
-                    a.href = deepLink;
+                    a.href = intentLink;
                     document.body.appendChild(a);
                     a.click();
 
                     // Fallback: Hiển thị nút bấm để user tự bấm nếu trình duyệt chặn tự động chuyển hướng
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('google-btn').innerHTML = `
-                        <a href="${deepLink}" style="display:inline-block; padding:12px 24px; background:#4f46e5; color:white; text-decoration:none; border-radius:8px; font-weight:bold; font-size:16px;">
-                            <i class="fa-solid fa-arrow-left"></i> Bấm vào đây để quay lại App
+                        <a href="${intentLink}" style="display:inline-block; padding:12px 24px; background:#4f46e5; color:white; text-decoration:none; border-radius:8px; font-weight:bold; font-size:16px; margin-bottom:15px;">
+                            <i class="fa-solid fa-bolt"></i> Mở App (Cách 1)
                         </a>
-                        <p style="color:#6b7280; font-size:14px; margin-top:10px;">Đăng nhập thành công! Nếu app không tự mở, hãy bấm nút trên.</p>
+                        <br>
+                        <a href="${deepLink}" style="display:inline-block; padding:12px 24px; background:#10b981; color:white; text-decoration:none; border-radius:8px; font-weight:bold; font-size:16px;">
+                            <i class="fa-solid fa-arrow-left"></i> Mở App (Cách 2)
+                        </a>
+                        <p style="color:#6b7280; font-size:14px; margin-top:10px;">Đăng nhập thành công! Hãy bấm Cách 1. Nếu không được, hãy thử Cách 2.</p>
                     `;
                     document.getElementById('google-btn').style.display = 'block';
                 } else {
