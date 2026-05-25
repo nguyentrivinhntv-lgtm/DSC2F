@@ -21,6 +21,10 @@ COPY frontend/ ./frontend/
 
 # Tạo sẵn thư mục weights trống (code Python sẽ tự tải model vào đây)
 RUN mkdir -p ./weights/
+
+# Tải weights ngay trong lúc build Docker để tránh lỗi Timeout khi deploy
+RUN python api_base/app/download_weights.py
+
 # Môi trường
 ENV PYTHONPATH=/app
 ENV WEIGHTS_DIR=/app/weights
