@@ -18,8 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY networks/ ./networks/
 COPY api_base/ ./api_base/
 COPY frontend/ ./frontend/
-COPY weights/ ./weights/
 
+# Tạo sẵn thư mục weights trống (code Python sẽ tự tải model vào đây)
+RUN mkdir -p ./weights/
 # Môi trường
 ENV PYTHONPATH=/app
 ENV WEIGHTS_DIR=/app/weights
