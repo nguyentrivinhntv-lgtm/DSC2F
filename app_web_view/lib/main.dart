@@ -152,6 +152,9 @@ class _WebViewScreenState extends State<WebViewScreen> {
     // ✅ Cho phép Google OAuth và các resource cần thiết
     if (uri != null) {
       final host = uri.host;
+      if (host.contains('google.com') || host.contains('googleusercontent.com') || host.contains('gstatic.com') || host.contains('googleapis.com')) {
+          return NavigationDecision.navigate;
+      }
       for (final domain in _allowedDomains) {
         if (host == domain || host.endsWith('.$domain')) {
           return NavigationDecision.navigate;
@@ -161,6 +164,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
     // ✅ Cho phép các URL chứa callback hoặc token
     if (url.contains('callback') || url.contains('token=')) {
+      return NavigationDecision.navigate;
+    }
+
+    // ✅ Cho phép about:blank (thường dùng cho popup rỗng trước khi load)
+    if (url.startsWith('about:') || url.startsWith('data:')) {
       return NavigationDecision.navigate;
     }
 
