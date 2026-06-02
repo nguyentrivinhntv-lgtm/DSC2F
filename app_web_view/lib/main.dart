@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'config.dart';
 
 void main() async {
@@ -135,7 +136,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
   /// Load trang web chính với token (nếu có)
   void _loadAppUrl(String? token) {
     final url = token != null 
-        ? '${AppConfig.webBaseUrl}?token=$token' 
+        ? '${AppConfig.webBaseUrl}/app.html' 
         : AppConfig.webBaseUrl;
     _controller.loadRequest(Uri.parse(url));
   }
@@ -163,18 +164,23 @@ class _WebViewScreenState extends State<WebViewScreen> {
       }
     }
 
-    // ✅ Cho phép các URL chứa callback hoặc token
-    if (url.contains('callback') || url.contains('token=')) {
+    if (url.startsWith(AppConfig.webBaseUrl) || 
+        url.startsWith('https://accounts.google.com') ||
+        url.startsWith('https://dsc-2-f.vercel.app')) {
       return NavigationDecision.navigate;
     }
-
-    // ✅ Cho phép about:blank (thường dùng cho popup rỗng trước khi load)
-    if (url.startsWith('about:') || url.startsWith('data:')) {
-      return NavigationDecision.navigate;
-    }
-
-    debugPrint('==> Đã chặn điều hướng ngoài: ${request.url}');
+    
+    _launchExternalUrl(url);
     return NavigationDecision.prevent;
+  }
+
+  Future<void> _launchExternalUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint('Could not launch $url');
+    }
   }
 
   /// Xử lý các thông điệp gửi từ JavaScript qua FlutterBridge
@@ -238,6 +244,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     await _controller.runJavaScript('''
       try {
         localStorage.setItem('access_token', '$token');
+        localStorage.setItem('token', '$token');
         window.dispatchEvent(new CustomEvent('flutter_token_ready', { detail: { token: '$token' } }));
         console.log('[Flutter] Token injected');
       } catch(e) {}

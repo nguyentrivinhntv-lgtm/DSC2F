@@ -336,7 +336,23 @@ async function onGoogleCredentialResponse(response) {
         // Nếu trang web được mở qua Chrome Custom Tabs từ App
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('login_mode') === 'true') {
-            window.location.href = `cnndetection://callback?token=${authToken}`;
+            document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f7f9fc; font-family:'Plus Jakarta Sans', sans-serif;">
+                    <div style="background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                        <i class="fa-solid fa-circle-check" style="font-size:60px; color:#0ea5a4; margin-bottom:20px;"></i>
+                        <h2 style="margin-bottom:10px; color:#162437;">Đăng nhập thành công!</h2>
+                        <p style="color:#64748b; margin-bottom:30px;">Hệ thống đã xác thực tài khoản của bạn.</p>
+                        <a href="cnndetection://callback?token=${authToken}" 
+                           style="display:inline-block; background:linear-gradient(135deg, #0ea5a4, #f59e0b); color:white; padding:16px 36px; border-radius:50px; text-decoration:none; font-weight:700; font-size:16px;">
+                           Quay lại Ứng dụng
+                        </a>
+                    </div>
+                </div>
+            `;
+            // Cố gắng tự động chuyển hướng
+            setTimeout(() => {
+                window.location.href = `cnndetection://callback?token=${authToken}`;
+            }, 500);
             return;
         }
 
