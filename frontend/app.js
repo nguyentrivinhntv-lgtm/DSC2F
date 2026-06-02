@@ -243,10 +243,10 @@ async function initGoogleSignIn() {
     }
 
     // Web đều dùng chung flow Google Identity Services (GIS)
-    // Lưu lại trạng thái login_mode vào sessionStorage để giữ nguyên khi Google chuyển hướng trang web
+    // Lưu lại trạng thái login_mode vào localStorage để giữ nguyên khi Google chuyển hướng trang web
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('login_mode') === 'true') {
-        sessionStorage.setItem('login_mode', 'true');
+        localStorage.setItem('login_mode_active', 'true');
     }
     try {
         const res = await fetch(`${API_URL}/auth/google/config`);
@@ -339,9 +339,9 @@ async function onGoogleCredentialResponse(response) {
         }
         
         // Nếu trang web được mở qua Chrome Custom Tabs từ App
-        if (sessionStorage.getItem('login_mode') === 'true') {
+        if (localStorage.getItem('login_mode_active') === 'true') {
             // Xóa cờ để không bị lỗi lần sau
-            sessionStorage.removeItem('login_mode');
+            localStorage.removeItem('login_mode_active');
             
             document.body.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f7f9fc; font-family:'Plus Jakarta Sans', sans-serif;">
