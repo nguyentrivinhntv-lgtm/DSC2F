@@ -206,7 +206,8 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   Future<void> _startGoogleLogin() async {
     try {
-      final url = '${AppConfig.webBaseUrl}/app.html?login_mode=true';
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final url = '${AppConfig.webBaseUrl}/app.html?login_mode=true&t=$timestamp';
       final result = await FlutterWebAuth2.authenticate(
         url: url,
         callbackUrlScheme: 'cnndetection',

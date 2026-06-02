@@ -1552,3 +1552,15 @@ window.addEventListener('DOMContentLoaded', () => {
 initWorkspaceSearch();
 init();
 
+// Lắng nghe token từ Flutter App
+window.addEventListener('flutter_token_ready', async (e) => {
+    const token = e.detail.token;
+    if (token) {
+        localStorage.setItem('token', token);
+        authToken = token;
+        await fetchUserProfile();
+        document.getElementById('auth-section').classList.remove('active');
+        document.getElementById('dashboard-section').classList.add('active');
+        updateHeaderNav();
+    }
+});
