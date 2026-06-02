@@ -131,6 +131,13 @@ class AdminTopUpTokensResponse(BaseModel):
     prediction_tokens: int
 
 
+class AdminUpdateRoleRequest(BaseModel):
+    """Schema cho request admin đổi quyền user."""
+    username: str = Field(..., min_length=3, max_length=50)
+    new_role: str = Field(..., description="Vai trò mới (user/admin).")
+
+
+
 class ForgotPasswordRequest(BaseModel):
     email: str = Field(..., max_length=100)
 
@@ -434,6 +441,65 @@ def admin_topup_tokens(
         added_tokens=request.amount,
         prediction_tokens=int(updated_user.get("prediction_tokens", 0)),
     )
+
+
+@router.get(
+    "/admin/users",
+    summary="Lấy danh sách tất cả user",
+    description="Chỉ admin mới được phép xem danh sách user.",
+)
+def admin_get_users(current_user: dict = Depends(get_current_user)):
+    from app.models.base_db import get_all_users
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ admin mới có quyền xem danh sách user.",
+        )
+    return get_all_users()
+
+
+@router.post(
+    "/admin/users/role",
+    summary="Thay đổi quyền user",
+    description="Chỉ admin mới được thay đổi quyền. Bảo vệ tài khoản 'admin'.",
+)
+def admin_set_role(
+    request: AdminUpdateRoleRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    from app.models.base_db import update_user_role
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ admin mới có quyền phân quyền.",
+        )
+    
+    target_username = request.username
+    new_role = request.new_role
+    
+    if new_role not in ["user", "admin"]:
+        raise HTTPException(status_code=400, detail="Quyền không hợp lệ.")
+        
+    # Logic bảo vệ tài khoản 'admin'
+    if target_username == "admin" and current_user.get("username") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Bạn không có quyền thay đổi chức vụ của Super Admin (admin)."
+        )
+
+    # Chống tự hạ quyền chính mình nếu là admin duy nhất, nhưng ở đây tạm cho phép tự do trừ 'admin'
+    if target_username == "admin" and new_role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Không thể hạ quyền của tài khoản Super Admin."
+        )
+        
+    target_user = get_user_by_username(target_username)
+    if not target_user:
+        raise HTTPException(status_code=404, detail=f"Không tìm thấy user '{target_username}'.")
+        
+    update_user_role(target_username, new_role)
+    return {"message": f"Cập nhật thành công. Tài khoản '{target_username}' hiện có quyền '{new_role}'."}
 
 
 @router.post(

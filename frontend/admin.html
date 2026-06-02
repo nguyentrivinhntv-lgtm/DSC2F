@@ -50,8 +50,10 @@
             <button class="tab-btn active" data-tab="tab-dashboard"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="tab_stats">Thống kê</span></button>
             <button class="tab-btn" data-tab="tab-models"><i class="fa-solid fa-microchip"></i> <span data-i18n="tab_models">Quản lý Model</span></button>
             <button class="tab-btn" data-tab="tab-tokens"><i class="fa-solid fa-coins"></i> <span data-i18n="tab_tokens">Nạp Token</span></button>
+            <button class="tab-btn" data-tab="tab-users"><i class="fa-solid fa-users-gear"></i> <span data-i18n="tab_users">Quản lý User</span></button>
             <button class="tab-btn" data-tab="tab-history"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_history">Lịch sử</span></button>
             <button class="tab-btn" data-tab="tab-customize"><i class="fa-solid fa-palette"></i> <span data-i18n="tab_ui">Tùy chỉnh giao diện</span></button>
+
         </div>
 
         <!-- TAB: THỐNG KÊ -->
@@ -137,7 +139,38 @@
             </section>
         </div>
 
+        <!-- TAB: QUẢN LÝ USER -->
+        <div id="tab-users" class="tab-content">
+            <section class="glass-panel border-frame admin-table-wrap">
+                <h3><i class="fa-solid fa-users-gear"></i> <span data-i18n="tab_users">Quản lý Người dùng & Phân quyền</span></h3>
+                <p class="section-desc">Thay đổi quyền truy cập của người dùng. Tài khoản admin có toàn quyền quản trị.</p>
+                <div class="filter-control" style="margin: 15px 0;">
+                    <input id="search-users-input" type="text" placeholder="Tìm kiếm theo username hoặc email..." style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--color-bg); color: var(--color-text);">
+                </div>
+                <p id="user-role-message" class="topup-message"></p>
+                <div class="table-responsive">
+                    <table class="history-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Tokens</th>
+                                <th>Phân quyền</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-body">
+                            <tr>
+                                <td colspan="5" class="loading-cell">Đang tải dữ liệu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
         <!-- TAB: LỊCH SỬ -->
+
         <div id="tab-history" class="tab-content">
             <section class="glass-panel border-frame admin-filters">
                 <div class="filter-control">

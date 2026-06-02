@@ -433,6 +433,111 @@ async function topupUserTokens() {
     }
 }
 
+// ----------------- QUẢN LÝ USER -----------------
+let rawUsers = [];
+
+async function fetchAdminUsers() {
+    const usersBody = document.getElementById('admin-users-body');
+    if (!usersBody) return;
+    
+    usersBody.innerHTML = '<tr><td colspan="5" class="loading-cell">Đang tải dữ liệu...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_URL}/auth/admin/users`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+            usersBody.innerHTML = '<tr><td colspan="5" class="loading-cell">Không lấy được dữ liệu users</td></tr>';
+            return;
+        }
+
+        rawUsers = await res.json();
+        renderAdminUsers();
+    } catch (e) {
+        usersBody.innerHTML = '<tr><td colspan="5" class="loading-cell">Lỗi kết nối tới API.</td></tr>';
+    }
+}
+
+function renderAdminUsers() {
+    const usersBody = document.getElementById('admin-users-body');
+    const searchInput = document.getElementById('search-users-input');
+    if (!usersBody) return;
+
+    let filterText = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    let filteredUsers = rawUsers.filter(u => 
+        u.username.toLowerCase().includes(filterText) || 
+        (u.email && u.email.toLowerCase().includes(filterText))
+    );
+
+    if (filteredUsers.length === 0) {
+        usersBody.innerHTML = '<tr><td colspan="5" class="loading-cell">Không tìm thấy user nào</td></tr>';
+        return;
+    }
+
+    let html = '';
+    filteredUsers.forEach(u => {
+        // Disabled logic for super admin
+        let disabled = (u.username === 'admin' && user !== 'admin') ? 'disabled' : '';
+        
+        html += `
+            <tr>
+                <td>${u.id}</td>
+                <td><strong>${u.username}</strong> ${u.username === 'admin' ? '<span style="color:red; font-size:12px;">(Super Admin)</span>' : ''}</td>
+                <td>${u.email || '-'}</td>
+                <td>${u.prediction_tokens}</td>
+                <td>
+                    <select onchange="changeUserRole('${u.username}', this.value)" ${disabled} style="padding: 5px; border-radius: 4px; background: var(--color-bg2); color: var(--color-text); border: 1px solid var(--border);">
+                        <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </td>
+            </tr>
+        `;
+    });
+    
+    usersBody.innerHTML = html;
+}
+
+async function changeUserRole(username, newRole) {
+    const msgEl = document.getElementById('user-role-message');
+    try {
+        const res = await fetch(`${API_URL}/auth/admin/users/role`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({ username: username, new_role: newRole })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            msgEl.className = 'topup-message success';
+            msgEl.textContent = data.message;
+            fetchAdminUsers(); // Reload
+        } else {
+            msgEl.className = 'topup-message error';
+            msgEl.textContent = data.detail || 'Lỗi phân quyền';
+            fetchAdminUsers(); // Revert
+        }
+    } catch (e) {
+        msgEl.className = 'topup-message error';
+        msgEl.textContent = 'Lỗi kết nối tới API';
+    }
+    
+    setTimeout(() => { msgEl.textContent = ''; msgEl.className = 'topup-message'; }, 3000);
+}
+window.changeUserRole = changeUserRole;
+
+// Bind search input
+if (document.getElementById('search-users-input')) {
+    document.getElementById('search-users-input').addEventListener('input', renderAdminUsers);
+}
+
+
 function exportCsv() {
     if (!viewItems.length) {
         alert('Không có dữ liệu để xuất.');
@@ -731,12 +836,14 @@ initTabs();
 if (ensureAdmin()) {
     fetchAdminHistory();
     fetchAdminModels();
+    fetchAdminUsers();
     initCustomizeTab();
 }
 
 refreshBtn.addEventListener('click', () => {
     fetchAdminHistory();
     fetchAdminModels();
+    fetchAdminUsers();
 });
 exportBtn.addEventListener('click', exportCsv);
 searchInput.addEventListener('input', applyFilter);

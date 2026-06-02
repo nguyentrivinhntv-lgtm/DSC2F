@@ -270,6 +270,41 @@ def get_user_by_id(user_id: int, db_path: Optional[str] = None) -> Optional[dict
         conn.close()
 
 
+def get_all_users(db_path: Optional[str] = None) -> list:
+    """Lấy danh sách tất cả user (trừ mật khẩu)."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, username, email, role, prediction_tokens, created_at, is_active FROM users ORDER BY id DESC")
+            rows = cur.fetchall()
+            
+            # Format datetime to string if needed
+            for row in rows:
+                created_at = row.get("created_at")
+                if hasattr(created_at, "isoformat"):
+                    row["created_at"] = created_at.isoformat()
+                    
+            return rows
+    finally:
+        conn.close()
+
+
+def update_user_role(username: str, new_role: str, db_path: Optional[str] = None) -> bool:
+    """Cập nhật quyền của user."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE users SET role = %s WHERE username = %s",
+                (new_role, username)
+            )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+
+
 def create_user(
     username: str,
     hashed_password: str,
