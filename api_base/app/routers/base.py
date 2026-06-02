@@ -5,12 +5,24 @@ Base Router - Health Check & System Info
 Các endpoint cơ bản: kiểm tra trạng thái server, danh sách model.
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from pydantic import BaseModel
+import os
+import uuid
 
 from app.config import VALID_MODEL_TYPES, get_settings
+from app.models.base_db import (
+    get_all_models_config, update_model_status, is_model_active,
+    get_site_config, update_site_config, reset_site_config,
+)
+from app.routers.auth import get_current_user
 from chatbot.services.model_service import get_model_service
 
 router = APIRouter(tags=["Base"])
+
+class ToggleModelRequest(BaseModel):
+    model_type: str
+    is_active: bool
 
 
 @router.get(
@@ -41,15 +53,143 @@ def health_check():
 )
 def list_models():
     """
-    Liệt kê các model type hỗ trợ.
+    Liệt kê các model type hỗ trợ (chỉ trả về những model đang active).
 
     Returns:
         dict: Danh sách model available và đã loaded.
     """
     service = get_model_service()
     settings = get_settings()
+    
+    # Lọc ra các model đang được bật
+    active_models = [m for m in VALID_MODEL_TYPES if is_model_active(m)]
+    
     return {
-        "available_models": sorted(VALID_MODEL_TYPES),
+        "available_models": sorted(active_models),
         "loaded_models": service.loaded_models,
         "default_model": settings.DEFAULT_MODEL_TYPE,
     }
+
+
+@router.get(
+    "/admin/models",
+    summary="Danh sách cấu hình model cho admin",
+    description="Trả về trạng thái bật/tắt của tất cả model.",
+)
+def admin_list_models(current_user: dict = Depends(get_current_user)):
+    """
+    Lấy danh sách model kèm trạng thái is_active. Yêu cầu quyền admin.
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền xem.")
+        
+    configs = get_all_models_config()
+    # configs format: [{'model_type': 'resnet50', 'is_active': 1}, ...]
+    config_dict = {c["model_type"]: bool(c["is_active"]) for c in configs}
+    
+    # Kết hợp với VALID_MODEL_TYPES để đảm bảo tất cả model đều có trạng thái
+    result = []
+    for m in VALID_MODEL_TYPES:
+        result.append({
+            "model_type": m,
+            "is_active": config_dict.get(m, True) # Mặc định true nếu chưa lưu DB
+        })
+        
+    return {"models": result}
+
+
+@router.post(
+    "/admin/models/toggle",
+    summary="Bật/Tắt model",
+    description="Thay đổi trạng thái kích hoạt của một model.",
+)
+def admin_toggle_model(req: ToggleModelRequest, current_user: dict = Depends(get_current_user)):
+    """
+    Bật tắt model. Yêu cầu quyền admin.
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền thực hiện.")
+        
+    if req.model_type not in VALID_MODEL_TYPES:
+        raise HTTPException(status_code=400, detail="Model không hợp lệ.")
+        
+    success = update_model_status(req.model_type, req.is_active)
+    if not success:
+        raise HTTPException(status_code=500, detail="Không thể cập nhật trạng thái model.")
+        
+    return {"message": f"Đã {'bật' if req.is_active else 'tắt'} model {req.model_type}"}
+
+
+# ====================== SITE CONFIG ======================
+
+@router.get(
+    "/site-config",
+    summary="Lấy cấu hình giao diện website",
+    description="Public endpoint - trả về toàn bộ config cho frontend.",
+)
+def public_get_site_config():
+    """Trả về toàn bộ site config cho frontend render."""
+    return get_site_config()
+
+
+@router.put(
+    "/admin/site-config",
+    summary="Cập nhật cấu hình giao diện",
+    description="Admin cập nhật giao diện website.",
+)
+async def admin_update_site_config(
+    data: dict,
+    current_user: dict = Depends(get_current_user),
+):
+    """Cập nhật site config. Yêu cầu quyền admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền thực hiện.")
+    update_site_config(data)
+    return {"message": "Đã cập nhật cấu hình giao diện.", "config": get_site_config()}
+
+
+@router.post(
+    "/admin/site-config/reset",
+    summary="Khôi phục cấu hình mặc định",
+    description="Reset toàn bộ giao diện về giá trị ban đầu.",
+)
+def admin_reset_site_config(current_user: dict = Depends(get_current_user)):
+    """Khôi phục toàn bộ config về mặc định. Yêu cầu quyền admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền thực hiện.")
+    config = reset_site_config()
+    return {"message": "Đã khôi phục cấu hình mặc định.", "config": config}
+
+
+@router.post(
+    "/admin/upload-image",
+    summary="Upload ảnh (logo, banner)",
+    description="Admin upload ảnh cho giao diện website.",
+)
+async def admin_upload_image(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+):
+    """Upload ảnh. Yêu cầu quyền admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền thực hiện.")
+
+    # Validate file type
+    allowed_types = ["image/png", "image/jpeg", "image/webp", "image/svg+xml"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Chỉ chấp nhận file ảnh (PNG, JPG, WEBP, SVG).")
+
+    # Save file
+    upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads")
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = os.path.splitext(file.filename)[1] or ".png"
+    filename = f"{uuid.uuid4().hex}{ext}"
+    filepath = os.path.join(upload_dir, filename)
+
+    content = await file.read()
+    with open(filepath, "wb") as f:
+        f.write(content)
+
+    # Return URL path relative to static serving
+    return {"url": f"/uploads/{filename}", "filename": filename}

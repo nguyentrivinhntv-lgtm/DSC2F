@@ -28,7 +28,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.models.base_db import init_db
-from app.routers import auth, base, file_upload, history
+from app.routers import auth, base, file_upload, history, payment
 
 # Frontend directory (relative to api_base/)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
@@ -91,11 +91,17 @@ def create_app() -> FastAPI:
     app.include_router(auth.router)
     app.include_router(file_upload.router)
     app.include_router(history.router)
+    app.include_router(payment.router)
 
     # --- Mount Frontend Static Files ---
     # Đã tắt để giải phóng RAM cho Render, frontend được host trên Vercel
     # if FRONTEND_DIR.exists():
     #     app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+
+    # --- Mount Uploads Directory ---
+    UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
     # --- Startup Event ---
     @app.on_event("startup")

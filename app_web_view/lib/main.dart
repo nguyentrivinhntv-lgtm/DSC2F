@@ -2,7 +2,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config.dart';
 
@@ -71,7 +70,19 @@ class _WebViewScreenState extends State<WebViewScreen> {
   bool _hasError = false;
   double _loadingProgress = 0;
   String? _activeToken;
-  bool _isAuthenticating = false;
+
+  /// Danh sách domain được phép điều hướng trong WebView
+  static const _allowedDomains = [
+    'accounts.google.com',
+    'accounts.youtube.com',
+    'ssl.gstatic.com',
+    'www.gstatic.com',
+    'lh3.googleusercontent.com',
+    'fonts.googleapis.com',
+    'fonts.gstatic.com',
+    'cdnjs.cloudflare.com',
+    'cdn.jsdelivr.net',
+  ];
 
   @override
   void initState() {
@@ -127,69 +138,53 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _controller.loadRequest(Uri.parse(url));
   }
 
-  /// Chặn các điều hướng không hợp lệ
+  /// Cho phép điều hướng đến các domain cần thiết (web app + Google OAuth)
   NavigationDecision _handleNavigation(NavigationRequest request) {
     final url = request.url;
+    final uri = Uri.tryParse(url);
 
-    // ✅ Cho phép các URL chứa callback hoặc token đi qua bình thường
+    // ✅ Cho phép URL của web app
+    if (url.startsWith(AppConfig.webBaseUrl)) {
+      return NavigationDecision.navigate;
+    }
+
+    // ✅ Cho phép Google OAuth và các resource cần thiết
+    if (uri != null) {
+      final host = uri.host;
+      for (final domain in _allowedDomains) {
+        if (host == domain || host.endsWith('.$domain')) {
+          return NavigationDecision.navigate;
+        }
+      }
+    }
+
+    // ✅ Cho phép các URL chứa callback hoặc token
     if (url.contains('callback') || url.contains('token=')) {
       return NavigationDecision.navigate;
     }
 
-    if (url.startsWith(AppConfig.webBaseUrl)) {
-      return NavigationDecision.navigate;
-    }
     debugPrint('==> Đã chặn điều hướng ngoài: ${request.url}');
     return NavigationDecision.prevent;
   }
 
-  /// Xử lý các thông điệp gửi từ JavaScript
+  /// Xử lý các thông điệp gửi từ JavaScript qua FlutterBridge
   void _handleWebMessage(JavaScriptMessage message) async {
     final data = message.message;
     debugPrint('==> Bridge received: $data');
     
-    switch (data) {
-      case 'LOGOUT': _processLogout(); break;
-      default:
-        if (data.startsWith('GOOGLE_LOGIN:')) {
-          final sessionId = data.split(':')[1];
-          _triggerNativeGoogleLogin(sessionId);
-        }
-        break;
+    if (data == 'LOGOUT') {
+      _processLogout();
+    } else if (data.startsWith('TOKEN:')) {
+      // Web đã đăng nhập Google thành công, lưu token
+      final token = data.substring(6); // Bỏ prefix 'TOKEN:'
+      if (token.isNotEmpty) {
+        debugPrint('==> 🎉 Google login thành công, lưu token');
+        await _saveToken(token);
+      }
     }
   }
 
   // --- Core Logic ---
-
-  int _cctOpenCount = 0;
-
-  Future<void> _triggerNativeGoogleLogin(String sessionId) async {
-    if (_isAuthenticating) return;
-    _isAuthenticating = true;
-    
-    _cctOpenCount++;
-    debugPrint('==> 🚀 [CCT] Mở Tab login cho Session: $sessionId - Lần: $_cctOpenCount');
-
-    try {
-      final loginUrl = '${AppConfig.webBaseUrl}/mobile_login.html';
-      
-      // Mở CCT để đăng nhập bằng trang web Vercel.
-      final result = await FlutterWebAuth2.authenticate(
-        url: loginUrl,
-        callbackUrlScheme: AppConfig.callbackScheme,
-      );
-
-      final token = Uri.parse(result).queryParameters['token'];
-      if (token != null) {
-        await _saveToken(token);
-        await _injectTokenToWeb(token);
-      }
-    } catch (e) {
-      debugPrint('==> CCT closed/cancelled');
-    } finally {
-      _isAuthenticating = false;
-    }
-  }
 
   Future<void> _processLogout() async {
     final prefs = await SharedPreferences.getInstance();

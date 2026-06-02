@@ -43,6 +43,18 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     DEBUG: bool = True
 
+    # --- SMTP (Email) ---
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
+
+    # --- VNPay ---
+    VNPAY_TMN_CODE: str = ""
+    VNPAY_HASH_SECRET: str = ""
+    VNPAY_PAYMENT_URL: str = ""
+    VNPAY_RETURN_URL: str = ""
+
     class Config:
         """Cấu hình cho pydantic-settings."""
         env_file = ENV_FILE_PATH

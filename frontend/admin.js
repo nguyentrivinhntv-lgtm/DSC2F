@@ -1,4 +1,4 @@
-const API_URL = window.location.hostname === 'localhost' ? "http://localhost:8000" : "https://cnn-detection-api.onrender.com";
+const API_URL = ['localhost', '127.0.0.1', ''].includes(window.location.hostname) ? "http://localhost:8000" : "https://cnn-detection-api.onrender.com";
 
 const token = localStorage.getItem('token');
 const user = localStorage.getItem('user');
@@ -6,6 +6,7 @@ const role = localStorage.getItem('role');
 
 const adminUserLabel = document.getElementById('admin-user-label');
 const historyBody = document.getElementById('admin-history-body');
+const modelsBody = document.getElementById('admin-models-body');
 const refreshBtn = document.getElementById('refresh-btn');
 const exportBtn = document.getElementById('export-btn');
 const searchInput = document.getElementById('search-user');
@@ -21,20 +22,25 @@ const navAdminDashboard = document.getElementById('nav-admin-dashboard');
 let rawItems = [];
 let viewItems = [];
 
+// Biến lưu trữ instances của Chart.js để hủy trước khi vẽ lại
+let pieChartInstance = null;
+let barChartInstance = null;
+let lineChartInstance = null;
+
 function ensureAdmin() {
     if (!token || !user) {
         alert('Vui lòng đăng nhập trước khi vào admin.');
-        window.location.href = 'index.html';
+        window.location.href = 'app.html';
         return false;
     }
 
     if (role !== 'admin') {
         alert('Chỉ tài khoản admin mới có quyền truy cập trang này.');
-        window.location.href = 'index.html';
+        window.location.href = 'app.html';
         return false;
     }
 
-    adminUserLabel.textContent = `Đăng nhập quản trị: ${user}`;
+    adminUserLabel.textContent = `${t('admin_login_as')} ${user}`;
     return true;
 }
 
@@ -51,6 +57,25 @@ function syncHeaderNav() {
     }
 }
 
+// ----------------- TABS LOGIC -----------------
+function initTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            // Add active class to current
+            btn.classList.add('active');
+            const tabId = btn.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+}
+
 function modelLabel(modelType) {
     const names = {
         dual_stream_enhanced: 'Dual Stream Enhanced',
@@ -58,6 +83,110 @@ function modelLabel(modelType) {
         resnet50: 'ResNet-50'
     };
     return names[modelType] || modelType;
+}
+
+// ----------------- CHARTS LOGIC -----------------
+function renderCharts(items) {
+    const pieCtx = document.getElementById('chart-pie-fake-real');
+    const barCtx = document.getElementById('chart-bar-models');
+    const lineCtx = document.getElementById('chart-line-time');
+
+    if (!pieCtx || !barCtx || !lineCtx) return;
+
+    // Hủy chart cũ nếu có
+    if (pieChartInstance) pieChartInstance.destroy();
+    if (barChartInstance) barChartInstance.destroy();
+    if (lineChartInstance) lineChartInstance.destroy();
+
+    if (!items.length) return;
+
+    // Dữ liệu Fake / Real
+    const fakeCount = items.filter(x => x.label === 'fake').length;
+    const realCount = items.length - fakeCount;
+
+    // Dữ liệu Model
+    const modelCount = {};
+    items.forEach(item => {
+        modelCount[item.model_type] = (modelCount[item.model_type] || 0) + 1;
+    });
+    const modelLabels = Object.keys(modelCount).map(k => modelLabel(k));
+    const modelData = Object.values(modelCount);
+
+    // Dữ liệu theo thời gian (nhóm theo ngày)
+    const timeCount = {};
+    items.forEach(item => {
+        const dateStr = new Date(item.created_at).toLocaleDateString('vi-VN');
+        timeCount[dateStr] = (timeCount[dateStr] || 0) + 1;
+    });
+    // Sắp xếp theo ngày tăng dần
+    const sortedDates = Object.keys(timeCount).sort((a, b) => {
+        const [d1, m1, y1] = a.split('/');
+        const [d2, m2, y2] = b.split('/');
+        return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+    });
+    const timeData = sortedDates.map(date => timeCount[date]);
+
+    // Vẽ Pie Chart
+    pieChartInstance = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Fake', 'Real'],
+            datasets: [{
+                data: [fakeCount, realCount],
+                backgroundColor: ['#ef4444', '#10b981'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+
+    // Vẽ Bar Chart
+    barChartInstance = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: modelLabels,
+            datasets: [{
+                label: 'Lượt sử dụng',
+                data: modelData,
+                backgroundColor: '#0ea5a4',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+
+    // Vẽ Line Chart
+    lineChartInstance = new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Lượt phân tích',
+                data: timeData,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
 }
 
 function updateStats(items) {
@@ -84,6 +213,9 @@ function updateStats(items) {
     document.getElementById('stat-users').textContent = users;
     document.getElementById('stat-fake-rate').textContent = `${fakeRate}%`;
     document.getElementById('stat-top-model').textContent = topModel;
+    
+    // Cập nhật biểu đồ cùng lúc
+    renderCharts(items);
 }
 
 function renderTable(items) {
@@ -143,7 +275,7 @@ async function fetchAdminHistory() {
 
         if (res.status === 401) {
             alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
-            window.location.href = 'index.html';
+            window.location.href = 'app.html';
             return;
         }
 
@@ -155,7 +287,7 @@ async function fetchAdminHistory() {
 
         if (!data.is_admin) {
             alert('API từ chối: tài khoản hiện tại không phải admin.');
-            window.location.href = 'index.html';
+            window.location.href = 'app.html';
             return;
         }
 
@@ -166,6 +298,89 @@ async function fetchAdminHistory() {
     }
 }
 
+// ----------------- QUẢN LÝ MODEL -----------------
+async function fetchAdminModels() {
+    if (!modelsBody) return;
+    modelsBody.innerHTML = '<tr><td colspan="4" class="loading-cell">Đang tải danh sách model...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_URL}/admin/models`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        const data = await res.json();
+        
+        if (!res.ok) {
+            modelsBody.innerHTML = `<tr><td colspan="4" class="loading-cell">Lỗi: ${data.detail || 'Không lấy được dữ liệu'}</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        data.models.forEach(m => {
+            const isChecked = m.is_active ? 'checked' : '';
+            const statusText = m.is_active ? '<span style="color:#10b981;font-weight:bold;">Đang bật</span>' : '<span style="color:#ef4444;font-weight:bold;">Đã tắt</span>';
+            html += `
+                <tr>
+                    <td><code>${m.model_type}</code></td>
+                    <td>${modelLabel(m.model_type)}</td>
+                    <td id="status-text-${m.model_type}">${statusText}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" onchange="toggleModel('${m.model_type}', this)" ${isChecked}>
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                </tr>
+            `;
+        });
+        modelsBody.innerHTML = html;
+        
+    } catch (error) {
+        modelsBody.innerHTML = '<tr><td colspan="4" class="loading-cell">Lỗi kết nối tới API.</td></tr>';
+    }
+}
+
+async function toggleModel(modelType, checkbox) {
+    const isActive = checkbox.checked;
+    checkbox.disabled = true; // Disable temporarily while fetching
+
+    try {
+        const res = await fetch(`${API_URL}/admin/models/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                model_type: modelType,
+                is_active: isActive
+            })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+            alert(data.detail || 'Lỗi khi cập nhật trạng thái model');
+            checkbox.checked = !isActive; // Revert
+        } else {
+            // Update UI status text
+            const textTd = document.getElementById(`status-text-${modelType}`);
+            if (textTd) {
+                textTd.innerHTML = isActive ? '<span style="color:#10b981;font-weight:bold;">Đang bật</span>' : '<span style="color:#ef4444;font-weight:bold;">Đã tắt</span>';
+            }
+        }
+    } catch (error) {
+        alert('Lỗi kết nối tới API');
+        checkbox.checked = !isActive; // Revert
+    } finally {
+        checkbox.disabled = false;
+    }
+}
+
+// Global scope for HTML onclick
+window.toggleModel = toggleModel;
+
+// ----------------- NẠP TOKEN -----------------
 async function topupUserTokens() {
     if (!topupUsernameInput || !topupAmountInput || !topupBtn || !topupMessage) return;
 
@@ -249,13 +464,280 @@ function exportCsv() {
     URL.revokeObjectURL(url);
 }
 
+// ----------------- TÙY CHỈNH GIAO DIỆN -----------------
+
+// Mapping: form field ID -> config key
+const CONFIG_FIELDS = {
+    'cfg-color-primary': 'color_primary',
+    'cfg-color-accent': 'color_accent',
+    'cfg-color-bg': 'color_bg',
+    'cfg-color-bg2': 'color_bg2',
+    'cfg-color-bg3': 'color_bg3',
+    'cfg-color-text': 'color_text',
+    'cfg-site-name': 'site_name',
+    'cfg-site-slogan': 'site_slogan',
+    'cfg-footer-text': 'footer_text',
+    'cfg-hero-title1': 'hero_title_line1',
+    'cfg-hero-title2': 'hero_title_line2',
+    'cfg-hero-desc': 'hero_desc',
+    'cfg-hero-cta': 'hero_cta_text',
+    'cfg-f1-title': 'feature1_title',
+    'cfg-f1-desc': 'feature1_desc',
+    'cfg-f2-title': 'feature2_title',
+    'cfg-f2-desc': 'feature2_desc',
+    'cfg-f3-title': 'feature3_title',
+    'cfg-f3-desc': 'feature3_desc',
+    'cfg-s1-title': 'step1_title',
+    'cfg-s1-desc': 'step1_desc',
+    'cfg-s2-title': 'step2_title',
+    'cfg-s2-desc': 'step2_desc',
+    'cfg-s3-title': 'step3_title',
+    'cfg-s3-desc': 'step3_desc',
+
+};
+
+const TOGGLE_FIELDS = {
+    'cfg-show-stats': 'show_stats',
+    'cfg-show-marquee': 'show_marquee',
+    'cfg-show-features': 'show_features',
+    'cfg-show-howitworks': 'show_howitworks',
+    'cfg-show-cta': 'show_cta',
+};
+
+const configMsg = document.getElementById('config-save-message');
+
+function showConfigMsg(text, type = 'success') {
+    if (!configMsg) return;
+    configMsg.textContent = text;
+    configMsg.className = 'topup-message ' + type;
+    setTimeout(() => { configMsg.textContent = ''; configMsg.className = 'topup-message'; }, 4000);
+}
+
+// Sync color hex display
+function setupColorSync() {
+    const pairs = [
+        ['cfg-color-primary', 'hex-primary'],
+        ['cfg-color-accent', 'hex-accent'],
+        ['cfg-color-bg', 'hex-bg'],
+        ['cfg-color-bg2', 'hex-bg2'],
+        ['cfg-color-bg3', 'hex-bg3'],
+        ['cfg-color-text', 'hex-text'],
+    ];
+    pairs.forEach(([inputId, hexId]) => {
+        const inp = document.getElementById(inputId);
+        const hex = document.getElementById(hexId);
+        if (inp && hex) {
+            inp.addEventListener('input', () => { hex.textContent = inp.value; });
+        }
+    });
+}
+
+async function fetchSiteConfig() {
+    try {
+        const res = await fetch(`${API_URL}/site-config`);
+        if (!res.ok) return;
+        const config = await res.json();
+
+        // Fill text/color fields
+        for (const [fieldId, configKey] of Object.entries(CONFIG_FIELDS)) {
+            const el = document.getElementById(fieldId);
+            if (el && config[configKey] !== undefined) {
+                el.value = config[configKey];
+            }
+        }
+
+        // Fill toggles
+        for (const [fieldId, configKey] of Object.entries(TOGGLE_FIELDS)) {
+            const el = document.getElementById(fieldId);
+            if (el && config[configKey] !== undefined) {
+                el.checked = config[configKey] === '1';
+            }
+        }
+
+        // Sync color hex displays
+        ['cfg-color-primary', 'cfg-color-accent', 'cfg-color-bg', 'cfg-color-text'].forEach(id => {
+            const inp = document.getElementById(id);
+            const hexId = id.replace('cfg-color-', 'hex-');
+            const hex = document.getElementById(hexId);
+            if (inp && hex) hex.textContent = inp.value;
+        });
+
+        // Logo preview
+        if (config.logo_url) {
+            const preview = document.getElementById('logo-preview');
+            const removeBtn = document.getElementById('btn-remove-logo');
+            if (preview) {
+                preview.src = config.logo_url;
+                preview.style.display = 'block';
+            }
+            if (removeBtn) removeBtn.style.display = 'inline-flex';
+        }
+
+        // Token Packages
+        if (config.token_packages) {
+            try {
+                const packages = JSON.parse(config.token_packages);
+                renderAdminPackages(packages);
+            } catch (err) {
+                console.error("Failed to parse token_packages", err);
+            }
+        } else {
+            renderAdminPackages([]);
+        }
+
+    } catch (e) {
+        console.error('Lỗi khi tải site config:', e);
+    }
+}
+
+async function saveSiteConfig() {
+    const data = {};
+
+    // Collect text/color fields
+    for (const [fieldId, configKey] of Object.entries(CONFIG_FIELDS)) {
+        const el = document.getElementById(fieldId);
+        if (el) data[configKey] = el.value;
+    }
+
+    // Collect toggles
+    for (const [fieldId, configKey] of Object.entries(TOGGLE_FIELDS)) {
+        const el = document.getElementById(fieldId);
+        if (el) data[configKey] = el.checked ? '1' : '0';
+    }
+
+    // Collect Token Packages
+    data['token_packages'] = JSON.stringify(collectAdminPackages());
+
+    // Logo URL (stored separately via upload, just include current value)
+    const logoPreview = document.getElementById('logo-preview');
+    if (logoPreview && logoPreview.src && logoPreview.style.display !== 'none') {
+        data['logo_url'] = logoPreview.src;
+    } else {
+        data['logo_url'] = '';
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/admin/site-config`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        });
+        const result = await res.json();
+        if (res.ok) {
+            showConfigMsg('✅ Đã lưu thay đổi giao diện thành công!', 'success');
+        } else {
+            showConfigMsg('❌ ' + (result.detail || 'Lỗi khi lưu.'), 'error');
+        }
+    } catch (e) {
+        showConfigMsg('❌ Không thể kết nối tới server.', 'error');
+    }
+}
+
+async function resetSiteConfig() {
+    if (!confirm('Bạn có chắc muốn khôi phục toàn bộ giao diện về mặc định? Hành động này không thể hoàn tác.')) return;
+
+    try {
+        const res = await fetch(`${API_URL}/admin/site-config/reset`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        const result = await res.json();
+        if (res.ok) {
+            showConfigMsg('✅ Đã khôi phục giao diện mặc định!', 'success');
+            fetchSiteConfig(); // Reload form values
+        } else {
+            showConfigMsg('❌ ' + (result.detail || 'Lỗi khi khôi phục.'), 'error');
+        }
+    } catch (e) {
+        showConfigMsg('❌ Không thể kết nối tới server.', 'error');
+    }
+}
+
+async function uploadLogo(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res = await fetch(`${API_URL}/admin/upload-image`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+            body: formData,
+        });
+        const result = await res.json();
+        if (res.ok) {
+            const preview = document.getElementById('logo-preview');
+            const removeBtn = document.getElementById('btn-remove-logo');
+            if (preview) {
+                preview.src = result.url;
+                preview.style.display = 'block';
+            }
+            if (removeBtn) removeBtn.style.display = 'inline-flex';
+            showConfigMsg('✅ Upload logo thành công! Nhớ bấm "Lưu thay đổi".', 'success');
+        } else {
+            showConfigMsg('❌ ' + (result.detail || 'Lỗi upload.'), 'error');
+        }
+    } catch (e) {
+        showConfigMsg('❌ Không thể upload ảnh.', 'error');
+    }
+}
+
+function initCustomizeTab() {
+    setupColorSync();
+
+    const saveBtn = document.getElementById('btn-save-config');
+    const resetBtn = document.getElementById('btn-reset-config');
+    const previewBtn = document.getElementById('btn-preview-site');
+    const logoInput = document.getElementById('logo-file-input');
+    const removeLogoBtn = document.getElementById('btn-remove-logo');
+
+    if (saveBtn) saveBtn.addEventListener('click', saveSiteConfig);
+    if (resetBtn) resetBtn.addEventListener('click', resetSiteConfig);
+    if (previewBtn) previewBtn.addEventListener('click', () => window.open('index.html', '_blank'));
+
+    if (logoInput) {
+        logoInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                uploadLogo(e.target.files[0]);
+            }
+        });
+    }
+
+    if (removeLogoBtn) {
+        removeLogoBtn.addEventListener('click', () => {
+            const preview = document.getElementById('logo-preview');
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+            removeLogoBtn.style.display = 'none';
+            showConfigMsg('Logo đã xóa. Nhớ bấm "Lưu thay đổi".', 'success');
+        });
+    }
+
+    fetchSiteConfig();
+}
+
+// ----------------- INIT -----------------
 syncHeaderNav();
+initTabs();
 
 if (ensureAdmin()) {
     fetchAdminHistory();
+    fetchAdminModels();
+    initCustomizeTab();
 }
 
-refreshBtn.addEventListener('click', fetchAdminHistory);
+refreshBtn.addEventListener('click', () => {
+    fetchAdminHistory();
+    fetchAdminModels();
+});
 exportBtn.addEventListener('click', exportCsv);
 searchInput.addEventListener('input', applyFilter);
 filterModel.addEventListener('change', applyFilter);
@@ -263,3 +745,84 @@ filterLabel.addEventListener('change', applyFilter);
 if (topupBtn) {
     topupBtn.addEventListener('click', topupUserTokens);
 }
+
+
+// --- Token Packages Admin Logic ---
+function renderAdminPackages(packages) {
+    const list = document.getElementById('pricing-packages-list');
+    if (!list) return;
+    list.innerHTML = '';
+    
+    packages.forEach((pkg, index) => {
+        addPackageDOM(pkg);
+    });
+}
+
+function addPackageDOM(pkg = {}) {
+    const list = document.getElementById('pricing-packages-list');
+    if (!list) return;
+    
+    const div = document.createElement('div');
+    div.className = 'config-field admin-package-item';
+    div.style = 'background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); position: relative; display: grid; gap: 10px;';
+    
+    div.innerHTML = `
+        <button type="button" class="btn-remove-pkg" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px;"><i class="fa-solid fa-trash"></i></button>
+        
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+            <input type="text" class="pkg-name" placeholder="Tên gói (VD: Gói Cơ Bản)" value="${pkg.name || ''}">
+            <label style="display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer;">
+                <input type="checkbox" class="pkg-popular" ${pkg.popular ? 'checked' : ''}>
+                Nổi bật
+            </label>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="number" class="pkg-price" placeholder="Giá (VND)" value="${pkg.price || ''}">
+            <input type="number" class="pkg-tokens" placeholder="Số Token" value="${pkg.tokens || ''}">
+        </div>
+        
+        <input type="text" class="pkg-features" placeholder="Các tính năng, phân cách bằng dấu phẩy (,)" value="${(pkg.features || []).join(', ')}">
+    `;
+    
+    div.querySelector('.btn-remove-pkg').addEventListener('click', () => {
+        div.remove();
+    });
+    
+    list.appendChild(div);
+}
+
+function collectAdminPackages() {
+    const list = document.getElementById('pricing-packages-list');
+    if (!list) return [];
+    
+    const packages = [];
+    const items = list.querySelectorAll('.admin-package-item');
+    items.forEach((item, index) => {
+        const name = item.querySelector('.pkg-name').value.trim();
+        const price = parseInt(item.querySelector('.pkg-price').value) || 0;
+        const tokens = parseInt(item.querySelector('.pkg-tokens').value) || 0;
+        const popular = item.querySelector('.pkg-popular').checked;
+        const featuresStr = item.querySelector('.pkg-features').value.trim();
+        const features = featuresStr ? featuresStr.split(',').map(f => f.trim()).filter(f => f.length > 0) : [];
+        
+        packages.push({
+            id: 'pkg_' + (index + 1),
+            name,
+            price,
+            tokens,
+            popular,
+            features
+        });
+    });
+    return packages;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnAdd = document.getElementById('btn-add-package');
+    if (btnAdd) {
+        btnAdd.addEventListener('click', () => {
+            addPackageDOM();
+        });
+    }
+});
