@@ -700,3 +700,21 @@ def update_user_password(email: str, hashed_password: str, db_path: Optional[str
         return True
     finally:
         conn.close()
+def update_user_password_by_username(username: str, hashed_password: str, db_path: Optional[str] = None) -> bool:
+    """Cập nhật mật khẩu mới cho user dựa vào username."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE users 
+                SET hashed_password = %s, updated_at = CURRENT_TIMESTAMP
+                WHERE username = %s
+                """,
+                (hashed_password, username),
+            )
+            updated = cur.rowcount
+        conn.commit()
+        return updated == 1
+    finally:
+        conn.close()

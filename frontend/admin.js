@@ -267,7 +267,7 @@ async function fetchAdminHistory() {
     historyBody.innerHTML = '<tr><td colspan="6" class="loading-cell">Đang tải dữ liệu...</td></tr>';
 
     try {
-        const res = await fetch(`${API_URL}/history/`, {
+        const res = await fetch(`${API_URL}/history/?all=true`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

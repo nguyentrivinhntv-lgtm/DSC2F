@@ -23,7 +23,8 @@ from app.models.base_db import (
     get_user_by_email,
     save_email_otp,
     verify_email_otp,
-    update_user_password
+    update_user_password,
+    update_user_password_by_username
 )
 from app.config import get_settings
 from app.services.email_service import send_otp_email
@@ -146,6 +147,11 @@ class ResetPasswordRequest(BaseModel):
     email: str = Field(..., max_length=100)
     otp_code: str = Field(..., min_length=6, max_length=6)
     new_password: str = Field(..., min_length=6, max_length=100)
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str = Field(..., description="Mật khẩu cũ")
+    new_password: str = Field(..., min_length=6, max_length=100, description="Mật khẩu mới")
 
 
 def _build_google_username(email: str) -> str:
@@ -547,3 +553,25 @@ def reset_password(request: ResetPasswordRequest):
     update_user_password(request.email, new_hashed)
     
     return {"message": "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới."}
+
+
+@router.post(
+    "/change-password",
+    summary="Đổi mật khẩu",
+    description="Cho phép user đang đăng nhập đổi mật khẩu của chính mình.",
+)
+def change_password(request: ChangePasswordRequest, current_user: dict = Depends(get_current_user)):
+    user = get_user_by_username(current_user["username"])
+    if not user:
+        raise HTTPException(status_code=404, detail="User không tồn tại.")
+        
+    if not verify_password(request.old_password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Mật khẩu cũ không chính xác."
+        )
+        
+    new_hashed = hash_password(request.new_password)
+    update_user_password_by_username(current_user["username"], new_hashed)
+    
+    return {"message": "Đổi mật khẩu thành công!"}

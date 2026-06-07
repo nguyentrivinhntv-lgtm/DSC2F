@@ -1564,3 +1564,83 @@ window.addEventListener('flutter_token_ready', async (e) => {
         updateHeaderNav();
     }
 });
+
+// --- Profile Modal Logic ---
+const profileBtn = document.getElementById('profile-btn');
+const profileModal = document.getElementById('profile-modal');
+const closeProfileModal = document.getElementById('close-profile-modal');
+const btnChangePassword = document.getElementById('btn-change-password');
+
+if (profileBtn && profileModal) {
+    profileBtn.addEventListener('click', () => {
+        document.getElementById('user-dropdown').classList.add('hidden');
+        document.getElementById('profile-username').innerText = authUser?.username || 'Unknown';
+        document.getElementById('profile-old-password').value = '';
+        document.getElementById('profile-new-password').value = '';
+        document.getElementById('profile-error').classList.add('hidden');
+        document.getElementById('profile-success').classList.add('hidden');
+        profileModal.style.display = 'flex';
+    });
+}
+
+if (closeProfileModal) {
+    closeProfileModal.addEventListener('click', () => {
+        profileModal.style.display = 'none';
+    });
+}
+
+if (btnChangePassword) {
+    btnChangePassword.addEventListener('click', async () => {
+        const oldPw = document.getElementById('profile-old-password').value;
+        const newPw = document.getElementById('profile-new-password').value;
+        const errEl = document.getElementById('profile-error');
+        const sucEl = document.getElementById('profile-success');
+        
+        errEl.classList.add('hidden');
+        sucEl.classList.add('hidden');
+        
+        if (!oldPw || !newPw) {
+            errEl.innerText = "Vui lòng nhập đủ thông tin.";
+            errEl.classList.remove('hidden');
+            return;
+        }
+        if (newPw.length < 6) {
+            errEl.innerText = "Mật khẩu mới phải dài ít nhất 6 ký tự.";
+            errEl.classList.remove('hidden');
+            return;
+        }
+        
+        btnChangePassword.disabled = true;
+        btnChangePassword.innerText = 'Đang xử lý...';
+        
+        try {
+            const res = await fetch(`${API_URL}/auth/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    old_password: oldPw,
+                    new_password: newPw
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                sucEl.innerText = data.message || "Đổi mật khẩu thành công!";
+                sucEl.classList.remove('hidden');
+                document.getElementById('profile-old-password').value = '';
+                document.getElementById('profile-new-password').value = '';
+            } else {
+                errEl.innerText = data.detail || "Lỗi khi đổi mật khẩu.";
+                errEl.classList.remove('hidden');
+            }
+        } catch (e) {
+            errEl.innerText = "Không thể kết nối máy chủ.";
+            errEl.classList.remove('hidden');
+        } finally {
+            btnChangePassword.disabled = false;
+            btnChangePassword.innerText = 'Đổi mật khẩu';
+        }
+    });
+}

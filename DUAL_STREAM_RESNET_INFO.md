@@ -9,6 +9,30 @@
 
 ## 2. Thuật toán và Kiến trúc tổng quan
 
+### Sơ đồ Kiến trúc Trực quan
+
+```mermaid
+graph TD
+    classDef inputNode fill:#e1f5fe,stroke:#3b82f6,stroke-width:2px,color:#000
+    classDef featureNode fill:#f3e8ff,stroke:#8b5cf6,stroke-width:2px,color:#000
+    classDef fusionNode fill:#ffedd5,stroke:#ec4899,stroke-width:2px,color:#000
+    classDef outputNode fill:#dcfce7,stroke:#22c55e,stroke-width:2px,color:#000
+    classDef preprocNode fill:#f8fafc,stroke:#94a3b8,stroke-width:2px,color:#000
+
+    RGB["🖼️ Ảnh gốc (RGB)"]:::inputNode --> SPATIAL["🧠 Luồng Không Gian (Spatial Stream)<br/>Backbone: ResNet-18 <i>(Pretrained)</i>"]:::featureNode
+    
+    RGB --> FFT_PROC["⚙️ Biến đổi Fourier (FFT 2D)"]:::preprocNode
+    FFT_PROC --> FFT["📊 Phổ Tần Số (Magnitude)"]:::inputNode
+    FFT --> FREQ["🧠 Luồng Tần Số (Frequency Stream)<br/>Lightweight ResNet CNN"]:::featureNode
+    
+    SPATIAL -- "Vector (512)" --> CONCAT(("🔗 Nối (Concat)")):::fusionNode
+    FREQ -- "Vector (512)" --> CONCAT
+    
+    CONCAT --> FUSION["⚡ Lớp Dung Hợp (Fusion)<br/>Linear (1024 -> 256)<br/>+ BatchNorm + ReLU + Dropout"]:::fusionNode
+    FUSION --> CLASSIFIER["🎯 Lớp Phân Loại Cuối<br/>Linear (256 -> 1)"]:::outputNode
+    CLASSIFIER --> OUT["Thật (Real) / Giả mạo (Fake)"]:::outputNode
+```
+
 Mô hình lấy ý tưởng chia luồng làm 2 bộ phân tách đặc trưng độc lập (Feature Extractors), sau đó kết hợp đặc trưng lại ở các lớp học sâu cuối (Late-Fusion). Tổng quan chi tiết 3 thành phần chính của `DualStreamResNet`:
 
 ### A. Luồng Không gian (Spatial Stream - ResNet-18)
