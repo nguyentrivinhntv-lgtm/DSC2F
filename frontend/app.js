@@ -1579,13 +1579,13 @@ if (profileBtn && profileModal) {
         document.getElementById('profile-new-password').value = '';
         document.getElementById('profile-error').classList.add('hidden');
         document.getElementById('profile-success').classList.add('hidden');
-        profileModal.style.display = 'flex';
+        profileModal.classList.remove('hidden');
     });
 }
 
 if (closeProfileModal) {
     closeProfileModal.addEventListener('click', () => {
-        profileModal.style.display = 'none';
+        profileModal.classList.add('hidden');
     });
 }
 
