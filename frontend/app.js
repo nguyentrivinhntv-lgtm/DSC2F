@@ -1700,7 +1700,7 @@ async function fetchPaymentHistory() {
             data.items.forEach(item => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${formatDate(item.created_at)}</td>
+                    <td>${new Date(item.created_at).toLocaleString('vi-VN')}</td>
                     <td>${item.order_id}</td>
                     <td>${item.amount.toLocaleString('vi-VN')} đ</td>
                     <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
