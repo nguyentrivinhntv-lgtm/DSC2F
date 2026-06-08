@@ -74,9 +74,9 @@ async def vnpay_return(request: Request):
             save_payment_log(user_id, order_id, amount_paid, tokens_to_add)
 
             # 3. Chuyển hướng người dùng về Frontend kèm thông báo thành công
-            return RedirectResponse(url=f"http://localhost:5500/app.html?payment=success&tokens={tokens_to_add}")
+            return RedirectResponse(url=f"{settings.FRONTEND_URL}/app.html?payment=success&tokens={tokens_to_add}")
         else:
-            return RedirectResponse(url=f"http://localhost:5500/app.html?payment=failed")
+            return RedirectResponse(url=f"{settings.FRONTEND_URL}/app.html?payment=failed")
     else:
         # Sai chữ ký
-        return RedirectResponse(url=f"http://localhost:5500/app.html?payment=invalid_signature")
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/app.html?payment=invalid_signature")

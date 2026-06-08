@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     VNPAY_PAYMENT_URL: str = ""
     VNPAY_RETURN_URL: str = ""
 
+    # --- Frontend ---
+    FRONTEND_URL: str = "http://localhost:5500"
+
     class Config:
         """Cấu hình cho pydantic-settings."""
         env_file = ENV_FILE_PATH
