@@ -105,7 +105,7 @@ async function fetchPaymentHistory() {
                 return;
             }
 
-            $totalRevenue = data.items.reduce((sum, item) => sum + item.amount, 0); $totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0); if (document.getElementById('admin-total-revenue')) document.getElementById('admin-total-revenue').innerText = $totalRevenue.toLocaleString('vi-VN') + ' d'; if (document.getElementById('admin-total-tokens-granted')) document.getElementById('admin-total-tokens-granted').innerText = $totalTokens.toLocaleString('vi-VN'); if (document.getElementById('admin-total-transactions')) document.getElementById('admin-total-transactions').innerText = data.items.length.toLocaleString('vi-VN'); let html = '';
+            let html = '';
             data.items.forEach(item => {
                 const dateStr = new Date(item.created_at).toLocaleString('vi-VN');
                 html += `
@@ -277,7 +277,7 @@ function renderTable(items) {
         return;
     }
 
-    $totalRevenue = data.items.reduce((sum, item) => sum + item.amount, 0); $totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0); if (document.getElementById('admin-total-revenue')) document.getElementById('admin-total-revenue').innerText = $totalRevenue.toLocaleString('vi-VN') + ' d'; if (document.getElementById('admin-total-tokens-granted')) document.getElementById('admin-total-tokens-granted').innerText = $totalTokens.toLocaleString('vi-VN'); if (document.getElementById('admin-total-transactions')) document.getElementById('admin-total-transactions').innerText = data.items.length.toLocaleString('vi-VN'); let html = '';
+    let html = '';
     items.forEach((item) => {
         const timeStr = new Date(item.created_at).toLocaleString('vi-VN');
         const fakePercent = (item.probability * 100).toFixed(2);
@@ -369,7 +369,7 @@ async function fetchAdminModels() {
             return;
         }
 
-        $totalRevenue = data.items.reduce((sum, item) => sum + item.amount, 0); $totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0); if (document.getElementById('admin-total-revenue')) document.getElementById('admin-total-revenue').innerText = $totalRevenue.toLocaleString('vi-VN') + ' d'; if (document.getElementById('admin-total-tokens-granted')) document.getElementById('admin-total-tokens-granted').innerText = $totalTokens.toLocaleString('vi-VN'); if (document.getElementById('admin-total-transactions')) document.getElementById('admin-total-transactions').innerText = data.items.length.toLocaleString('vi-VN'); let html = '';
+        let html = '';
         data.models.forEach(m => {
             const isChecked = m.is_active ? 'checked' : '';
             const statusText = m.is_active ? '<span style="color:#10b981;font-weight:bold;">Đang bật</span>' : '<span style="color:#ef4444;font-weight:bold;">Đã tắt</span>';
@@ -529,7 +529,7 @@ function renderAdminUsers() {
         return;
     }
 
-    $totalRevenue = data.items.reduce((sum, item) => sum + item.amount, 0); $totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0); if (document.getElementById('admin-total-revenue')) document.getElementById('admin-total-revenue').innerText = $totalRevenue.toLocaleString('vi-VN') + ' d'; if (document.getElementById('admin-total-tokens-granted')) document.getElementById('admin-total-tokens-granted').innerText = $totalTokens.toLocaleString('vi-VN'); if (document.getElementById('admin-total-transactions')) document.getElementById('admin-total-transactions').innerText = data.items.length.toLocaleString('vi-VN'); let html = '';
+    let html = '';
     filteredUsers.forEach(u => {
         // Disabled logic for super admin
         let disabled = (u.username === 'admin' && user !== 'admin') ? 'disabled' : '';
