@@ -104,6 +104,18 @@ async function fetchPaymentHistory() {
                 historyBody.innerHTML = '<tr><td colspan="6" class="loading-cell">Chưa có giao dịch mua hàng nào.</td></tr>';
                 return;
             }
+            
+            // Calculate admin stats
+            const totalRevenue = data.items.reduce((sum, item) => sum + item.amount, 0);
+            const totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0);
+            
+            const elTotalRevenue = document.getElementById('admin-total-revenue');
+            const elTotalTokens = document.getElementById('admin-total-tokens-granted');
+            const elTotalTx = document.getElementById('admin-total-transactions');
+            
+            if (elTotalRevenue) elTotalRevenue.innerText = totalRevenue.toLocaleString('vi-VN') + ' đ';
+            if (elTotalTokens) elTotalTokens.innerText = totalTokens.toLocaleString('vi-VN');
+            if (elTotalTx) elTotalTx.innerText = data.items.length.toLocaleString('vi-VN');
 
             let html = '';
             data.items.forEach(item => {

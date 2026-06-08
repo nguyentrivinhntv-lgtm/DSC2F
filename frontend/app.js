@@ -1653,3 +1653,65 @@ if (btnChangePassword) {
         }
     });
 }
+
+async function fetchPaymentHistory() {
+    const tbody = document.getElementById('payment-history-tbody');
+    const badge = document.getElementById('payment-history-badge');
+
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center"><div class="loader" style="position:static; margin:0 auto"></div></td></tr>';
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/payment-history/`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (res.status === 401) {
+            logoutBtn.click();
+            return;
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+            if (badge) {
+                badge.innerText = data.total;
+            }
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Chưa có giao dịch mua hàng nào.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            
+            // Calculate and display user stats
+            const totalSpent = data.items.reduce((sum, item) => sum + item.amount, 0);
+            const totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0);
+            
+            const elTotalSpent = document.getElementById('user-total-spent');
+            const elTotalTokens = document.getElementById('user-total-tokens-bought');
+            if (elTotalSpent) elTotalSpent.innerText = totalSpent.toLocaleString('vi-VN') + ' đ';
+            if (elTotalTokens) elTotalTokens.innerText = totalTokens.toLocaleString('vi-VN');
+
+            data.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatDate(item.created_at)}</td>
+                    <td>${item.order_id}</td>
+                    <td>${item.amount.toLocaleString('vi-VN')} đ</td>
+                    <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
+                    <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger)">Lỗi tải dữ liệu: ${data.detail || 'Unknown'}</td></tr>`;
+        }
+    } catch (err) {
+        console.error(err);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Không thể kết nối API.</td></tr>';
+    }
+}
