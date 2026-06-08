@@ -66,12 +66,23 @@ async def vnpay_return(request: Request):
                         (tokens_to_add, user_id)
                     )
                 conn.commit()
+
+                bank_code = inputData.get("vnp_BankCode")
+                card_type = inputData.get("vnp_CardType")
+                vnp_transaction_no = inputData.get("vnp_TransactionNo")
+                amount_paid = int(inputData.get('vnp_Amount', '0')) // 100
+
+                save_payment_log(
+                    user_id=user_id,
+                    order_id=order_id,
+                    amount=amount_paid,
+                    tokens=tokens_to_add,
+                    bank_code=bank_code,
+                    card_type=card_type,
+                    vnp_transaction_no=vnp_transaction_no
+                )
             finally:
                 conn.close()
-
-            # Lưu lịch sử thanh toán
-            amount_paid = int(inputData.get('vnp_Amount', '0')) // 100
-            save_payment_log(user_id, order_id, amount_paid, tokens_to_add)
 
             # 3. Chuyển hướng người dùng về Frontend kèm thông báo thành công
             return RedirectResponse(url=f"{settings.FRONTEND_URL}/app.html?payment=success&tokens={tokens_to_add}")

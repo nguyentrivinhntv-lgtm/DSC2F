@@ -117,21 +117,44 @@ async function fetchPaymentHistory() {
             if (elTotalTokens) elTotalTokens.innerText = totalTokens.toLocaleString('vi-VN');
             if (elTotalTx) elTotalTx.innerText = data.items.length.toLocaleString('vi-VN');
 
-            let html = '';
+            historyBody.innerHTML = '';
             data.items.forEach(item => {
                 const dateStr = new Date(item.created_at).toLocaleString('vi-VN');
-                html += `
-                    <tr>
-                        <td>${dateStr}</td>
-                        <td style="font-weight:600;">${item.username || `User #${item.user_id}`}</td>
-                        <td>${item.order_id}</td>
-                        <td>${item.amount.toLocaleString('vi-VN')} đ</td>
-                        <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
-                        <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
-                    </tr>
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td style="font-weight:bold; color:var(--primary);">${item.username}</td>
+                    <td>${item.order_id}</td>
+                    <td>${item.amount.toLocaleString('vi-VN')} đ</td>
+                    <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
+                    <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
+                    <td><button class="btn btn-sm btn-view-order" style="padding: 5px 10px; font-size: 0.8rem;"><i class="fa-solid fa-eye"></i> Xem</button></td>
                 `;
+                historyBody.appendChild(tr);
+
+                const btnView = tr.querySelector('.btn-view-order');
+                btnView.addEventListener('click', () => {
+                    document.getElementById('modal-order-id').innerText = item.order_id;
+                    const userEl = document.getElementById('modal-order-user');
+                    if (userEl) userEl.innerText = item.username;
+                    document.getElementById('modal-order-time').innerText = dateStr;
+                    document.getElementById('modal-order-amount').innerText = item.amount.toLocaleString('vi-VN');
+                    document.getElementById('modal-order-tokens').innerText = `+${item.tokens}`;
+                    document.getElementById('modal-order-bank').innerText = item.bank_code || 'N/A';
+                    document.getElementById('modal-order-card').innerText = item.card_type || 'N/A';
+                    document.getElementById('modal-order-vnpay-no').innerText = item.vnp_transaction_no || 'N/A';
+                    
+                    document.getElementById('order-details-modal').classList.remove('hidden');
+                });
             });
-            historyBody.innerHTML = html;
+
+            // Setup close buttons for order details modal
+            const closeBtn1 = document.getElementById('btn-close-order-modal');
+            const closeBtn2 = document.getElementById('btn-close-order-modal-2');
+            const orderModal = document.getElementById('order-details-modal');
+            if (closeBtn1) closeBtn1.onclick = () => orderModal.classList.add('hidden');
+            if (closeBtn2) closeBtn2.onclick = () => orderModal.classList.add('hidden');
+            
         } else {
             historyBody.innerHTML = `<tr><td colspan="6" class="loading-cell">Lỗi: ${data.detail || 'Không lấy được dữ liệu'}</td></tr>`;
         }

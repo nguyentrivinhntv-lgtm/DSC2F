@@ -1705,9 +1705,31 @@ async function fetchPaymentHistory() {
                     <td>${item.amount.toLocaleString('vi-VN')} đ</td>
                     <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
                     <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
+                    <td><button class="btn btn-sm btn-view-order" style="padding: 5px 10px; font-size: 0.8rem;"><i class="fa-solid fa-eye"></i> Xem</button></td>
                 `;
                 tbody.appendChild(tr);
+
+                const btnView = tr.querySelector('.btn-view-order');
+                btnView.addEventListener('click', () => {
+                    document.getElementById('modal-order-id').innerText = item.order_id;
+                    document.getElementById('modal-order-time').innerText = new Date(item.created_at).toLocaleString('vi-VN');
+                    document.getElementById('modal-order-amount').innerText = item.amount.toLocaleString('vi-VN');
+                    document.getElementById('modal-order-tokens').innerText = `+${item.tokens}`;
+                    document.getElementById('modal-order-bank').innerText = item.bank_code || 'N/A';
+                    document.getElementById('modal-order-card').innerText = item.card_type || 'N/A';
+                    document.getElementById('modal-order-vnpay-no').innerText = item.vnp_transaction_no || 'N/A';
+                    
+                    document.getElementById('order-details-modal').classList.remove('hidden');
+                });
             });
+            
+            // Setup close buttons for order details modal
+            const closeBtn1 = document.getElementById('btn-close-order-modal');
+            const closeBtn2 = document.getElementById('btn-close-order-modal-2');
+            const orderModal = document.getElementById('order-details-modal');
+            if (closeBtn1) closeBtn1.onclick = () => orderModal.classList.add('hidden');
+            if (closeBtn2) closeBtn2.onclick = () => orderModal.classList.add('hidden');
+
         } else {
             if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger)">Lỗi tải dữ liệu: ${data.detail || 'Unknown'}</td></tr>`;
         }

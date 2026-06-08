@@ -24,6 +24,9 @@ class PaymentLogResponse(BaseModel):
     amount: int
     tokens: int
     status: str
+    bank_code: Optional[str] = None
+    card_type: Optional[str] = None
+    vnp_transaction_no: Optional[str] = None
     created_at: str
 
 
@@ -56,6 +59,9 @@ def get_history(all: bool = False, current_user: dict = Depends(get_current_user
             amount=row["amount"],
             tokens=row["tokens"],
             status=row["status"],
+            bank_code=row.get("bank_code"),
+            card_type=row.get("card_type"),
+            vnp_transaction_no=row.get("vnp_transaction_no"),
             created_at=str(row["created_at"]),
         ))
 

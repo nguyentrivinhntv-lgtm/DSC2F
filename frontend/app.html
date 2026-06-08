@@ -473,6 +473,7 @@
                                                 <th>Số Tiền (VND)</th>
                                                 <th>Tokens Nhận</th>
                                                 <th>Trạng Thái</th>
+                                                <th>Thao Tác</th>
                                             </tr>
                                         </thead>
                                         <tbody id="payment-history-tbody">
@@ -560,6 +561,32 @@
 
     <script src="i18n.js?v=3.5"></script>
     <script src="config-loader.js?v=2.1"></script>
+    
+    <!-- Order Details Modal -->
+    <div id="order-details-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel border-frame">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice"></i> Chi Tiết Hoá Đơn</h3>
+                <button class="btn-close" id="btn-close-order-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="line-height: 1.6;">
+                <p><strong>Mã Giao Dịch:</strong> <span id="modal-order-id"></span></p>
+                <p><strong>Thời Gian:</strong> <span id="modal-order-time"></span></p>
+                <p><strong>Số Tiền Nạp:</strong> <span id="modal-order-amount"></span> đ</p>
+                <p><strong>Token Nhận Được:</strong> <span id="modal-order-tokens"></span></p>
+                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+                <p><strong>Ngân Hàng / Ví:</strong> <span id="modal-order-bank"></span></p>
+                <p><strong>Loại Thẻ:</strong> <span id="modal-order-card"></span></p>
+                <p><strong>Mã ĐS VNPay:</strong> <span id="modal-order-vnpay-no"></span></p>
+                <p><strong>Trạng Thái:</strong> <span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></p>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" id="btn-close-order-modal-2">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN JS -->
     <script src="app.js?v=4.2"></script>
 </body>
 

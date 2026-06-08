@@ -240,19 +240,40 @@
             <section class="glass-panel border-frame admin-table-wrap">
                 <div class="table-responsive">
                     <table class="history-table admin-table">
+        <!-- TAB: LỊCH SỬ MUA HÀNG -->
+        <div id="tab-payment-history" class="tab-content">
+            <section class="admin-stats-grid" style="margin-bottom: 20px;">
+                <article class="glass-panel border-frame stat-card">
+                    <p>Tổng doanh thu</p>
+                    <h3 id="admin-total-revenue">0 đ</h3>
+                </article>
+                <article class="glass-panel border-frame stat-card">
+                    <p>Tổng Token đã cấp</p>
+                    <h3 id="admin-total-tokens-granted">0</h3>
+                </article>
+                <article class="glass-panel border-frame stat-card">
+                    <p>Số lượt giao dịch</p>
+                    <h3 id="admin-total-transactions">0</h3>
+                </article>
+            </section>
+            
+            <section class="glass-panel border-frame admin-table-wrap">
+                <div class="table-responsive">
+                    <table class="history-table admin-table">
                         <thead>
                             <tr>
                                 <th>Thời gian</th>
                                 <th>User</th>
                                 <th>Mã giao dịch</th>
-                                <th>Số tiền (VND)</th>
+                                <th>Số Tiền (VND)</th>
                                 <th>Tokens</th>
-                                <th>Trạng thái</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody id="admin-payment-history-body">
                             <tr>
-                                <td colspan="6" class="loading-cell">Đang tải dữ liệu...</td>
+                                <td colspan="7" class="loading-cell">Đang tải dữ liệu...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -477,9 +498,34 @@
 
     </main>
 
+    <!-- Order Details Modal (Admin) -->
+    <div id="order-details-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel border-frame">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice"></i> Chi Tiết Hoá Đơn</h3>
+                <button class="btn-close" id="btn-close-order-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="line-height: 1.6;">
+                <p><strong>Mã Giao Dịch:</strong> <span id="modal-order-id"></span></p>
+                <p><strong>Tài Khoản:</strong> <span id="modal-order-user" style="color:var(--primary); font-weight:bold;"></span></p>
+                <p><strong>Thời Gian:</strong> <span id="modal-order-time"></span></p>
+                <p><strong>Số Tiền Nạp:</strong> <span id="modal-order-amount"></span> đ</p>
+                <p><strong>Token Nhận Được:</strong> <span id="modal-order-tokens"></span></p>
+                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+                <p><strong>Ngân Hàng / Ví:</strong> <span id="modal-order-bank"></span></p>
+                <p><strong>Loại Thẻ:</strong> <span id="modal-order-card"></span></p>
+                <p><strong>Mã ĐS VNPay:</strong> <span id="modal-order-vnpay-no"></span></p>
+                <p><strong>Trạng Thái:</strong> <span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></p>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" id="btn-close-order-modal-2">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script src="i18n.js?v=3.4"></script>
     <script src="config-loader.js?v=2.1"></script>
-    <script src="admin.js?v=1.2"></script>
+    <script src="admin.js"></script>
 </body>
 
 </html>

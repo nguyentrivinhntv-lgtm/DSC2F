@@ -229,11 +229,24 @@ def init_db(db_path: Optional[str] = None) -> None:
                     amount INT NOT NULL,
                     tokens INT NOT NULL,
                     status VARCHAR(20) NOT NULL DEFAULT 'success',
+                    bank_code VARCHAR(50),
+                    card_type VARCHAR(50),
+                    vnp_transaction_no VARCHAR(100),
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (user_id) REFERENCES users(id)
                 ) ENGINE=InnoDB
                 """
             )
+
+            # Cố gắng thêm các cột VNPay nếu bảng payment_logs cũ chưa có
+            try:
+                cur.execute("ALTER TABLE payment_logs ADD COLUMN bank_code VARCHAR(50)")
+                cur.execute("ALTER TABLE payment_logs ADD COLUMN card_type VARCHAR(50)")
+                cur.execute("ALTER TABLE payment_logs ADD COLUMN vnp_transaction_no VARCHAR(100)")
+            except MySQLError as exc:
+                if getattr(exc, "args", [None])[0] != 1060:
+                    raise
+
         conn.commit()
     finally:
         conn.close()
@@ -734,17 +747,26 @@ def update_user_password_by_username(username: str, hashed_password: str, db_pat
         conn.close()
 
 
-def save_payment_log(user_id: int, order_id: str, amount: int, tokens: int, db_path: Optional[str] = None):
+def save_payment_log(
+    user_id: int, 
+    order_id: str, 
+    amount: int, 
+    tokens: int, 
+    bank_code: Optional[str] = None,
+    card_type: Optional[str] = None,
+    vnp_transaction_no: Optional[str] = None,
+    db_path: Optional[str] = None
+):
     """Lưu lịch sử thanh toán vào bảng payment_logs."""
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO payment_logs (user_id, order_id, amount, tokens, status)
-                VALUES (%s, %s, %s, %s, 'success')
+                INSERT INTO payment_logs (user_id, order_id, amount, tokens, status, bank_code, card_type, vnp_transaction_no)
+                VALUES (%s, %s, %s, %s, 'success', %s, %s, %s)
                 """,
-                (user_id, order_id, amount, tokens),
+                (user_id, order_id, amount, tokens, bank_code, card_type, vnp_transaction_no),
             )
         conn.commit()
     finally:
