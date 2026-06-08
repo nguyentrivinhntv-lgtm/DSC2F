@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.config import get_settings
 from app.utils.vnpay import vnpay
-from app.models.base_db import _get_connection
+from app.models.base_db import _get_connection, save_payment_log
 from app.security.security import get_current_user
 
 router = APIRouter(prefix="/payment", tags=["Payment"])
@@ -68,6 +68,10 @@ async def vnpay_return(request: Request):
                 conn.commit()
             finally:
                 conn.close()
+
+            # Lưu lịch sử thanh toán
+            amount_paid = int(inputData.get('vnp_Amount', '0')) // 100
+            save_payment_log(user_id, order_id, amount_paid, tokens_to_add)
 
             # 3. Chuyển hướng người dùng về Frontend kèm thông báo thành công
             return RedirectResponse(url=f"http://localhost:5500/app.html?payment=success&tokens={tokens_to_add}")

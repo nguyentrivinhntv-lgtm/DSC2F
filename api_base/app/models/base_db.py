@@ -220,6 +220,20 @@ def init_db(db_path: Optional[str] = None) -> None:
                 ) ENGINE=InnoDB
                 """
             )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS payment_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    order_id VARCHAR(100) NOT NULL,
+                    amount INT NOT NULL,
+                    tokens INT NOT NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT 'success',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                ) ENGINE=InnoDB
+                """
+            )
         conn.commit()
     finally:
         conn.close()
@@ -716,5 +730,48 @@ def update_user_password_by_username(username: str, hashed_password: str, db_pat
             updated = cur.rowcount
         conn.commit()
         return updated == 1
+    finally:
+        conn.close()
+
+
+def save_payment_log(user_id: int, order_id: str, amount: int, tokens: int, db_path: Optional[str] = None):
+    """Lưu lịch sử thanh toán vào bảng payment_logs."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO payment_logs (user_id, order_id, amount, tokens, status)
+                VALUES (%s, %s, %s, %s, 'success')
+                """,
+                (user_id, order_id, amount, tokens),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_payment_history(user_id: int, is_admin: bool = False, db_path: Optional[str] = None) -> list:
+    """Lấy lịch sử thanh toán. Admin lấy tất cả, user chỉ lấy của mình."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            if is_admin:
+                cur.execute(
+                    """SELECT p.*, u.username
+                       FROM payment_logs p
+                       JOIN users u ON p.user_id = u.id
+                       ORDER BY p.created_at DESC"""
+                )
+            else:
+                cur.execute(
+                    """SELECT p.*, u.username
+                       FROM payment_logs p
+                       JOIN users u ON p.user_id = u.id
+                       WHERE p.user_id = %s
+                       ORDER BY p.created_at DESC""",
+                    (user_id,),
+                )
+            return cur.fetchall() or []
     finally:
         conn.close()

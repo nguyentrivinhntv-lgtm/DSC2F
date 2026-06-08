@@ -52,6 +52,7 @@
             <button class="tab-btn" data-tab="tab-tokens"><i class="fa-solid fa-coins"></i> <span data-i18n="tab_tokens">Nạp Token</span></button>
             <button class="tab-btn" data-tab="tab-users"><i class="fa-solid fa-users-gear"></i> <span data-i18n="tab_users">Quản lý User</span></button>
             <button class="tab-btn" data-tab="tab-history"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_history">Lịch sử</span></button>
+            <button class="tab-btn" data-tab="tab-payment-history"><i class="fa-solid fa-money-bill-transfer"></i> Lịch sử Mua Hàng</button>
             <button class="tab-btn" data-tab="tab-customize"><i class="fa-solid fa-palette"></i> <span data-i18n="tab_ui">Tùy chỉnh giao diện</span></button>
 
         </div>
@@ -212,6 +213,31 @@
                         <tbody id="admin-history-body">
                             <tr>
                                 <td colspan="6" class="loading-cell" data-i18n="loading_data">Đang tải dữ liệu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB: LỊCH SỬ MUA HÀNG -->
+        <div id="tab-payment-history" class="tab-content">
+            <section class="glass-panel border-frame admin-table-wrap">
+                <div class="table-responsive">
+                    <table class="history-table admin-table">
+                        <thead>
+                            <tr>
+                                <th>Thời gian</th>
+                                <th>User</th>
+                                <th>Mã giao dịch</th>
+                                <th>Số tiền (VND)</th>
+                                <th>Tokens</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-payment-history-body">
+                            <tr>
+                                <td colspan="6" class="loading-cell">Đang tải dữ liệu...</td>
                             </tr>
                         </tbody>
                     </table>

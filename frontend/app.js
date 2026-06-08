@@ -1022,6 +1022,10 @@ function switchDashTab(tab) {
     if (tab === 'history') {
         fetchHistory();
     }
+    
+    if (tab === 'payment-history') {
+        fetchPaymentHistory();
+    }
 
     if (tab === 'analytics') {
         if (cachedHistoryItems.length > 0) {
@@ -1329,6 +1333,11 @@ function initWorkspaceSearch() {
 
 if (historyRefreshBtn) {
     historyRefreshBtn.addEventListener('click', () => fetchHistory());
+}
+
+const paymentHistoryRefreshBtn = document.getElementById('payment-history-refresh-btn');
+if (paymentHistoryRefreshBtn) {
+    paymentHistoryRefreshBtn.addEventListener('click', () => fetchPaymentHistory());
 }
 
 if (batchDrop) {

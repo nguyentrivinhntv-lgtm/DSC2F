@@ -72,8 +72,61 @@ function initTabs() {
             btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'tab-payment-history') {
+                fetchPaymentHistory();
+            }
         });
     });
+}
+
+async function fetchPaymentHistory() {
+    const historyBody = document.getElementById('admin-payment-history-body');
+    if (!historyBody) return;
+
+    historyBody.innerHTML = '<tr><td colspan="6" class="loading-cell">Đang tải dữ liệu...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_URL}/payment-history/?all=true`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        
+        if (res.status === 401 || res.status === 403) {
+            logout();
+            return;
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+            if (!data.items || data.items.length === 0) {
+                historyBody.innerHTML = '<tr><td colspan="6" class="loading-cell">Chưa có giao dịch mua hàng nào.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            data.items.forEach(item => {
+                const dateStr = new Date(item.created_at).toLocaleString('vi-VN');
+                html += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td style="font-weight:600;">${item.username || `User #${item.user_id}`}</td>
+                        <td>${item.order_id}</td>
+                        <td>${item.amount.toLocaleString('vi-VN')} đ</td>
+                        <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
+                        <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
+                    </tr>
+                `;
+            });
+            historyBody.innerHTML = html;
+        } else {
+            historyBody.innerHTML = `<tr><td colspan="6" class="loading-cell">Lỗi: ${data.detail || 'Không lấy được dữ liệu'}</td></tr>`;
+        }
+    } catch (e) {
+        console.error("fetchPaymentHistory error:", e);
+        historyBody.innerHTML = '<tr><td colspan="6" class="loading-cell">Lỗi kết nối tới API.</td></tr>';
+    }
 }
 
 function modelLabel(modelType) {

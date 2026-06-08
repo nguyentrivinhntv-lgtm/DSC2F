@@ -176,6 +176,10 @@
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span data-i18n="tab_history">Lịch Sử Chi Tiết</span>
                         </button>
+                        <button class="sidebar-item" data-tab="payment-history">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                            <span data-i18n="tab_payment_history">Lịch Sử Mua Hàng</span>
+                        </button>
 
                         <button class="sidebar-item" data-tab="settings">
                             <i class="fa-solid fa-sliders"></i>
@@ -444,7 +448,29 @@
                             </div>
                         </div>
 
-
+                        <div class="tab-content hidden" id="payment-history-tab">
+                            <div class="history-container white-card border-frame">
+                                <h3><i class="fa-solid fa-money-bill-transfer text-gradient"></i> Lịch Sử Mua Hàng <span id="payment-history-badge" class="badge"></span></h3>
+                                <div class="action-row">
+                                    <button id="payment-history-refresh-btn" class="btn-icon" title="Làm mới lịch sử"><i class="fa-solid fa-rotate-right"></i></button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Thời Gian</th>
+                                                <th>Mã Giao Dịch</th>
+                                                <th>Số Tiền (VND)</th>
+                                                <th>Tokens Nhận</th>
+                                                <th>Trạng Thái</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payment-history-tbody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="tab-content hidden" id="settings-tab">
                             <div class="white-card border-frame feature-card">
