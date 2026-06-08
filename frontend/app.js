@@ -999,6 +999,7 @@ function switchDashTab(tab) {
         'batch-scan',
         'analytics',
         'history',
+        'payment-history',
         'api-management',
         'settings'
     ];
