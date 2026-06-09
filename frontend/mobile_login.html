@@ -5,30 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Đăng nhập Google</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #FCFAF7; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
-        h2 { color: #374151; margin-bottom: 20px; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 20px auto; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #FCFAF7; margin: 0; }
+        .container { background: white; padding: 36px 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; max-width: 360px; width: 90%; }
+        h2 { color: #374151; margin-bottom: 8px; font-size: 1.3rem; }
+        .subtitle { color: #6b7280; font-size: 0.9rem; margin-bottom: 24px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0ea5a4; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 24px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #error-msg { color: #ef4444; margin-top: 15px; }
+        #error-msg { color: #ef4444; margin-top: 15px; font-size: 0.9rem; }
+        .success-container { text-align: center; }
+        .success-icon { font-size: 56px; color: #0ea5a4; margin-bottom: 16px; }
+        .success-text { color: #162437; font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+        .success-sub { color: #64748b; font-size: 0.9rem; }
+        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 24px; background: #f3f4f6; color: #374151; border-radius: 8px; text-decoration: none; font-size: 0.9rem; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Đăng nhập để tiếp tục</h2>
+        <h2>Đăng nhập Google</h2>
+        <p class="subtitle">Đăng nhập để tiếp tục sử dụng ứng dụng</p>
         <div id="google-btn"></div>
         <div id="loading" class="spinner" style="display: none;"></div>
+        <div id="success-view" class="success-container" style="display: none;">
+            <div class="success-icon">✅</div>
+            <div class="success-text">Đăng nhập thành công!</div>
+            <div class="success-sub">Đang chuyển về ứng dụng...</div>
+        </div>
         <div id="error-msg"></div>
     </div>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         const API_URL = "https://cnn-detection-api.onrender.com";
+        const isInWebView = !!(window.FlutterBridge);
 
         window.onload = async function () {
             try {
                 const res = await fetch(`${API_URL}/auth/google/config`);
                 const cfg = await res.json();
+
+                if (!cfg.enabled || !cfg.client_id) {
+                    document.getElementById('error-msg').innerText = "Google Sign-In chưa được bật trên server.";
+                    return;
+                }
 
                 window.google.accounts.id.initialize({
                     client_id: cfg.client_id,
@@ -40,7 +59,7 @@
                     { theme: "outline", size: "large", width: 280 }
                 );
             } catch (e) {
-                document.getElementById('error-msg').innerText = "Lỗi tải cấu hình.";
+                document.getElementById('error-msg').innerText = "Lỗi tải cấu hình Google Sign-In.";
             }
         };
 
@@ -58,28 +77,22 @@
                 
                 const data = await res.json();
                 if (res.ok && data.access_token) {
-                    const deepLink = `phatgiaochatbot://login?token=${data.access_token}`;
-                    const intentLink = `intent://login?token=${data.access_token}#Intent;scheme=phatgiaochatbot;package=com.app_duyvo26.app_web_view;end`;
-                    
-                    // Thử trigger intent link tự động bằng thẻ a
-                    const a = document.createElement('a');
-                    a.href = intentLink;
-                    document.body.appendChild(a);
-                    a.click();
-
-                    // Fallback: Hiển thị nút bấm để user tự bấm nếu trình duyệt chặn tự động chuyển hướng
                     document.getElementById('loading').style.display = 'none';
-                    document.getElementById('google-btn').innerHTML = `
-                        <a href="${intentLink}" style="display:inline-block; padding:12px 24px; background:#4f46e5; color:white; text-decoration:none; border-radius:8px; font-weight:bold; font-size:16px; margin-bottom:15px;">
-                            <i class="fa-solid fa-bolt"></i> Mở App (Cách 1)
-                        </a>
-                        <br>
-                        <a href="${deepLink}" style="display:inline-block; padding:12px 24px; background:#10b981; color:white; text-decoration:none; border-radius:8px; font-weight:bold; font-size:16px;">
-                            <i class="fa-solid fa-arrow-left"></i> Mở App (Cách 2)
-                        </a>
-                        <p style="color:#6b7280; font-size:14px; margin-top:10px;">Đăng nhập thành công! Hãy bấm Cách 1. Nếu không được, hãy thử Cách 2.</p>
-                    `;
-                    document.getElementById('google-btn').style.display = 'block';
+
+                    if (isInWebView) {
+                        // ✅ Trong WebView: gửi token trực tiếp qua FlutterBridge
+                        document.getElementById('success-view').style.display = 'block';
+                        window.FlutterBridge.postMessage('GOOGLE_TOKEN:' + JSON.stringify({
+                            access_token: data.access_token,
+                            username: data.username || '',
+                            role: data.role || 'user',
+                            prediction_tokens: data.prediction_tokens || 0
+                        }));
+                    } else {
+                        // Trường hợp mở từ Chrome Custom Tabs (fallback)
+                        document.getElementById('success-view').style.display = 'block';
+                        window.location.replace('cnndetection://callback?token=' + encodeURIComponent(data.access_token));
+                    }
                 } else {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('google-btn').style.display = 'block';

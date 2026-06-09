@@ -1,9 +1,9 @@
 import 'dart:math';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'config.dart';
 
@@ -190,39 +190,32 @@ class _WebViewScreenState extends State<WebViewScreen> {
     
     if (data == 'LOGOUT') {
       _processLogout();
-    } else if (data == 'LOGIN_GOOGLE') {
-      _startGoogleLogin();
     } else if (data.startsWith('TOKEN:')) {
-      // Web đã đăng nhập Google thành công, lưu token
+      // Web đã đăng nhập (username/password) thành công, lưu token
       final token = data.substring(6); // Bỏ prefix 'TOKEN:'
       if (token.isNotEmpty) {
-        debugPrint('==> 🎉 Google login thành công, lưu token');
+        debugPrint('==> 🎉 Login thành công, lưu token');
         await _saveToken(token);
+      }
+    } else if (data.startsWith('GOOGLE_TOKEN:')) {
+      // ✅ Google login thành công từ mobile_login.html trong WebView
+      final jsonStr = data.substring(13); // Bỏ prefix 'GOOGLE_TOKEN:'
+      try {
+        final tokenData = json.decode(jsonStr);
+        final token = tokenData['access_token'] as String?;
+        if (token != null && token.isNotEmpty) {
+          debugPrint('==> 🎉 Google login thành công, lưu token và chuyển về dashboard');
+          await _saveToken(token);
+          // Inject token vào localStorage trước rồi chuyển về dashboard
+          _loadAppUrl(token);
+        }
+      } catch (e) {
+        debugPrint('==> ❌ Lỗi parse GOOGLE_TOKEN: $e');
       }
     }
   }
 
   // --- Core Logic ---
-
-  Future<void> _startGoogleLogin() async {
-    try {
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final url = '${AppConfig.webBaseUrl}/app.html?login_mode=true&t=$timestamp';
-      final result = await FlutterWebAuth2.authenticate(
-        url: url,
-        callbackUrlScheme: 'cnndetection',
-      );
-      
-      final token = Uri.parse(result).queryParameters['token'];
-      if (token != null && token.isNotEmpty) {
-        debugPrint('==> 🎉 Google login CCT thành công, nhận token');
-        await _saveToken(token);
-        _loadAppUrl(token);
-      }
-    } catch (e) {
-      debugPrint('Google Login CCT bị hủy hoặc lỗi: $e');
-    }
-  }
 
   Future<void> _processLogout() async {
     final prefs = await SharedPreferences.getInstance();

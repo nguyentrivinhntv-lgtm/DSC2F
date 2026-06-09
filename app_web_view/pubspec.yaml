@@ -44,7 +44,9 @@ dependencies:
 
   # Lưu token an toàn
   shared_preferences: ^2.3.0
-  flutter_web_auth_2: ^5.0.3
+
+  # Mở URL bên ngoài
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
