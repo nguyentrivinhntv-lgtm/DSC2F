@@ -162,10 +162,50 @@ document.addEventListener('click', (e) => {
 });
 
 // --- Init Application ---
-function init() {
+async function init() {
     fetchModels();
     syncHeaderNavByRole();
     initGoogleSignIn();
+
+    // Kiểm tra nếu Flutter truyền token qua URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const flutterToken = urlParams.get('flutter_token');
+    if (flutterToken) {
+        // Xóa token khỏi URL để tránh lộ
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Lưu token vào localStorage và set auth state
+        authToken = flutterToken;
+        localStorage.setItem('token', authToken);
+        localStorage.setItem('access_token', authToken);
+        
+        // Lấy thông tin user từ API /auth/me
+        try {
+            const meRes = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (meRes.ok) {
+                const meData = await meRes.json();
+                authUser = meData.username;
+                authRole = meData.role || 'user';
+                setAuthPredictionTokens(meData.prediction_tokens);
+                localStorage.setItem('user', authUser);
+                localStorage.setItem('role', authRole);
+                showDashboard();
+            } else {
+                // Token hết hạn hoặc không hợp lệ
+                localStorage.removeItem('token');
+                localStorage.removeItem('access_token');
+                authToken = null;
+                showAuth();
+            }
+        } catch(e) {
+            console.error('Failed to fetch user profile:', e);
+            showAuth();
+        }
+        return;
+    }
+
     if (authToken && authUser) {
         showDashboard();
     } else {
@@ -1537,11 +1577,25 @@ window.addEventListener('flutter_token_ready', async (e) => {
     const token = e.detail.token;
     if (token) {
         localStorage.setItem('token', token);
+        localStorage.setItem('access_token', token);
         authToken = token;
-        await fetchUserProfile();
-        document.getElementById('auth-section').classList.remove('active');
-        document.getElementById('dashboard-section').classList.add('active');
-        updateHeaderNav();
+        
+        try {
+            const meRes = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (meRes.ok) {
+                const meData = await meRes.json();
+                authUser = meData.username;
+                authRole = meData.role || 'user';
+                setAuthPredictionTokens(meData.prediction_tokens);
+                localStorage.setItem('user', authUser);
+                localStorage.setItem('role', authRole);
+                showDashboard();
+            }
+        } catch(e) {
+            console.error('flutter_token_ready: Failed to fetch profile', e);
+        }
     }
 });
 

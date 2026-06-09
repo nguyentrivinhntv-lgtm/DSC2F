@@ -135,9 +135,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
   /// Load trang web chính với token (nếu có)
   void _loadAppUrl(String? token) {
-    final url = token != null 
-        ? '${AppConfig.webBaseUrl}/app.html' 
-        : AppConfig.webBaseUrl;
+    String url;
+    if (token != null) {
+      // Truyền token qua URL param để app.js có thể đọc ngay lập tức khi init
+      final encodedToken = Uri.encodeComponent(token);
+      url = '${AppConfig.webBaseUrl}/app.html?flutter_token=$encodedToken';
+    } else {
+      url = AppConfig.webBaseUrl;
+    }
     _controller.loadRequest(Uri.parse(url));
   }
 
