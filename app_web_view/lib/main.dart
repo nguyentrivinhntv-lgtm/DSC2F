@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Thiết lập giao diện hệ thống (Status Bar)
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -18,7 +18,6 @@ void main() async {
     ),
   );
 
-  // Lấy token đã lưu (nếu có)
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('access_token');
 
@@ -29,7 +28,7 @@ class PhatGiaoApp extends StatelessWidget {
   final String? initialToken;
   
   static final List<Color> _brandColors = [
-    const Color(0xFFB7791F), // Vàng Phật Giáo
+    const Color(0xFFB7791F),
     const Color(0xFF1565C0), 
     const Color(0xFF2E7D32),
     const Color(0xFFC62828), 
@@ -73,7 +72,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
   double _loadingProgress = 0;
   String? _activeToken;
 
-  /// Danh sách domain được phép điều hướng trong WebView
   static const _allowedDomains = [
     'accounts.google.com',
     'accounts.youtube.com',
@@ -92,8 +90,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _activeToken = widget.token;
     _initWebView();
   }
-
-  // --- WebView Initialization ---
 
   void _initWebView() {
     _controller = WebViewController()
@@ -123,9 +119,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _loadAppUrl(_activeToken);
   }
 
-  // --- Helper Methods ---
-
-  /// Thiết lập cookie định danh để Web nhận biết môi trường App
   Future<void> _setupAppCookie() async {
     final domain = Uri.parse(AppConfig.webBaseUrl).host;
     await WebViewCookieManager().setCookie(
@@ -133,11 +126,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
     );
   }
 
-  /// Load trang web chính với token (nếu có)
+  /// Load trang web - truyền token qua URL param để app.js đọc ngay
   void _loadAppUrl(String? token) {
     String url;
     if (token != null) {
-      // Truyền token qua URL param để app.js có thể đọc ngay lập tức khi init
       final encodedToken = Uri.encodeComponent(token);
       url = '${AppConfig.webBaseUrl}/app.html?flutter_token=$encodedToken';
     } else {
@@ -146,21 +138,18 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _controller.loadRequest(Uri.parse(url));
   }
 
-  /// Cho phép điều hướng đến các domain cần thiết (web app + Google OAuth)
   NavigationDecision _handleNavigation(NavigationRequest request) {
     final url = request.url;
     final uri = Uri.tryParse(url);
 
-    // ✅ Cho phép URL của web app
     if (url.startsWith(AppConfig.webBaseUrl)) {
       return NavigationDecision.navigate;
     }
 
-    // ✅ Cho phép Google OAuth và các resource cần thiết
     if (uri != null) {
       final host = uri.host;
       if (host.contains('google.com') || host.contains('googleusercontent.com') || host.contains('gstatic.com') || host.contains('googleapis.com')) {
-          return NavigationDecision.navigate;
+        return NavigationDecision.navigate;
       }
       for (final domain in _allowedDomains) {
         if (host == domain || host.endsWith('.$domain')) {
@@ -169,8 +158,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       }
     }
 
-    if (url.startsWith(AppConfig.webBaseUrl) || 
-        url.startsWith('https://accounts.google.com') ||
+    if (url.startsWith('https://accounts.google.com') ||
         url.startsWith('https://dsc-2-f.vercel.app')) {
       return NavigationDecision.navigate;
     }
@@ -183,51 +171,63 @@ class _WebViewScreenState extends State<WebViewScreen> {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      debugPrint('Could not launch $url');
     }
   }
 
-  /// Xử lý các thông điệp gửi từ JavaScript qua FlutterBridge
+  /// Xử lý thông điệp từ JavaScript qua FlutterBridge
   void _handleWebMessage(JavaScriptMessage message) async {
     final data = message.message;
     debugPrint('==> Bridge received: $data');
     
     if (data == 'LOGOUT') {
       _processLogout();
+    } else if (data == 'LOGIN_GOOGLE') {
+      // ✅ Mở Google login trong Chrome Custom Tabs (trình duyệt ngoài)
+      _startGoogleLogin();
     } else if (data.startsWith('TOKEN:')) {
-      // Web đã đăng nhập (username/password) thành công, lưu token
-      final token = data.substring(6); // Bỏ prefix 'TOKEN:'
+      final token = data.substring(6);
       if (token.isNotEmpty) {
         debugPrint('==> 🎉 Login thành công, lưu token');
         await _saveToken(token);
       }
-    } else if (data.startsWith('GOOGLE_TOKEN:')) {
-      // ✅ Google login thành công từ mobile_login.html trong WebView
-      final jsonStr = data.substring(13); // Bỏ prefix 'GOOGLE_TOKEN:'
-      try {
-        final tokenData = json.decode(jsonStr);
-        final token = tokenData['access_token'] as String?;
-        if (token != null && token.isNotEmpty) {
-          debugPrint('==> 🎉 Google login thành công, lưu token và chuyển về dashboard');
-          await _saveToken(token);
-          // Inject token vào localStorage trước rồi chuyển về dashboard
-          _loadAppUrl(token);
-        }
-      } catch (e) {
-        debugPrint('==> ❌ Lỗi parse GOOGLE_TOKEN: $e');
-      }
     }
   }
 
-  // --- Core Logic ---
+  /// Mở mobile_login.html trong Chrome Custom Tabs để đăng nhập Google
+  /// FlutterWebAuth2 sẽ tự động bắt redirect cnndetection://callback?token=...
+  Future<void> _startGoogleLogin() async {
+    try {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final url = '${AppConfig.webBaseUrl}/mobile_login.html?t=$timestamp';
+      
+      debugPrint('==> Mở Chrome Custom Tabs: $url');
+      
+      final result = await FlutterWebAuth2.authenticate(
+        url: url,
+        callbackUrlScheme: 'cnndetection',
+      );
+      
+      debugPrint('==> Callback URL nhận được: $result');
+      
+      final callbackUri = Uri.parse(result);
+      final token = callbackUri.queryParameters['token'];
+      
+      if (token != null && token.isNotEmpty) {
+        debugPrint('==> 🎉 Google login thành công qua CCT, nhận token');
+        await _saveToken(token);
+        _loadAppUrl(token);
+      }
+    } catch (e) {
+      debugPrint('==> Google Login bị hủy hoặc lỗi: $e');
+    }
+  }
 
   Future<void> _processLogout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
     
     await WebViewCookieManager().clearCookies();
-    await _setupAppCookie(); // Re-set mobile identifier after clear
+    await _setupAppCookie();
 
     setState(() => _activeToken = null);
     _loadAppUrl(null);
@@ -288,7 +288,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
 }
 
 // ============================================================
-// ERROR VIEW - Hiển thị khi mất kết nối
+// ERROR VIEW
 // ============================================================
 class _ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
@@ -305,27 +305,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.cloud_off_rounded,
-              size: 80,
-              color: colorScheme.primary.withOpacity(0.6),
-            ),
+            Icon(Icons.cloud_off_rounded, size: 80, color: colorScheme.primary.withOpacity(0.6)),
             const SizedBox(height: 24),
-            Text(
-              'Mất kết nối Internet',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
+            Text('Mất kết nối Internet', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface)),
             const SizedBox(height: 12),
-            Text(
-              'Không thể tải nội dung. Vui lòng kiểm tra lại đường truyền và thử lại.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
+            Text('Không thể tải nội dung. Vui lòng kiểm tra lại đường truyền và thử lại.', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: onRetry,
@@ -334,11 +318,8 @@ class _ErrorView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 32, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
             ),

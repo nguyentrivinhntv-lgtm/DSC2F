@@ -17,7 +17,6 @@
         .success-icon { font-size: 56px; color: #0ea5a4; margin-bottom: 16px; }
         .success-text { color: #162437; font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
         .success-sub { color: #64748b; font-size: 0.9rem; }
-        .back-btn { display: inline-block; margin-top: 20px; padding: 10px 24px; background: #f3f4f6; color: #374151; border-radius: 8px; text-decoration: none; font-size: 0.9rem; cursor: pointer; border: none; }
     </style>
 </head>
 <body>
@@ -37,7 +36,6 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script>
         const API_URL = "https://cnn-detection-api.onrender.com";
-        const isInWebView = !!(window.FlutterBridge);
 
         window.onload = async function () {
             try {
@@ -78,21 +76,31 @@
                 const data = await res.json();
                 if (res.ok && data.access_token) {
                     document.getElementById('loading').style.display = 'none';
-
-                    if (isInWebView) {
-                        // ✅ Trong WebView: gửi token trực tiếp qua FlutterBridge
-                        document.getElementById('success-view').style.display = 'block';
-                        window.FlutterBridge.postMessage('GOOGLE_TOKEN:' + JSON.stringify({
-                            access_token: data.access_token,
-                            username: data.username || '',
-                            role: data.role || 'user',
-                            prediction_tokens: data.prediction_tokens || 0
-                        }));
-                    } else {
-                        // Trường hợp mở từ Chrome Custom Tabs (fallback)
-                        document.getElementById('success-view').style.display = 'block';
-                        window.location.replace('cnndetection://callback?token=' + encodeURIComponent(data.access_token));
-                    }
+                    document.getElementById('success-view').style.display = 'block';
+                    
+                    // ✅ Redirect về app qua custom scheme
+                    // FlutterWebAuth2 CallbackActivity sẽ bắt URL này
+                    const callbackUrl = 'cnndetection://callback?token=' + encodeURIComponent(data.access_token);
+                    
+                    // Thử window.location.replace trước
+                    window.location.replace(callbackUrl);
+                    
+                    // Fallback: thử window.location.href sau 500ms
+                    setTimeout(() => {
+                        window.location.href = callbackUrl;
+                    }, 500);
+                    
+                    // Fallback cuối: hiện link để user bấm thủ công
+                    setTimeout(() => {
+                        document.getElementById('success-view').innerHTML = `
+                            <div style="font-size:56px; color:#0ea5a4; margin-bottom:16px;">✅</div>
+                            <div style="color:#162437; font-size:1.2rem; font-weight:600; margin-bottom:8px;">Đăng nhập thành công!</div>
+                            <a href="${callbackUrl}" 
+                               style="display:inline-block; margin-top:16px; padding:12px 28px; background:linear-gradient(135deg, #0ea5a4, #f59e0b); color:white; border-radius:50px; text-decoration:none; font-weight:700; font-size:15px;">
+                               Quay lại Ứng dụng
+                            </a>
+                        `;
+                    }, 2000);
                 } else {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('google-btn').style.display = 'block';
