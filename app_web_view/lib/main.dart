@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 import 'config.dart';
 
 void main() async {
@@ -126,15 +127,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
     );
   }
 
-  /// Load trang web - truyền token qua URL param để app.js đọc ngay
+  /// Load trang web chính
   void _loadAppUrl(String? token) {
-    String url;
-    if (token != null) {
-      final encodedToken = Uri.encodeComponent(token);
-      url = '${AppConfig.webBaseUrl}/app.html?flutter_token=$encodedToken';
-    } else {
-      url = AppConfig.webBaseUrl;
-    }
+    final url = token != null 
+        ? '${AppConfig.webBaseUrl}/app.html'
+        : AppConfig.webBaseUrl;
     _controller.loadRequest(Uri.parse(url));
   }
 
@@ -194,7 +191,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
   }
 
   /// Mở mobile_login.html trong Chrome Custom Tabs để đăng nhập Google
-  /// FlutterWebAuth2 sẽ tự động bắt redirect cnndetection://callback?token=...
   Future<void> _startGoogleLogin() async {
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -215,11 +211,43 @@ class _WebViewScreenState extends State<WebViewScreen> {
       if (token != null && token.isNotEmpty) {
         debugPrint('==> 🎉 Google login thành công qua CCT, nhận token');
         await _saveToken(token);
-        _loadAppUrl(token);
+        
+        // Gọi /auth/me từ Dart để lấy thông tin user
+        final userInfo = await _fetchUserInfo(token);
+        
+        // Load app.html (không cần flutter_token param)
+        _controller.loadRequest(Uri.parse('${AppConfig.webBaseUrl}/app.html'));
+        
+        // Lưu user info để inject sau khi page load xong
+        _pendingUserInfo = userInfo;
       }
     } catch (e) {
       debugPrint('==> Google Login bị hủy hoặc lỗi: $e');
     }
+  }
+
+  // Thông tin user chờ inject sau khi page load
+  Map<String, dynamic>? _pendingUserInfo;
+
+  /// Gọi /auth/me API từ Dart để lấy thông tin user
+  Future<Map<String, dynamic>?> _fetchUserInfo(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/auth/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        debugPrint('==> User info: ${data['username']} (${data['role']})');
+        return data;
+      } else {
+        debugPrint('==> /auth/me failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('==> /auth/me error: $e');
+    }
+    return null;
   }
 
   Future<void> _processLogout() async {
@@ -229,7 +257,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
     await WebViewCookieManager().clearCookies();
     await _setupAppCookie();
 
-    setState(() => _activeToken = null);
+    setState(() {
+      _activeToken = null;
+      _pendingUserInfo = null;
+    });
     _loadAppUrl(null);
   }
 
@@ -239,15 +270,41 @@ class _WebViewScreenState extends State<WebViewScreen> {
     setState(() => _activeToken = token);
   }
 
+  /// Inject toàn bộ auth data vào localStorage của WebView
   Future<void> _injectTokenToWeb(String token) async {
+    final userInfo = _pendingUserInfo;
+    final username = userInfo?['username'] ?? '';
+    final role = userInfo?['role'] ?? 'user';
+    final predictionTokens = userInfo?['prediction_tokens'] ?? 0;
+
     await _controller.runJavaScript('''
       try {
         localStorage.setItem('access_token', '$token');
         localStorage.setItem('token', '$token');
+        localStorage.setItem('user', '$username');
+        localStorage.setItem('role', '$role');
+        localStorage.setItem('prediction_tokens', '$predictionTokens');
+        
+        // Cập nhật biến JS trong app.js
+        if (typeof authToken !== 'undefined') {
+          authToken = '$token';
+          authUser = '$username';
+          authRole = '$role';
+        }
+        
+        // Gọi showDashboard nếu có
+        if (typeof showDashboard === 'function') {
+          showDashboard();
+        }
+        
+        // Dispatch event backup
         window.dispatchEvent(new CustomEvent('flutter_token_ready', { detail: { token: '$token' } }));
-        console.log('[Flutter] Token injected');
-      } catch(e) {}
+        console.log('[Flutter] All auth data injected: user=$username, role=$role');
+      } catch(e) { console.error('[Flutter] inject error:', e); }
     ''');
+    
+    // Reset pending info
+    _pendingUserInfo = null;
   }
 
   @override
