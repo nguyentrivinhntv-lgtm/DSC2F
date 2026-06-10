@@ -215,11 +215,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
         // Gọi /auth/me từ Dart để lấy thông tin user
         final userInfo = await _fetchUserInfo(token);
         
-        // Load app.html (không cần flutter_token param)
-        _controller.loadRequest(Uri.parse('${AppConfig.webBaseUrl}/app.html'));
-        
-        // Lưu user info để inject sau khi page load xong
+        // Cập nhật data
         _pendingUserInfo = userInfo;
+        
+        // Bơm data trực tiếp vào trang web đang chạy hiện tại
+        await _injectTokenToWeb(token);
       }
     } catch (e) {
       debugPrint('==> Google Login bị hủy hoặc lỗi: $e');
@@ -270,7 +270,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     setState(() => _activeToken = token);
   }
 
-  /// Inject toàn bộ auth data vào localStorage của WebView
+  /// Inject toàn bộ auth data vào localStorage của WebView và tải lại trang
   Future<void> _injectTokenToWeb(String token) async {
     final userInfo = _pendingUserInfo;
     final username = userInfo?['username'] ?? '';
@@ -285,21 +285,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
         localStorage.setItem('role', '$role');
         localStorage.setItem('prediction_tokens', '$predictionTokens');
         
-        // Cập nhật biến JS trong app.js
-        if (typeof authToken !== 'undefined') {
-          authToken = '$token';
-          authUser = '$username';
-          authRole = '$role';
-        }
+        console.log('[Flutter] Saved auth data. Reloading page...');
         
-        // Gọi showDashboard nếu có
-        if (typeof showDashboard === 'function') {
-          showDashboard();
-        }
-        
-        // Dispatch event backup
-        window.dispatchEvent(new CustomEvent('flutter_token_ready', { detail: { token: '$token' } }));
-        console.log('[Flutter] All auth data injected: user=$username, role=$role');
+        // Buộc tải lại trang để app.js đọc cấu hình mới từ localStorage
+        window.location.reload();
       } catch(e) { console.error('[Flutter] inject error:', e); }
     ''');
     
