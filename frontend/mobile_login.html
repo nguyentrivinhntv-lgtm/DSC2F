@@ -78,29 +78,27 @@
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('success-view').style.display = 'block';
                     
-                    // ✅ Redirect về app qua custom scheme
-                    // FlutterWebAuth2 CallbackActivity sẽ bắt URL này
                     const callbackUrl = 'cnndetection://callback?token=' + encodeURIComponent(data.access_token);
                     
-                    // Thử window.location.replace trước
-                    window.location.replace(callbackUrl);
-                    
-                    // Fallback: thử window.location.href sau 500ms
-                    setTimeout(() => {
-                        window.location.href = callbackUrl;
-                    }, 500);
-                    
-                    // Fallback cuối: hiện link để user bấm thủ công
+                    // Đặt fallback trước để đảm bảo nó vẫn hiện ra nếu redirect có văng lỗi
                     setTimeout(() => {
                         document.getElementById('success-view').innerHTML = `
                             <div style="font-size:56px; color:#0ea5a4; margin-bottom:16px;">✅</div>
                             <div style="color:#162437; font-size:1.2rem; font-weight:600; margin-bottom:8px;">Đăng nhập thành công!</div>
+                            <p style="color:#6b7280; font-size: 0.9rem; margin-bottom: 20px;">Hệ thống đang chuyển hướng. Nếu không tự động về ứng dụng, vui lòng bấm nút bên dưới.</p>
                             <a href="${callbackUrl}" 
-                               style="display:inline-block; margin-top:16px; padding:12px 28px; background:linear-gradient(135deg, #0ea5a4, #f59e0b); color:white; border-radius:50px; text-decoration:none; font-weight:700; font-size:15px;">
+                               style="display:inline-block; padding:12px 28px; background:linear-gradient(135deg, #0ea5a4, #f59e0b); color:white; border-radius:50px; text-decoration:none; font-weight:700; font-size:15px;">
                                Quay lại Ứng dụng
                             </a>
                         `;
-                    }, 2000);
+                    }, 500);
+
+                    // Chuyển hướng an toàn (không dùng replace vì Chrome Custom Tab dễ crash với Custom Scheme)
+                    try {
+                        window.location.href = callbackUrl;
+                    } catch (e) {
+                        console.error("Lỗi chuyển hướng:", e);
+                    }
                 } else {
                     document.getElementById('loading').style.display = 'none';
                     document.getElementById('google-btn').style.display = 'block';
