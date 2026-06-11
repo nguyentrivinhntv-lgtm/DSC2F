@@ -103,7 +103,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
           onPageStarted: (_) => setState(() { _isLoading = true; _hasError = false; }),
           onPageFinished: (_) {
             setState(() => _isLoading = false);
-            if (_activeToken != null) _injectTokenToWeb(_activeToken!);
+            if (_activeToken != null) {
+              _controller.runJavaScript('''
+                window.dispatchEvent(new CustomEvent('flutter_token_ready', { detail: { token: '$_activeToken' } }));
+              ''');
+            }
           },
           onWebResourceError: (error) {
             debugPrint('WebView Error: ${error.description}');
@@ -212,42 +216,14 @@ class _WebViewScreenState extends State<WebViewScreen> {
         debugPrint('==> 🎉 Google login thành công qua CCT, nhận token');
         await _saveToken(token);
         
-        // Gọi /auth/me từ Dart để lấy thông tin user
-        final userInfo = await _fetchUserInfo(token);
-        
-        // Cập nhật data
-        _pendingUserInfo = userInfo;
-        
-        // Bơm data trực tiếp vào trang web đang chạy hiện tại
-        await _injectTokenToWeb(token);
+        // Gửi token sang cho app.js xử lý bằng event
+        await _controller.runJavaScript('''
+          window.dispatchEvent(new CustomEvent('flutter_token_ready', { detail: { token: '$token' } }));
+        ''');
       }
     } catch (e) {
       debugPrint('==> Google Login bị hủy hoặc lỗi: $e');
     }
-  }
-
-  // Thông tin user chờ inject sau khi page load
-  Map<String, dynamic>? _pendingUserInfo;
-
-  /// Gọi /auth/me API từ Dart để lấy thông tin user
-  Future<Map<String, dynamic>?> _fetchUserInfo(String token) async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.apiBaseUrl}/auth/me'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        debugPrint('==> User info: ${data['username']} (${data['role']})');
-        return data;
-      } else {
-        debugPrint('==> /auth/me failed: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('==> /auth/me error: $e');
-    }
-    return null;
   }
 
   Future<void> _processLogout() async {
@@ -259,7 +235,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
 
     setState(() {
       _activeToken = null;
-      _pendingUserInfo = null;
     });
     _loadAppUrl(null);
   }
@@ -268,32 +243,6 @@ class _WebViewScreenState extends State<WebViewScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('access_token', token);
     setState(() => _activeToken = token);
-  }
-
-  /// Inject toàn bộ auth data vào localStorage của WebView và tải lại trang
-  Future<void> _injectTokenToWeb(String token) async {
-    final userInfo = _pendingUserInfo;
-    final username = userInfo?['username'] ?? '';
-    final role = userInfo?['role'] ?? 'user';
-    final predictionTokens = userInfo?['prediction_tokens'] ?? 0;
-
-    await _controller.runJavaScript('''
-      try {
-        localStorage.setItem('access_token', '$token');
-        localStorage.setItem('token', '$token');
-        localStorage.setItem('user', '$username');
-        localStorage.setItem('role', '$role');
-        localStorage.setItem('prediction_tokens', '$predictionTokens');
-        
-        console.log('[Flutter] Saved auth data. Reloading page...');
-        
-        // Buộc tải lại trang để app.js đọc cấu hình mới từ localStorage
-        window.location.reload();
-      } catch(e) { console.error('[Flutter] inject error:', e); }
-    ''');
-    
-    // Reset pending info
-    _pendingUserInfo = null;
   }
 
   @override
