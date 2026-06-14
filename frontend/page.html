@@ -134,13 +134,44 @@
             background: linear-gradient(90deg, rgba(51,65,85,0.5) 25%, rgba(71,85,105,0.8) 50%, rgba(51,65,85,0.5) 75%);
             background-size: 200% 100%;
         }
+
+        /* ===== LANDING HEADER & FOOTER ===== */
+        .landing-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 14px 5%; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s, box-shadow 0.3s; }
+        .landing-header.scrolled { background: rgba(255, 255, 255, 0.92); box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .brand-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--gradient, linear-gradient(135deg, #0ea5a4 0%, #0891b2 100%)); display: grid; place-items: center; color: #fff; font-size: 1.1rem; }
+        .brand h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--text); }
+        .brand p { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
+        .header-cta { padding: 10px 24px; font-size: 0.92rem; font-weight: 600; border-radius: 50px; background: var(--gradient, linear-gradient(135deg, #0ea5a4 0%, #0891b2 100%)); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.3s, box-shadow 0.3s; border: none; cursor: pointer; }
+        .header-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,164,0.3); color: #fff; }
+        
+        .desktop-nav .nav-links { list-style: none; display: flex; gap: 32px; align-items: center; margin: 0; padding: 0; }
+        .desktop-nav .nav-links a { text-decoration: none; color: var(--text); font-weight: 600; font-size: 0.95rem; transition: color 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .desktop-nav .nav-links a:hover { color: var(--primary, #0ea5a4); }
+        
+        .landing-footer { position: relative; z-index: 2; border-top: 1px solid var(--border); padding: 60px 5% 30px; background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(8px); }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; }
+        .footer-brand-block h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; color: var(--text); }
+        .footer-brand-block p { color: var(--text-muted); font-size: 0.88rem; line-height: 1.6; }
+        .footer-col h4 { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 16px; }
+        .footer-links-list { list-style: none; display: flex; flex-direction: column; gap: 8px; padding: 0; }
+        .footer-links-list a { text-decoration: none; color: var(--text-muted); font-size: 0.9rem; transition: color 0.2s; }
+        .footer-links-list a:hover { color: var(--primary, #0ea5a4); }
+        .footer-bottom-bar { max-width: 1200px; margin: 30px auto 0; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); }
+
+        @media (max-width: 768px) {
+            .footer-grid { grid-template-columns: 1fr; gap: 30px; }
+            .desktop-nav { display: none; }
+            .page-title { font-size: 2.2rem; }
+            .page-hero { padding-top: 120px; }
+        }
     </style>
 </head>
 <body>
     <div class="bg-mesh"></div>
 
-    <nav class="main-nav">
-        <div class="nav-brand">
+    <header class="landing-header">
+        <div class="brand">
             <div class="brand-icon">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
@@ -150,14 +181,14 @@
             </div>
         </div>
         
-        <ul class="nav-links">
-            <li><a href="index.html"><i class="fa-solid fa-house"></i> Quay về trang chủ</a></li>
-        </ul>
+        <nav class="desktop-nav">
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fa-solid fa-house"></i> Quay về trang chủ</a></li>
+            </ul>
+        </nav>
 
-        <div class="nav-actions">
-            <a href="app.html" class="btn-login"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đi tới Dashboard</a>
-        </div>
-    </nav>
+        <a href="app.html" class="header-cta"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đi tới Dashboard</a>
+    </header>
 
     <main class="app-container" style="padding-top: 0;">
         <!-- Loading State -->
