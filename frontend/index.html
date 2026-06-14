@@ -1397,7 +1397,7 @@
             </div>
             <div class="footer-col">
                 <h4>Hỗ trợ</h4>
-                <ul class="footer-links-list">
+                <ul class="footer-links-list" id="footer-support-links">
                     <li><a href="#" onclick="openLegalModal('tab-support'); return false;">FAQ & Trợ giúp</a></li>
                     <li><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></li>
                 </ul>
@@ -2516,6 +2516,20 @@
                             a.href = `page.html?id=${p.slug}`;
                             a.textContent = p.title;
                             dropdown.appendChild(a);
+                        });
+                    }
+                    
+                    // Thêm vào Footer (cột Hỗ trợ)
+                    const footerLinks = document.getElementById('footer-support-links');
+                    if (footerLinks) {
+                        pages.forEach(p => {
+                            const li = document.createElement('li');
+                            const a = document.createElement('a');
+                            a.href = `page.html?id=${p.slug}`;
+                            a.textContent = p.title;
+                            li.appendChild(a);
+                            // Chèn vào đầu danh sách hỗ trợ
+                            footerLinks.insertBefore(li, footerLinks.firstChild);
                         });
                     }
                 }
