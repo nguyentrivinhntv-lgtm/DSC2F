@@ -252,6 +252,19 @@ def init_db(db_path: Optional[str] = None) -> None:
                 ) ENGINE=InnoDB
                 """
             )
+            
+            # Khởi tạo 5 trang mặc định nếu chưa có
+            cur.execute("SELECT COUNT(*) as cnt FROM pages")
+            if cur.fetchone()['cnt'] == 0:
+                default_pages = [
+                    ("chinh-sach-quyen-rieng-tu", "Chính sách Quyền riêng tư", "<h2>Chính sách Quyền riêng tư</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
+                    ("dieu-khoan-su-dung", "Điều khoản Sử dụng", "<h2>Điều khoản Sử dụng</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
+                    ("xoa-du-lieu", "Xóa Dữ liệu", "<h2>Xóa Dữ liệu</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
+                    ("chinh-sach-ai", "Chính sách AI", "<h2>Chính sách AI</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
+                    ("ho-tro-lien-he", "Hỗ trợ & Liên hệ", "<h2>Hỗ trợ & Liên hệ</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
+                ]
+                for p in default_pages:
+                    cur.execute("INSERT IGNORE INTO pages (slug, title, content, is_active) VALUES (%s, %s, %s, 1)", p)
 
             # Cố gắng thêm các cột VNPay nếu bảng payment_logs cũ chưa có
             try:
@@ -838,7 +851,13 @@ def get_active_pages(db_path: Optional[str] = None) -> list:
     try:
         with conn.cursor() as cur:
             cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages WHERE is_active = 1 ORDER BY created_at DESC")
-            return cur.fetchall()
+            rows = cur.fetchall()
+            for row in rows:
+                if hasattr(row.get("created_at"), "isoformat"):
+                    row["created_at"] = row["created_at"].isoformat()
+                if hasattr(row.get("updated_at"), "isoformat"):
+                    row["updated_at"] = row["updated_at"].isoformat()
+            return rows
     finally:
         conn.close()
 
