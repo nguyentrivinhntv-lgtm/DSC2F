@@ -36,6 +36,15 @@ from app.security.security import (
 )
 import random
 
+def require_admin(current_user: dict = Depends(get_current_user)):
+    """Dependency to check if current user is admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Chỉ admin mới có quyền thực hiện thao tác này."
+        )
+    return current_user
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
