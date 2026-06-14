@@ -960,7 +960,8 @@ async function loadPagesList() {
     
     try {
         const response = await fetch(`${API_URL}/pages?is_admin=true`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${token}` },
+            cache: 'no-store'
         });
         
         if (!response.ok) throw new Error('Không thể tải danh sách trang');
