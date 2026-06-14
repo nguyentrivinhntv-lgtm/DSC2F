@@ -8,39 +8,65 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css?v=3.0">
     <style>
-        .page-container {
-            max-width: 900px;
-            margin: 120px auto 60px;
-            padding: 40px;
-            border-radius: 16px;
-            min-height: 50vh;
-        }
-        .page-header {
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 20px;
+        .page-hero {
+            text-align: center;
+            padding: 160px 20px 60px;
+            position: relative;
+            z-index: 2;
         }
         .page-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 2.5rem;
+            font-size: 3.5rem;
+            font-weight: 800;
             color: var(--text);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+        .text-glow {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 0 30px var(--glow-primary));
         }
         .page-meta {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .page-container {
+            max-width: 900px;
+            margin: 0 auto 80px;
+            padding: 50px;
+            border-radius: 24px;
+            min-height: 40vh;
+            position: relative;
+            z-index: 2;
+            background: var(--bg-card);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border: 1px solid var(--border);
         }
         .page-content {
             font-family: 'Manrope', sans-serif;
             line-height: 1.8;
             color: var(--text);
-            font-size: 1.05rem;
+            font-size: 1.1rem;
         }
         .page-content h1, .page-content h2, .page-content h3 {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            margin-top: 1.5em;
-            margin-bottom: 0.5em;
+            margin-top: 1.8em;
+            margin-bottom: 0.8em;
             color: var(--text);
+            font-weight: 700;
         }
         .page-content p {
             margin-bottom: 1.2em;
@@ -133,40 +159,43 @@
         </div>
     </nav>
 
-    <main class="app-container">
-        <article class="glass-panel border-frame page-container" id="page-wrapper">
-            <!-- Loading State -->
-            <div id="loading-state">
-                <div class="skeleton skeleton-title"></div>
-                <div class="skeleton skeleton-meta"></div>
+    <main class="app-container" style="padding-top: 0;">
+        <!-- Loading State -->
+        <div id="loading-state" style="margin-top: 150px; text-align: center; max-width: 800px; margin-left: auto; margin-right: auto;">
+            <div class="skeleton skeleton-title" style="margin: 0 auto 20px;"></div>
+            <div class="skeleton skeleton-meta" style="margin: 0 auto 50px; border-radius: 30px; height: 35px;"></div>
+            
+            <article class="glass-panel border-frame page-container">
                 <div class="skeleton skeleton-text"></div>
                 <div class="skeleton skeleton-text"></div>
                 <div class="skeleton skeleton-text short"></div>
                 <div class="skeleton skeleton-text" style="margin-top:20px;"></div>
                 <div class="skeleton skeleton-text short"></div>
-            </div>
-            
-            <!-- Content State -->
-            <div id="content-state" style="display: none;">
-                <header class="page-header">
-                    <h1 class="page-title" id="page-title">Tiêu đề trang</h1>
-                    <div class="page-meta">
-                        <i class="fa-regular fa-calendar"></i> Cập nhật lần cuối: <span id="page-date">...</span>
-                    </div>
-                </header>
+            </article>
+        </div>
+        
+        <!-- Content State -->
+        <div id="content-state" style="display: none;">
+            <section class="page-hero">
+                <h1 class="page-title text-glow" id="page-title">Tiêu đề trang</h1>
+                <div class="page-meta">
+                    <i class="fa-regular fa-calendar"></i> Cập nhật: <span id="page-date">...</span>
+                </div>
+            </section>
+            <article class="glass-panel border-frame page-container" id="page-wrapper">
                 <div class="page-content" id="page-content">
                     <!-- Nội dung HTML được nhúng vào đây -->
                 </div>
-            </div>
-            
-            <!-- Error State -->
-            <div id="error-state" class="error-container" style="display: none;">
-                <i class="fa-regular fa-face-frown-open"></i>
-                <h2 id="error-title">Không tìm thấy trang</h2>
-                <p id="error-desc">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị gỡ bỏ.</p>
-                <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Quay lại Trang chủ</a>
-            </div>
-        </article>
+            </article>
+        </div>
+        
+        <!-- Error State -->
+        <div id="error-state" class="error-container" style="display: none; margin-top: 120px;">
+            <i class="fa-regular fa-circle-xmark"></i>
+            <h2 id="error-title" class="page-title">Không tìm thấy trang</h2>
+            <p id="error-desc" style="color: var(--text-muted); font-size: 1.1rem;">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị gỡ bỏ.</p>
+            <a href="index.html" class="btn-login" style="margin-top: 30px; display: inline-flex;"><i class="fa-solid fa-arrow-left"></i> Quay lại Trang chủ</a>
+        </div>
     </main>
 
     <!-- Footer -->
