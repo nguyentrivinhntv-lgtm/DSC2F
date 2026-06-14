@@ -2,6 +2,7 @@
 (async function loadSiteConfig() {
     try {
         const API = ['localhost', '127.0.0.1', ''].includes(window.location.hostname) ? 'http://localhost:8000' : 'https://cnn-detection-api.onrender.com';
+        window.API_BASE_URL = API; // Export globally for other scripts
         const res = await fetch(`${API}/site-config`);
         if (!res.ok) return;
         const c = await res.json();
