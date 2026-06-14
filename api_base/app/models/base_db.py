@@ -238,6 +238,21 @@ def init_db(db_path: Optional[str] = None) -> None:
                 """
             )
 
+            # Bảng pages dùng cho CMS
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS pages (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    slug VARCHAR(100) UNIQUE NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    content LONGTEXT,
+                    is_active TINYINT(1) DEFAULT 1,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB
+                """
+            )
+
             # Cố gắng thêm các cột VNPay nếu bảng payment_logs cũ chưa có
             try:
                 cur.execute("ALTER TABLE payment_logs ADD COLUMN bank_code VARCHAR(50)")
@@ -795,5 +810,95 @@ def get_payment_history(user_id: int, is_admin: bool = False, db_path: Optional[
                     (user_id,),
                 )
             return cur.fetchall() or []
+    finally:
+        conn.close()
+
+
+# ====================== CMS PAGES ======================
+
+def get_all_pages(db_path: Optional[str] = None) -> list:
+    """Lấy danh sách tất cả các trang CMS."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages ORDER BY created_at DESC")
+            rows = cur.fetchall()
+            for row in rows:
+                if hasattr(row.get("created_at"), "isoformat"):
+                    row["created_at"] = row["created_at"].isoformat()
+                if hasattr(row.get("updated_at"), "isoformat"):
+                    row["updated_at"] = row["updated_at"].isoformat()
+            return rows
+    finally:
+        conn.close()
+
+def get_active_pages(db_path: Optional[str] = None) -> list:
+    """Lấy danh sách các trang CMS đang active."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages WHERE is_active = 1 ORDER BY created_at DESC")
+            return cur.fetchall()
+    finally:
+        conn.close()
+
+def get_page_by_slug(slug: str, db_path: Optional[str] = None) -> Optional[dict]:
+    """Lấy chi tiết một trang CMS."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM pages WHERE slug = %s", (slug,))
+            row = cur.fetchone()
+            if row:
+                if hasattr(row.get("created_at"), "isoformat"):
+                    row["created_at"] = row["created_at"].isoformat()
+                if hasattr(row.get("updated_at"), "isoformat"):
+                    row["updated_at"] = row["updated_at"].isoformat()
+            return row
+    finally:
+        conn.close()
+
+def create_page(slug: str, title: str, content: str, is_active: int = 1, db_path: Optional[str] = None) -> bool:
+    """Tạo mới một trang CMS."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO pages (slug, title, content, is_active) VALUES (%s, %s, %s, %s)",
+                (slug, title, content, is_active)
+            )
+        conn.commit()
+        return True
+    except MySQLError as exc:
+        if getattr(exc, "args", [None])[0] == 1062:
+            raise ValueError(f"Slug '{slug}' đã tồn tại.")
+        raise
+    finally:
+        conn.close()
+
+def update_page(slug: str, title: str, content: str, is_active: int, db_path: Optional[str] = None) -> bool:
+    """Cập nhật một trang CMS."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE pages SET title = %s, content = %s, is_active = %s WHERE slug = %s",
+                (title, content, is_active, slug)
+            )
+            updated = cur.rowcount
+        conn.commit()
+        return updated > 0
+    finally:
+        conn.close()
+
+def delete_page(slug: str, db_path: Optional[str] = None) -> bool:
+    """Xóa một trang CMS."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM pages WHERE slug = %s", (slug,))
+            updated = cur.rowcount
+        conn.commit()
+        return updated > 0
     finally:
         conn.close()

@@ -662,23 +662,204 @@
             z-index: 1;
         }
 
+        /* ===== LEGAL SECTION ===== */
+        .legal-section {
+            position: relative;
+            z-index: 2;
+            padding: 100px 5%;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            border-top: 1px solid var(--border);
+        }
+
+        .legal-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .legal-card {
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: 20px;
+            padding: 28px 22px;
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+
+        .legal-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(14, 165, 164, 0.04), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .legal-card:hover::before { opacity: 1; }
+
+        .legal-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(14, 165, 164, 0.35);
+            box-shadow: 0 20px 50px rgba(14, 165, 164, 0.1);
+        }
+
+        .legal-card-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .legal-card-icon.teal { background: rgba(14, 165, 164, 0.1); color: var(--primary); }
+        .legal-card-icon.amber { background: rgba(245, 158, 11, 0.1); color: var(--accent); }
+        .legal-card-icon.violet { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        .legal-card-icon.rose { background: rgba(244, 63, 94, 0.1); color: #f43f5e; }
+        .legal-card-icon.sky { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
+
+        .legal-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative; z-index: 1;
+        }
+
+        .legal-card p {
+            color: var(--text-muted);
+            font-size: 0.84rem;
+            line-height: 1.6;
+            position: relative; z-index: 1;
+            flex: 1;
+        }
+
+        .legal-card-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-top: 14px;
+            width: fit-content;
+            position: relative; z-index: 1;
+        }
+
+        .legal-card-badge.required { background: rgba(14, 165, 164, 0.1); color: var(--primary); }
+        .legal-card-badge.warn { background: rgba(245, 158, 11, 0.1); color: var(--accent); }
+        .legal-card-badge.new { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        .legal-card-badge.info { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
+
+        .legal-card-arrow {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 14px;
+            position: relative; z-index: 1;
+            transition: gap 0.3s;
+        }
+
+        .legal-card:hover .legal-card-arrow { gap: 12px; }
+
         /* ===== FOOTER ===== */
         .landing-footer {
             position: relative;
             z-index: 2;
-            text-align: center;
-            padding: 40px 5%;
             border-top: 1px solid var(--border);
+            padding: 60px 5% 30px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-brand-block h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-brand-block p {
             color: var(--text-muted);
             font-size: 0.88rem;
+            line-height: 1.6;
+        }
+
+        .footer-col h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .footer-links-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .footer-links-list a {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links-list a:hover { color: var(--primary); }
+
+        .footer-bottom-bar {
+            max-width: 1200px;
+            margin: 30px auto 0;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            color: var(--text-muted);
         }
 
         /* ===== RESPONSIVE ===== */
+        @media (max-width: 1100px) {
+            .legal-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
         @media (max-width: 900px) {
             .features-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .steps { flex-direction: column; gap: 30px; }
             .steps::before { display: none; }
+            .legal-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
@@ -688,7 +869,206 @@
             .cta-box h2 { font-size: 1.8rem; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 20px; }
             .stat-item .stat-number { font-size: 1.8rem; }
+            .legal-grid { grid-template-columns: 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom-bar { flex-direction: column; gap: 6px; text-align: center; }
         }
+    
+        /* ===== NAV LINKS ===== */
+        .desktop-nav {
+            display: none;
+        }
+        @media (min-width: 900px) {
+            .desktop-nav {
+                display: flex;
+                flex: 1;
+                justify-content: center;
+                padding: 0 20px;
+            }
+            .nav-links {
+                display: flex;
+                gap: 20px;
+                list-style: none;
+            }
+            .nav-links a {
+                text-decoration: none;
+                color: var(--text-muted);
+                font-weight: 600;
+                font-size: 0.95rem;
+                padding: 8px 16px;
+                border-radius: 50px;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .nav-links a:hover {
+                color: var(--primary);
+                background: rgba(14, 165, 164, 0.08);
+            }
+            /* CMS dropdown */
+            .nav-dropdown {
+                position: relative;
+            }
+            .nav-dropdown-menu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                min-width: 180px;
+                display: none;
+                flex-direction: column;
+                padding: 8px 0;
+                z-index: 1000;
+            }
+            .nav-dropdown:hover .nav-dropdown-menu {
+                display: flex;
+            }
+            .nav-dropdown-menu a {
+                padding: 8px 20px;
+                border-radius: 0;
+                font-size: 0.9rem;
+            }
+            .nav-dropdown-menu a:hover {
+                background: rgba(14, 165, 164, 0.05);
+            }
+        }
+
+        /* ===== ABOUT SECTION ===== */
+        .about-section {
+            position: relative;
+            z-index: 2;
+            padding: 100px 5%;
+            background: rgba(255, 255, 255, 0.4);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .about-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .about-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border-strong);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            transition: transform 0.3s;
+        }
+        .about-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(14, 165, 164, 0.3);
+        }
+        .about-icon {
+            width: 60px; height: 60px;
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+        .about-icon.teal { background: rgba(14, 165, 164, 0.1); color: var(--primary); }
+        .about-icon.amber { background: rgba(245, 158, 11, 0.1); color: var(--accent); }
+        .about-icon.violet { background: rgba(129, 140, 248, 0.1); color: #818cf8; }
+        .about-card h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; }
+        .about-card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; }
+
+        /* ===== MODAL TABS ===== */
+        .legal-modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .legal-modal-overlay.active {
+            opacity: 1; pointer-events: auto;
+        }
+        .legal-modal-content {
+            width: 90%; max-width: 1200px; height: 90vh;
+            background: var(--bg);
+            border-radius: 24px;
+            border: 1px solid var(--border-strong);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(30px);
+            transition: transform 0.3s ease;
+        }
+        .legal-modal-overlay.active .legal-modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fff;
+        }
+        .modal-header h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.3rem; }
+        .btn-close-modal {
+            background: rgba(244, 63, 94, 0.1); color: #f43f5e;
+            border: none; width: 40px; height: 40px; border-radius: 50%;
+            font-size: 1.2rem; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-close-modal:hover { background: #f43f5e; color: #fff; transform: rotate(90deg); }
+        
+        .modal-body {
+            display: flex; flex: 1; overflow: hidden;
+        }
+        .modal-sidebar {
+            width: 280px; background: rgba(255,255,255,0.5);
+            border-right: 1px solid var(--border);
+            padding: 20px; overflow-y: auto;
+        }
+        .modal-tab-btn {
+            display: flex; align-items: center; gap: 12px;
+            width: 100%; padding: 14px 16px;
+            background: transparent; border: none;
+            text-align: left; font-family: 'Manrope', sans-serif;
+            font-size: 0.95rem; font-weight: 600; color: var(--text-muted);
+            border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+        .modal-tab-btn i { font-size: 1.1rem; width: 24px; text-align: center; }
+        .modal-tab-btn:hover { background: rgba(14, 165, 164, 0.05); color: var(--primary); }
+        .modal-tab-btn.active { background: rgba(14, 165, 164, 0.1); color: var(--primary); }
+        
+        .modal-content-area {
+            flex: 1; padding: 40px; overflow-y: auto; background: var(--bg);
+        }
+        .legal-tab-pane { display: none; animation: fadeIn 0.4s ease forwards; }
+        .legal-tab-pane.active { display: block; }
+        
+        .legal-tab-pane h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; margin-bottom: 24px; color: var(--text); }
+        .legal-tab-pane h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.4rem; margin: 32px 0 16px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .legal-tab-pane p { margin-bottom: 16px; color: var(--text-muted); line-height: 1.7; }
+        .legal-tab-pane ul, .legal-tab-pane ol { margin-bottom: 16px; padding-left: 20px; color: var(--text-muted); }
+        .legal-tab-pane li { margin-bottom: 8px; }
+        .legal-tab-pane .info-box { padding: 16px 20px; border-radius: 12px; background: rgba(14, 165, 164, 0.06); border: 1px solid rgba(14, 165, 164, 0.2); margin: 20px 0; display: flex; gap: 12px; }
+        .legal-tab-pane .info-box.amber { background: rgba(245, 158, 11, 0.06); border-color: rgba(245, 158, 11, 0.2); color: #92400e; }
+        .legal-tab-pane .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-strong); }
+        .legal-tab-pane .data-table th { text-align: left; padding: 12px 16px; background: rgba(14, 165, 164, 0.06); color: var(--text); }
+        .legal-tab-pane .data-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+        .legal-tab-pane .faq-group-title { font-weight: bold; font-size: 1.1rem; margin-top: 20px; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 768px) {
+            .modal-body { flex-direction: column; }
+            .modal-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; padding: 10px; }
+            .modal-tab-btn { white-space: nowrap; margin-bottom: 0; margin-right: 8px; width: auto; }
+            .modal-content-area { padding: 20px; }
+        }
+
     </style>
 </head>
 
@@ -710,6 +1090,15 @@
                 <p id="lp-site-slogan">AI Forensics Platform</p>
             </div>
         </div>
+        
+        <nav class="desktop-nav">
+            <ul class="nav-links" id="main-nav-links">
+                <li><a href="#section-about"><i class="fa-solid fa-circle-info"></i> Giới thiệu</a></li>
+                <li><a href="#features"><i class="fa-solid fa-star"></i> Tính năng</a></li>
+                <li><a href="#section-legal"><i class="fa-solid fa-gavel"></i> Pháp lý</a></li>
+            </ul>
+        </nav>
+
         <a href="app.html" class="header-cta">
             <span data-i18n="lp_goto_dashboard">Đi tới Dashboard</span> <i class="fa-solid fa-arrow-right"></i>
         </a>
@@ -742,6 +1131,35 @@
     </section>
 
     <!-- Stats -->
+
+    <!-- Giới thiệu Dự án -->
+    <section class="about-section reveal" id="section-about">
+        <div class="section-header" style="text-align: center; margin-bottom: 50px;">
+            <span class="section-tag" style="display: inline-block; padding: 6px 16px; border-radius: 50px; background: rgba(14, 165, 164, 0.08); color: var(--primary); font-weight: 700; margin-bottom: 16px; font-size: 0.85rem; text-transform: uppercase;">Khoá Luận Tốt Nghiệp DSC2F</span>
+            <h2 class="section-title" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--text);">Về Dự Án CNN Detection</h2>
+        </div>
+        
+        <div class="about-grid">
+            <div class="about-card">
+                <div class="about-icon teal"><i class="fa-solid fa-bullseye"></i></div>
+                <h3>Sứ mệnh</h3>
+                <p>Trong thời đại AI phát triển, ranh giới giữa thật và giả đang mờ dần. <strong>CNN Detection</strong> ra đời nhằm cung cấp một công cụ mạnh mẽ để dễ dàng phát hiện hình ảnh bị chỉnh sửa hoặc tạo bởi AI (Deepfake).</p>
+            </div>
+            
+            <div class="about-card">
+                <div class="about-icon amber"><i class="fa-solid fa-microchip"></i></div>
+                <h3>Công nghệ Tiên tiến</h3>
+                <p>Sử dụng mạng nơ-ron tích chập đa luồng (Dual Stream CNN). Bằng cách phân tích cả dữ liệu không gian (RGB) và tần số (Noise), mô hình phát hiện những dấu vết giả mạo tinh vi nhất mà mắt người không thể nhìn thấy.</p>
+            </div>
+            
+            <div class="about-card">
+                <div class="about-icon violet"><i class="fa-solid fa-user-graduate"></i></div>
+                <h3>Đội ngũ phát triển</h3>
+                <p>Dự án được thực hiện bởi nhóm Nghiên cứu Khoá Luận Tốt Nghiệp DSC2F với sự tâm huyết cao độ. Cam kết liên tục cập nhật các mô hình AI mới nhất (ResNet, EfficientNet) để đối phó kỹ thuật giả mạo ngày càng tinh vi.</p>
+            </div>
+        </div>
+    </section>
+
     <section class="stats-bar reveal" id="section-stats">
         <div class="stats-grid">
             <div class="stat-card">
@@ -893,9 +1311,102 @@
         </div>
     </section>
 
+    <!-- Legal & Trust Section -->
+    <section class="legal-section" id="section-legal">
+        <div class="section-header reveal">
+            <span class="section-tag">Pháp lý & Tin cậy</span>
+            <h2 class="section-title" data-i18n="lp_legal_title">Chính Sách & Điều Khoản</h2>
+            <p class="section-desc" data-i18n="lp_legal_desc">Minh bạch và bảo vệ quyền riêng tư của bạn. Tuân thủ Google Play & App Store.</p>
+        </div>
+        <div class="legal-grid">
+            <!-- Privacy Policy -->
+            <a href="#" onclick="openLegalModal('tab-privacy'); return false;" class="legal-card reveal" id="legal-privacy">
+                <div class="legal-card-icon teal"><i class="fa-solid fa-lock"></i></div>
+                <h3>Chính sách Quyền riêng tư</h3>
+                <p>Cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu cá nhân của bạn.</p>
+                <span class="legal-card-badge required"><i class="fa-solid fa-circle-check"></i> Bắt buộc</span>
+                <span class="legal-card-arrow">Xem chi tiết <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <!-- Terms of Service -->
+            <a href="#" onclick="openLegalModal('tab-terms'); return false;" class="legal-card reveal" id="legal-terms">
+                <div class="legal-card-icon amber"><i class="fa-solid fa-file-contract"></i></div>
+                <h3>Điều khoản Sử dụng</h3>
+                <p>Quy định và điều kiện khi sử dụng ứng dụng CNN Detection.</p>
+                <span class="legal-card-badge required"><i class="fa-solid fa-circle-check"></i> Bắt buộc</span>
+                <span class="legal-card-arrow">Xem chi tiết <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <!-- Data Deletion -->
+            <a href="#" onclick="openLegalModal('tab-deletion'); return false;" class="legal-card reveal" id="legal-data">
+                <div class="legal-card-icon rose"><i class="fa-solid fa-trash-can"></i></div>
+                <h3>Xóa Dữ liệu</h3>
+                <p>Yêu cầu xóa tài khoản và toàn bộ dữ liệu cá nhân khỏi hệ thống.</p>
+                <span class="legal-card-badge warn"><i class="fa-solid fa-triangle-exclamation"></i> Thường bắt buộc</span>
+                <span class="legal-card-arrow">Xem chi tiết <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <!-- AI Policy -->
+            <a href="#" onclick="openLegalModal('tab-ai'); return false;" class="legal-card reveal" id="legal-ai">
+                <div class="legal-card-icon violet"><i class="fa-solid fa-robot"></i></div>
+                <h3>Chính sách AI</h3>
+                <p>Cách AI hoạt động, mô hình Deep Learning và giới hạn kết quả phân tích.</p>
+                <span class="legal-card-badge new"><i class="fa-solid fa-sparkles"></i> Apple đánh giá cao</span>
+                <span class="legal-card-arrow">Xem chi tiết <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <!-- Support -->
+            <a href="#" onclick="openLegalModal('tab-support'); return false;" class="legal-card reveal" id="legal-support">
+                <div class="legal-card-icon sky"><i class="fa-solid fa-headset"></i></div>
+                <h3>Hỗ trợ & Liên hệ</h3>
+                <p>FAQ, hướng dẫn sử dụng, báo lỗi và thông tin liên hệ đội ngũ hỗ trợ.</p>
+                <span class="legal-card-badge info"><i class="fa-solid fa-circle-info"></i> Nên có</span>
+                <span class="legal-card-arrow">Xem chi tiết <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="landing-footer">
-        <p id="lp-footer" data-i18n="lp_footer">&copy; 2026 CNN Detection Hub &mdash; AI Deepfake Detection Platform</p>
+        <div class="footer-grid">
+            <div class="footer-brand-block">
+                <h3>
+                    <div class="brand-icon" style="width:28px;height:28px;font-size:0.8rem;border-radius:8px;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    CNN Detection Hub
+                </h3>
+                <p>Ứng dụng nhận diện ảnh AI tiên tiến, sử dụng Deep Learning để phát hiện Deepfake. Hỗ trợ đa nền tảng Web, Android & iOS.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Pháp lý</h4>
+                <ul class="footer-links-list">
+                    <li><a href="#" onclick="openLegalModal('tab-privacy'); return false;">Privacy Policy</a></li>
+                    <li><a href="#" onclick="openLegalModal('tab-terms'); return false;">Terms of Service</a></li>
+                    <li><a href="#" onclick="openLegalModal('tab-deletion'); return false;">Data Deletion</a></li>
+                    <li><a href="#" onclick="openLegalModal('tab-ai'); return false;">AI Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Sản phẩm</h4>
+                <ul class="footer-links-list">
+                    <li><a href="app.html">User Dashboard</a></li>
+                    <li><a href="admin.html">Admin Panel</a></li>
+                    <li><a href="https://drive.google.com/uc?export=download&id=181LrX3dQ_Sjtz2_kBJ8Rpjrkhwi74NUy">Tải App Android</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul class="footer-links-list">
+                    <li><a href="#" onclick="openLegalModal('tab-support'); return false;">FAQ & Trợ giúp</a></li>
+                    <li><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom-bar">
+            <span id="lp-footer" data-i18n="lp_footer">&copy; 2026 CNN Detection Hub &mdash; AI Deepfake Detection Platform</span>
+            <span>Version 1.0.0</span>
+        </div>
     </footer>
 
     <script>
@@ -1019,6 +1530,1003 @@
     </script>
     <script src="i18n.js?v=2.3"></script>
     <script src="config-loader.js?v=2.1"></script>
+
+    <!-- LEGAL MODAL -->
+    <div class="legal-modal-overlay" id="legalModal">
+        <div class="legal-modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-scale-balanced" style="color: var(--primary); margin-right: 10px;"></i> Trung tâm Pháp lý & Hỗ trợ</h2>
+                <button class="btn-close-modal" onclick="closeLegalModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-sidebar">
+                    <button class="modal-tab-btn active" onclick="switchLegalTab('tab-privacy', this)"><i class="fa-solid fa-shield-halved"></i> Quyền riêng tư</button>
+                    <button class="modal-tab-btn" onclick="switchLegalTab('tab-terms', this)"><i class="fa-solid fa-file-contract"></i> Điều khoản sử dụng</button>
+                    <button class="modal-tab-btn" onclick="switchLegalTab('tab-deletion', this)"><i class="fa-solid fa-trash-can"></i> Xóa dữ liệu</button>
+                    <button class="modal-tab-btn" onclick="switchLegalTab('tab-ai', this)"><i class="fa-solid fa-robot"></i> Chính sách AI</button>
+                    <button class="modal-tab-btn" onclick="switchLegalTab('tab-support', this)"><i class="fa-solid fa-headset"></i> Hỗ trợ & FAQ</button>
+                </div>
+                <div class="modal-content-area">
+                    <div class="legal-tab-pane active" id="tab-privacy">
+                        <h1 style="font-size: 2.2rem; margin-bottom: 20px; font-weight:800; font-family:'Plus Jakarta Sans', sans-serif;">Chính sách Quyền riêng tư</h1>
+                        <h2>Content not found</h2>
+                    </div>
+                    <div class="legal-tab-pane" id="tab-terms">
+                        <h1 style="font-size: 2.2rem; margin-bottom: 20px; font-weight:800; font-family:'Plus Jakarta Sans', sans-serif;">Điều khoản Sử dụng</h1>
+                        <!-- 1. Chấp nhận Điều khoản -->
+        <div class="section reveal" id="section-1">
+          <div class="section-header">
+            <div class="section-icon teal"><i class="fa-solid fa-circle-check"></i></div>
+            <h2>1. Chấp nhận Điều khoản</h2>
+          </div>
+          <p>Bằng việc truy cập, đăng ký tài khoản hoặc sử dụng ứng dụng <strong>CNN Detection - AI Image Analyzer</strong>, bạn đồng ý chấp nhận và tuân thủ toàn bộ các điều khoản và điều kiện được nêu trong tài liệu này.</p>
+          <p>Nếu bạn <strong>không đồng ý</strong> với bất kỳ điều khoản nào dưới đây, vui lòng ngừng sử dụng dịch vụ ngay lập tức.</p>
+          <div class="info-box teal">
+            <i class="fa-solid fa-circle-info info-box-icon"></i>
+            <div>Các điều khoản này áp dụng cho tất cả phiên bản của ứng dụng bao gồm <strong>Web</strong>, <strong>Android</strong> và <strong>iOS</strong>.</div>
+          </div>
+        </div>
+
+        <!-- 2. Mô tả Dịch vụ -->
+        <div class="section reveal" id="section-2">
+          <div class="section-header">
+            <div class="section-icon violet"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <h2>2. Mô tả Dịch vụ</h2>
+          </div>
+          <p><strong>CNN Detection - AI Image Analyzer</strong> là ứng dụng phân tích hình ảnh bằng trí tuệ nhân tạo, chuyên phát hiện ảnh giả mạo (Deepfake). Ứng dụng cung cấp các tính năng chính:</p>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tính năng</th>
+                <th>Mô tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Phân tích AI đa mô hình</strong></td>
+                <td>Sử dụng nhiều model CNN tiên tiến: ResNet50, DualStreamCNN, EfficientNet, v.v.</td>
+              </tr>
+              <tr>
+                <td><strong>Phát hiện Deepfake</strong></td>
+                <td>Nhận diện ảnh thật (Real) / giả (Fake) với độ chính xác cao</td>
+              </tr>
+              <tr>
+                <td><strong>Quản lý lịch sử</strong></td>
+                <td>Lưu trữ và quản lý toàn bộ lịch sử phân tích ảnh</td>
+              </tr>
+              <tr>
+                <td><strong>Song ngữ</strong></td>
+                <td>Hỗ trợ giao diện Tiếng Việt và Tiếng Anh</td>
+              </tr>
+              <tr>
+                <td><strong>Đa nền tảng</strong></td>
+                <td>Hoạt động trên Web, Android và iOS</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 3. Quy định Tài khoản -->
+        <div class="section reveal" id="section-3">
+          <div class="section-header">
+            <div class="section-icon amber"><i class="fa-solid fa-user-gear"></i></div>
+            <h2>3. Quy định Tài khoản</h2>
+          </div>
+
+          <h3>3.1. Đăng ký tài khoản</h3>
+          <p>Để sử dụng đầy đủ tính năng, bạn cần đăng ký tài khoản thông qua:</p>
+          <ul>
+            <li><strong>Email và mật khẩu:</strong> Đăng ký trực tiếp với thông tin cá nhân</li>
+            <li><strong>Google OAuth 2.0:</strong> Đăng nhập nhanh bằng tài khoản Google</li>
+          </ul>
+
+          <h3>3.2. Bảo mật tài khoản</h3>
+          <ul>
+            <li>Bạn chịu trách nhiệm <strong>bảo mật</strong> thông tin đăng nhập của mình</li>
+            <li>Không chia sẻ mật khẩu hoặc token đăng nhập cho bất kỳ ai</li>
+            <li>Thông báo ngay cho chúng tôi nếu phát hiện truy cập trái phép</li>
+          </ul>
+
+          <h3>3.3. Phân loại tài khoản</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Loại tài khoản</th>
+                <th>Quyền hạn</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>User</strong> (Người dùng)</td>
+                <td>Phân tích ảnh, xem lịch sử, quản lý tài khoản cá nhân</td>
+              </tr>
+              <tr>
+                <td><strong>Admin</strong> (Quản trị viên)</td>
+                <td>Quản lý người dùng, xem thống kê hệ thống, quản lý model AI</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 4. Quyền và Trách nhiệm -->
+        <div class="section reveal" id="section-4">
+          <div class="section-header">
+            <div class="section-icon teal"><i class="fa-solid fa-list-check"></i></div>
+            <h2>4. Quyền và Trách nhiệm</h2>
+          </div>
+
+          <h3>4.1. Quyền của Người dùng</h3>
+          <ul>
+            <li>Sử dụng các tính năng phân tích ảnh AI theo gói dịch vụ đã đăng ký</li>
+            <li>Xem, quản lý và xóa lịch sử phân tích của mình</li>
+            <li>Cập nhật thông tin cá nhân bất cứ lúc nào</li>
+            <li>Yêu cầu xóa toàn bộ dữ liệu và tài khoản</li>
+            <li>Nhận thông báo về các thay đổi quan trọng của dịch vụ</li>
+          </ul>
+
+          <h3>4.2. Trách nhiệm của Người dùng</h3>
+          <ul>
+            <li>Cung cấp thông tin <strong>chính xác</strong> khi đăng ký</li>
+            <li>Sử dụng dịch vụ đúng mục đích và <strong>tuân thủ pháp luật</strong></li>
+            <li>Không vi phạm quyền sở hữu trí tuệ của bên thứ ba</li>
+            <li>Chịu trách nhiệm về nội dung hình ảnh tải lên</li>
+            <li>Bảo mật thông tin đăng nhập của mình</li>
+          </ul>
+        </div>
+
+        <!-- 5. Nội dung và Hành vi Bị cấm -->
+        <div class="section reveal" id="section-5">
+          <div class="section-header">
+            <div class="section-icon rose"><i class="fa-solid fa-ban"></i></div>
+            <h2>5. Nội dung và Hành vi Bị cấm</h2>
+          </div>
+          <p>Bạn <strong>không được phép</strong> thực hiện các hành vi sau khi sử dụng dịch vụ:</p>
+          <div class="info-box rose">
+            <i class="fa-solid fa-triangle-exclamation info-box-icon"></i>
+            <div>
+              <ul>
+                <li>Tải lên hoặc phân tích <strong>nội dung bất hợp pháp</strong>, bao gồm nội dung khiêu dâm, bạo lực, hoặc vi phạm pháp luật</li>
+                <li>Sử dụng kết quả phân tích để <strong>tạo Deepfake gây hại</strong>, lừa đảo hoặc phỉ báng người khác</li>
+                <li>Thực hiện các cuộc <strong>tấn công mạng</strong> (DDoS, SQL Injection, XSS, v.v.) nhắm vào hệ thống</li>
+                <li><strong>Reverse engineering</strong> (dịch ngược mã nguồn), decompile hoặc sao chép mã nguồn, model AI</li>
+                <li>Sử dụng <strong>bot, script tự động</strong> hoặc các công cụ thu thập dữ liệu tự động (scraping) trên hệ thống</li>
+                <li>Tạo nhiều tài khoản giả mạo hoặc sử dụng danh tính người khác</li>
+              </ul>
+            </div>
+          </div>
+          <p>Vi phạm bất kỳ quy định nào ở trên có thể dẫn đến <strong>khóa tài khoản vĩnh viễn</strong> và chịu trách nhiệm pháp lý.</p>
+        </div>
+
+        <!-- 6. Giới hạn Trách nhiệm -->
+        <div class="section reveal" id="section-6">
+          <div class="section-header">
+            <div class="section-icon blue"><i class="fa-solid fa-scale-balanced"></i></div>
+            <h2>6. Giới hạn Trách nhiệm</h2>
+          </div>
+          <p>Dịch vụ được cung cấp trên cơ sở <strong>"AS-IS"</strong> (nguyên trạng) và <strong>"AS-AVAILABLE"</strong> (theo khả năng sẵn có).</p>
+          <ul>
+            <li>Chúng tôi <strong>không đảm bảo</strong> dịch vụ sẽ hoạt động liên tục, không gián đoạn hoặc không có lỗi</li>
+            <li>Kết quả phân tích AI <strong>không đảm bảo chính xác 100%</strong> trong mọi trường hợp</li>
+            <li>Chúng tôi không chịu trách nhiệm cho bất kỳ thiệt hại nào phát sinh từ việc sử dụng hoặc không thể sử dụng dịch vụ</li>
+            <li>Giới hạn trách nhiệm tối đa không vượt quá số tiền bạn đã thanh toán cho dịch vụ (nếu có)</li>
+          </ul>
+          <div class="info-box amber">
+            <i class="fa-solid fa-circle-exclamation info-box-icon"></i>
+            <div>Kết quả phân tích từ các model AI chỉ mang tính chất <strong>tham khảo</strong>. Người dùng chịu trách nhiệm xác minh và đưa ra quyết định cuối cùng dựa trên kết quả này.</div>
+          </div>
+        </div>
+
+        <!-- 7. Điều khoản về AI -->
+        <div class="section reveal" id="section-7">
+          <div class="section-header">
+            <div class="section-icon violet"><i class="fa-solid fa-robot"></i></div>
+            <h2>7. Điều khoản về AI</h2>
+          </div>
+          <p>CNN Detection sử dụng các mô hình Deep Learning (CNN - Convolutional Neural Network) để phân tích hình ảnh. Khi sử dụng tính năng AI, bạn cần lưu ý:</p>
+          <ul>
+            <li>Kết quả phân tích AI chỉ mang tính <strong>tham khảo</strong>, không phải kết luận cuối cùng</li>
+            <li>Kết quả <strong>không nên được sử dụng thay thế</strong> cho tư vấn y tế, pháp lý hoặc tài chính chuyên nghiệp</li>
+            <li>Độ chính xác của model phụ thuộc vào chất lượng ảnh đầu vào và loại hình ảnh</li>
+            <li>Ảnh tải lên được xử lý bởi model AI trên server và <strong>không được sử dụng để huấn luyện</strong> thêm model</li>
+            <li>Người dùng <strong>chịu trách nhiệm hoàn toàn</strong> cho mọi quyết định dựa trên kết quả AI</li>
+          </ul>
+          <div class="info-box violet">
+            <i class="fa-solid fa-microchip info-box-icon"></i>
+            <div>Các model AI được sử dụng bao gồm: <strong>ResNet50</strong>, <strong>DualStreamCNN</strong>, <strong>EfficientNet</strong> và các kiến trúc CNN tiên tiến khác. Xem thêm chi tiết tại <a href="ai-policy.html" style="color: var(--primary); font-weight: 600;">Chính sách AI</a>.</div>
+          </div>
+        </div>
+
+        <!-- 8. Thanh toán & Nâng cấp -->
+        <div class="section reveal" id="section-8">
+          <div class="section-header">
+            <div class="section-icon amber"><i class="fa-solid fa-credit-card"></i></div>
+            <h2>8. Thanh toán & Nâng cấp</h2>
+          </div>
+          <p>Ứng dụng cung cấp các gói nâng cấp tài khoản với các tính năng mở rộng. Các phương thức thanh toán được hỗ trợ:</p>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Phương thức</th>
+                <th>Mô tả</th>
+                <th>Bảo mật</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>VNPAY</strong></td>
+                <td>Thanh toán qua cổng VNPAY (thẻ ngân hàng, QR code)</td>
+                <td><span class="tag auto"><i class="fa-solid fa-lock"></i> Mã hóa</span></td>
+              </tr>
+              <tr>
+                <td><strong>Momo</strong></td>
+                <td>Thanh toán qua ví điện tử Momo</td>
+                <td><span class="tag auto"><i class="fa-solid fa-lock"></i> Mã hóa</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="info-box teal">
+            <i class="fa-solid fa-shield-halved info-box-icon"></i>
+            <div>Chúng tôi <strong>không lưu trữ</strong> thông tin thẻ ngân hàng hoặc tài khoản thanh toán của bạn. Toàn bộ giao dịch được xử lý trực tiếp bởi VNPAY/Momo với bảo mật tiêu chuẩn quốc tế.</div>
+          </div>
+        </div>
+
+        <!-- 9. Sở hữu Trí tuệ -->
+        <div class="section reveal" id="section-9">
+          <div class="section-header">
+            <div class="section-icon emerald"><i class="fa-solid fa-copyright"></i></div>
+            <h2>9. Sở hữu Trí tuệ</h2>
+          </div>
+
+          <h3>9.1. Quyền sở hữu của Nhà phát triển</h3>
+          <ul>
+            <li>Toàn bộ <strong>mã nguồn</strong>, giao diện, thiết kế và kiến trúc hệ thống thuộc quyền sở hữu của nhà phát triển</li>
+            <li>Các <strong>mô hình AI</strong> (trọng số, kiến trúc, dữ liệu huấn luyện) là tài sản trí tuệ được bảo hộ</li>
+            <li>Thương hiệu, logo, tên ứng dụng "CNN Detection" thuộc quyền sở hữu của nhà phát triển</li>
+          </ul>
+
+          <h3>9.2. Quyền sở hữu của Người dùng</h3>
+          <ul>
+            <li>Bạn giữ nguyên <strong>quyền sở hữu</strong> đối với các hình ảnh bạn tải lên</li>
+            <li>Bạn cấp cho chúng tôi quyền sử dụng hình ảnh <strong>chỉ trong phạm vi</strong> cung cấp dịch vụ phân tích</li>
+            <li>Chúng tôi <strong>không sử dụng</strong> ảnh của bạn cho bất kỳ mục đích thương mại hoặc tiếp thị nào</li>
+          </ul>
+        </div>
+
+        <!-- 10. Chấm dứt Tài khoản -->
+        <div class="section reveal" id="section-10">
+          <div class="section-header">
+            <div class="section-icon rose"><i class="fa-solid fa-right-from-bracket"></i></div>
+            <h2>10. Chấm dứt Tài khoản</h2>
+          </div>
+
+          <h3>10.1. Do Người dùng</h3>
+          <p>Bạn có quyền <strong>xóa tài khoản bất cứ lúc nào</strong> thông qua:</p>
+          <ul>
+            <li>Vào <strong>Cài đặt tài khoản → Xóa tài khoản</strong> trong ứng dụng</li>
+            <li>Gửi email yêu cầu xóa tới <a href="mailto:support@cnndetection.com">support@cnndetection.com</a></li>
+            <li>Sử dụng trang <a href="#" onclick="openLegalModal('tab-deletion'); return false;">Yêu cầu Xóa dữ liệu</a></li>
+          </ul>
+
+          <h3>10.2. Do Nhà phát triển</h3>
+          <p>Chúng tôi có quyền <strong>tạm khóa hoặc chấm dứt</strong> tài khoản của bạn nếu:</p>
+          <ul>
+            <li>Vi phạm bất kỳ điều khoản nào trong tài liệu này</li>
+            <li>Sử dụng dịch vụ cho mục đích bất hợp pháp</li>
+            <li>Thực hiện các hành vi gây hại đến hệ thống hoặc người dùng khác</li>
+            <li>Không hoạt động trong thời gian dài (trên 12 tháng)</li>
+          </ul>
+          <div class="info-box blue">
+            <i class="fa-solid fa-info-circle info-box-icon"></i>
+            <div>Khi tài khoản bị chấm dứt, toàn bộ dữ liệu liên quan sẽ được xóa trong vòng <strong>30 ngày làm việc</strong>, trừ khi pháp luật yêu cầu lưu trữ.</div>
+          </div>
+        </div>
+
+        <!-- 11. Thay đổi Điều khoản -->
+        <div class="section reveal" id="section-11">
+          <div class="section-header">
+            <div class="section-icon teal"><i class="fa-solid fa-rotate"></i></div>
+            <h2>11. Thay đổi Điều khoản</h2>
+          </div>
+          <p>Chúng tôi có quyền cập nhật và thay đổi các điều khoản này bất cứ lúc nào. Khi có thay đổi quan trọng, chúng tôi sẽ thông báo qua:</p>
+          <ul>
+            <li><i class="fa-solid fa-bell" style="color: var(--primary); margin-right: 4px;"></i> <strong>Thông báo</strong> trong ứng dụng</li>
+            <li><i class="fa-solid fa-envelope" style="color: var(--primary); margin-right: 4px;"></i> <strong>Email</strong> tới địa chỉ đăng ký (nếu thay đổi quan trọng)</li>
+            <li><i class="fa-solid fa-globe" style="color: var(--primary); margin-right: 4px;"></i> <strong>Cập nhật ngày</strong> "Có hiệu lực từ" trên trang này</li>
+          </ul>
+          <p>Việc tiếp tục sử dụng dịch vụ sau khi điều khoản được cập nhật đồng nghĩa với việc bạn <strong>chấp nhận các thay đổi</strong>.</p>
+        </div>
+
+        <!-- 12. Luật Áp dụng -->
+        <div class="section reveal" id="section-12">
+          <div class="section-header">
+            <div class="section-icon amber"><i class="fa-solid fa-landmark"></i></div>
+            <h2>12. Luật Áp dụng</h2>
+          </div>
+          <p>Các điều khoản này được điều chỉnh và giải thích theo <strong>pháp luật Việt Nam</strong>.</p>
+          <ul>
+            <li>Mọi tranh chấp phát sinh sẽ được giải quyết tại <strong>Tòa án có thẩm quyền tại Việt Nam</strong></li>
+            <li>Các quy định về bảo vệ dữ liệu cá nhân tuân theo <strong>Luật An toàn thông tin mạng 2015</strong> và <strong>Nghị định 13/2023/NĐ-CP</strong> về bảo vệ dữ liệu cá nhân</li>
+            <li>Quy định về giao dịch điện tử tuân theo <strong>Luật Giao dịch điện tử 2023</strong></li>
+          </ul>
+          <div class="info-box amber">
+            <i class="fa-solid fa-gavel info-box-icon"></i>
+            <div>Trong trường hợp bất kỳ điều khoản nào bị coi là vô hiệu hoặc không thể thực thi, các điều khoản còn lại vẫn <strong>có hiệu lực đầy đủ</strong>.</div>
+          </div>
+        </div>
+
+        <!-- 13. Liên hệ -->
+        <div class="section reveal" id="section-13">
+          <div class="section-header">
+            <div class="section-icon violet"><i class="fa-solid fa-phone"></i></div>
+            <h2>13. Liên hệ</h2>
+          </div>
+          <p>Nếu bạn có câu hỏi, phản hồi hoặc cần hỗ trợ liên quan đến Điều khoản Sử dụng, vui lòng liên hệ:</p>
+          <div class="contact-card">
+            <div class="contact-icon teal"><i class="fa-solid fa-envelope"></i></div>
+            <div class="contact-info">
+              <h4>Email hỗ trợ</h4>
+              <p><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></p>
+            </div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-icon violet"><i class="fa-solid fa-headset"></i></div>
+            <div class="contact-info">
+              <h4>Trang hỗ trợ</h4>
+              <p><a href="support.html">Trung tâm trợ giúp – CNN Detection</a></p>
+            </div>
+          </div>
+          <div class="contact-card">
+            <div class="contact-icon amber"><i class="fa-solid fa-globe"></i></div>
+            <div class="contact-info">
+              <h4>Trung tâm Pháp lý</h4>
+              <p><a href="privacy-policy.html">Chính sách Quyền riêng tư</a> · <a href="#" onclick="openLegalModal('tab-deletion'); return false;">Xóa dữ liệu</a> · <a href="ai-policy.html">Chính sách AI</a></p>
+            </div>
+          </div>
+        </div>
+                    </div>
+                    <div class="legal-tab-pane" id="tab-deletion">
+                        <h1 style="font-size: 2.2rem; margin-bottom: 20px; font-weight:800; font-family:'Plus Jakarta Sans', sans-serif;">Chính sách Xóa dữ liệu</h1>
+                        <h2>Content not found</h2>
+                    </div>
+                    <div class="legal-tab-pane" id="tab-ai">
+                        <h1 style="font-size: 2.2rem; margin-bottom: 20px; font-weight:800; font-family:'Plus Jakarta Sans', sans-serif;">Chính sách AI</h1>
+                        <!-- 1. Giới thiệu -->
+        <div class="section reveal" id="section-intro">
+          <div class="section-header">
+            <div class="section-icon teal"><i class="fa-solid fa-robot"></i></div>
+            <h2>1. Giới thiệu</h2>
+          </div>
+          <p><strong>CNN Detection - AI Image Analyzer</strong> là ứng dụng sử dụng công nghệ Deep Learning, cụ thể là các mô hình <strong>Mạng Nơ-ron Tích chập (Convolutional Neural Network - CNN)</strong>, để phân tích và nhận diện hình ảnh thật/giả (Deepfake).</p>
+          <p>Chính sách này giải thích chi tiết cách chúng tôi sử dụng trí tuệ nhân tạo trong ứng dụng, bao gồm các mô hình AI được triển khai, quy trình xử lý dữ liệu, giới hạn của công nghệ và cam kết minh bạch của chúng tôi đối với người dùng.</p>
+          <div class="info-box teal">
+            <span class="info-box-icon"><i class="fa-solid fa-circle-info"></i></span>
+            <div>Chúng tôi tin rằng sự minh bạch trong việc sử dụng AI là nền tảng quan trọng để xây dựng niềm tin với người dùng. Chính sách này được thiết kế để cung cấp thông tin rõ ràng, dễ hiểu về mọi khía cạnh liên quan đến AI.</div>
+          </div>
+        </div>
+
+        <!-- 2. Mô hình AI Sử dụng -->
+        <div class="section reveal" id="section-models">
+          <div class="section-header">
+            <div class="section-icon violet"><i class="fa-solid fa-microchip"></i></div>
+            <h2>2. Mô hình AI Sử dụng</h2>
+          </div>
+          <p>CNN Detection sử dụng 4 kiến trúc mô hình Deep Learning khác nhau, mỗi mô hình được tối ưu cho các tình huống phân tích cụ thể:</p>
+
+          <div class="model-table-wrap">
+            <table class="model-table">
+              <thead>
+                <tr>
+                  <th><i class="fa-solid fa-cube"></i> Mô hình</th>
+                  <th><i class="fa-solid fa-align-left"></i> Mô tả</th>
+                  <th><i class="fa-solid fa-bolt"></i> Đặc điểm</th>
+                  <th><i class="fa-solid fa-tag"></i> Cấp độ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="model-name"><i class="fa-solid fa-cube"></i> ResNet50</div></td>
+                  <td>Mô hình cơ bản dựa trên kiến trúc Residual Network 50 lớp, phù hợp cho phân tích nhanh</td>
+                  <td>Nhanh, ổn định, độ chính xác tốt</td>
+                  <td><span class="model-badge basic">Cơ bản</span></td>
+                </tr>
+                <tr>
+                  <td><div class="model-name"><i class="fa-solid fa-code-branch"></i> DualStreamCNN</div></td>
+                  <td>Kết hợp 2 luồng phân tích song song: RGB (màu sắc) + Noise (nhiễu ảnh)</td>
+                  <td>Phân tích sâu, phát hiện cả nhiễu ẩn</td>
+                  <td><span class="model-badge advanced">Nâng cao</span></td>
+                </tr>
+                <tr>
+                  <td><div class="model-name"><i class="fa-solid fa-wand-magic-sparkles"></i> DualStreamCNNEnhanced</div></td>
+                  <td>Phiên bản cải tiến của DualStream với tích hợp phân tích phổ tần số FFT</td>
+                  <td>FFT analysis, phát hiện artifacts tinh vi</td>
+                  <td><span class="model-badge pro">Chuyên sâu</span></td>
+                </tr>
+                <tr>
+                  <td><div class="model-name"><i class="fa-solid fa-layer-group"></i> DualStreamResNet</div></td>
+                  <td>Kết hợp sức mạnh ResNet + kiến trúc Dual Stream cho phân tích đa chiều</td>
+                  <td>Tổng hợp, toàn diện nhất</td>
+                  <td><span class="model-badge premium">Premium</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="cnn-explain">
+            <h4><i class="fa-solid fa-brain"></i> CNN hoạt động như thế nào cho Deepfake Detection?</h4>
+            <p>Mạng Nơ-ron Tích chập (CNN) hoạt động bằng cách tự động trích xuất các đặc trưng (features) từ hình ảnh thông qua nhiều lớp convolutional filters. Trong phát hiện deepfake, CNN phân tích các chi tiết vi mô mà mắt thường khó nhận ra — như sự không nhất quán trong texture da, ánh sáng bất thường, nhiễu kỹ thuật số đặc trưng của ảnh AI-generated, và các artifacts tại biên giới vùng chỉnh sửa. Các mô hình được huấn luyện trên hàng ngàn mẫu ảnh thật và giả để học cách phân biệt hai loại này.</p>
+          </div>
+        </div>
+
+        <!-- 3. Xử lý Dữ liệu AI -->
+        <div class="section reveal" id="section-processing">
+          <div class="section-header">
+            <div class="section-icon amber"><i class="fa-solid fa-gears"></i></div>
+            <h2>3. Xử lý Dữ liệu AI</h2>
+          </div>
+          <p>Quy trình xử lý hình ảnh của CNN Detection tuân theo pipeline rõ ràng, được thiết kế để đảm bảo hiệu suất và bảo mật:</p>
+
+          <!-- Pipeline Diagram -->
+          <div class="pipeline">
+            <div class="pipeline-step">
+              <div class="pipeline-icon step-1"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+              <div class="pipeline-label">Upload</div>
+              <div class="pipeline-sub">Tải ảnh lên server</div>
+            </div>
+            <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon step-2"><i class="fa-solid fa-crop-simple"></i></div>
+              <div class="pipeline-label">Preprocessing</div>
+              <div class="pipeline-sub">Resize & chuẩn hóa</div>
+            </div>
+            <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon step-3"><i class="fa-solid fa-brain"></i></div>
+              <div class="pipeline-label">CNN Analysis</div>
+              <div class="pipeline-sub">Phân tích AI model</div>
+            </div>
+            <div class="pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="pipeline-step">
+              <div class="pipeline-icon step-4"><i class="fa-solid fa-square-poll-vertical"></i></div>
+              <div class="pipeline-label">Result</div>
+              <div class="pipeline-sub">Real / Fake + % tin cậy</div>
+            </div>
+          </div>
+
+          <h3><i class="fa-solid fa-list-check"></i> Chi tiết quy trình:</h3>
+          <ul>
+            <li><strong>Bước 1 – Upload:</strong> Người dùng tải ảnh lên server qua kết nối HTTPS mã hóa</li>
+            <li><strong>Bước 2 – Preprocessing:</strong> Ảnh được resize, chuẩn hóa pixel values, và chuyển đổi format phù hợp cho model AI</li>
+            <li><strong>Bước 3 – CNN Analysis:</strong> Mô hình AI được chọn sẽ phân tích ảnh, trích xuất features và đưa ra dự đoán</li>
+            <li><strong>Bước 4 – Result:</strong> Kết quả (Real/Fake) kèm phần trăm độ tin cậy được trả về cho người dùng</li>
+          </ul>
+
+          <div class="info-box emerald">
+            <span class="info-box-icon"><i class="fa-solid fa-shield-halved"></i></span>
+            <div><strong>Cam kết quan trọng:</strong> Ảnh của bạn <strong>KHÔNG</strong> được sử dụng để huấn luyện thêm mô hình AI. Ảnh chỉ được xử lý để trả kết quả phân tích và có thể bị xóa theo yêu cầu.</div>
+          </div>
+        </div>
+
+        <!-- 4. Độ Chính xác & Giới hạn -->
+        <div class="section reveal" id="section-accuracy">
+          <div class="section-header">
+            <div class="section-icon cyan"><i class="fa-solid fa-chart-line"></i></div>
+            <h2>4. Độ Chính xác & Giới hạn</h2>
+          </div>
+          <p>Mặc dù các mô hình AI của chúng tôi đạt độ chính xác cao trong nhiều trường hợp, kết quả phân tích <strong>KHÔNG bao giờ đạt mức chính xác 100%</strong>. Hiệu suất phụ thuộc vào nhiều yếu tố:</p>
+          <ul>
+            <li><strong>Chất lượng ảnh:</strong> Ảnh có độ phân giải cao cho kết quả chính xác hơn. Ảnh mờ, nén quá mức hoặc bị crop có thể ảnh hưởng đến kết quả</li>
+            <li><strong>Loại ảnh:</strong> Mỗi mô hình hoạt động tốt hơn với một số loại ảnh nhất định (chân dung, phong cảnh, v.v.)</li>
+            <li><strong>Mô hình được chọn:</strong> Các mô hình khác nhau có thể cho kết quả khác nhau trên cùng một ảnh</li>
+            <li><strong>Kỹ thuật tạo ảnh giả:</strong> Một số kỹ thuật deepfake mới có thể chưa được mô hình nhận diện hiệu quả</li>
+          </ul>
+
+          <div class="warning-box">
+            <h4><i class="fa-solid fa-triangle-exclamation"></i> Lưu ý quan trọng</h4>
+            <ul>
+              <li>Kết quả AI chỉ mang tính <strong>tham khảo</strong>, không phải kết luận cuối cùng</li>
+              <li>Độ tin cậy (confidence score) thể hiện mức độ "chắc chắn" của mô hình, không phải xác suất chính xác tuyệt đối</li>
+              <li>Nên thử nhiều mô hình khác nhau để có cái nhìn toàn diện hơn</li>
+              <li>Luôn kết hợp kết quả AI với đánh giá và xác minh thủ công</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 5. Tuyên bố Miễn trừ -->
+        <div class="section reveal" id="section-disclaimer">
+          <div class="section-header">
+            <div class="section-icon rose"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h2>5. Tuyên bố Miễn trừ Trách nhiệm</h2>
+          </div>
+          <p>Kết quả phân tích từ CNN Detection chỉ mang tính <strong>tham khảo</strong>. Người dùng chịu hoàn toàn trách nhiệm trong việc xác minh và sử dụng kết quả. Kết quả AI <strong>KHÔNG</strong> nên được sử dụng cho các mục đích sau:</p>
+
+          <div class="not-for-grid">
+            <div class="not-for-item">
+              <i class="fa-solid fa-stethoscope"></i>
+              <span>Tư vấn Y tế</span>
+              <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;">Không thay thế chẩn đoán y khoa chuyên nghiệp</p>
+            </div>
+            <div class="not-for-item">
+              <i class="fa-solid fa-gavel"></i>
+              <span>Bằng chứng Pháp lý</span>
+              <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;">Không có giá trị pháp lý tại tòa án</p>
+            </div>
+            <div class="not-for-item">
+              <i class="fa-solid fa-coins"></i>
+              <span>Quyết định Tài chính</span>
+              <p style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;">Không nên dùng cho đầu tư hay giao dịch</p>
+            </div>
+          </div>
+
+          <div class="info-box rose">
+            <span class="info-box-icon"><i class="fa-solid fa-circle-exclamation"></i></span>
+            <div>
+              <strong>Miễn trừ:</strong> CNN Detection và đội ngũ phát triển không chịu trách nhiệm cho bất kỳ thiệt hại, tổn thất hoặc hậu quả nào phát sinh từ việc sử dụng hoặc dựa vào kết quả phân tích AI của ứng dụng. Người dùng tự chịu trách nhiệm xác minh tính chính xác của mọi kết quả.
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Quyền Riêng tư & Dữ liệu AI -->
+        <div class="section reveal" id="section-privacy">
+          <div class="section-header">
+            <div class="section-icon blue"><i class="fa-solid fa-lock"></i></div>
+            <h2>6. Quyền Riêng tư & Dữ liệu AI</h2>
+          </div>
+          <p>Chúng tôi cam kết bảo vệ quyền riêng tư và dữ liệu của bạn trong suốt quá trình xử lý AI:</p>
+
+          <div class="privacy-grid">
+            <div class="privacy-item">
+              <i class="fa-solid fa-server"></i>
+              <div>
+                <h4>Xử lý trên Server bảo mật</h4>
+                <p>Tất cả ảnh được phân tích trên server bảo mật với mã hóa HTTPS/TLS end-to-end</p>
+              </div>
+            </div>
+            <div class="privacy-item">
+              <i class="fa-solid fa-user-shield"></i>
+              <div>
+                <h4>Không chia sẻ bên thứ ba</h4>
+                <p>Ảnh và kết quả phân tích không bao giờ được chia sẻ với bên thứ ba nào</p>
+              </div>
+            </div>
+            <div class="privacy-item">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <div>
+                <h4>Không dùng cho huấn luyện</h4>
+                <p>Ảnh người dùng tải lên không được sử dụng để huấn luyện hoặc cải thiện mô hình AI</p>
+              </div>
+            </div>
+            <div class="privacy-item">
+              <i class="fa-solid fa-trash-can"></i>
+              <div>
+                <h4>Xóa theo yêu cầu</h4>
+                <p>Bạn có quyền yêu cầu xóa toàn bộ ảnh và dữ liệu phân tích bất cứ lúc nào</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box blue">
+            <span class="info-box-icon"><i class="fa-solid fa-circle-info"></i></span>
+            <div>Để biết thêm chi tiết về cách chúng tôi thu thập và xử lý dữ liệu, vui lòng tham khảo <a href="privacy-policy.html" style="color:#3b82f6;font-weight:600;">Chính sách Quyền riêng tư</a> và <a href="#" onclick="openLegalModal('tab-deletion'); return false;" style="color:#3b82f6;font-weight:600;">Chính sách Xóa Dữ liệu</a>.</div>
+          </div>
+        </div>
+
+        <!-- 7. Cải tiến & Cập nhật -->
+        <div class="section reveal" id="section-updates">
+          <div class="section-header">
+            <div class="section-icon emerald"><i class="fa-solid fa-arrows-rotate"></i></div>
+            <h2>7. Cải tiến & Cập nhật</h2>
+          </div>
+          <p>Chúng tôi liên tục nghiên cứu và cải tiến các mô hình AI để nâng cao độ chính xác và hiệu suất phân tích. Các cập nhật có thể bao gồm:</p>
+          <ul>
+            <li><strong>Cập nhật mô hình:</strong> Huấn luyện lại các mô hình với dữ liệu mới để cải thiện khả năng phát hiện</li>
+            <li><strong>Thêm mô hình mới:</strong> Triển khai các kiến trúc AI tiên tiến hơn khi có sẵn</li>
+            <li><strong>Tối ưu hiệu suất:</strong> Cải thiện tốc độ xử lý và giảm thời gian phân tích</li>
+            <li><strong>Mở rộng khả năng:</strong> Hỗ trợ thêm các loại deepfake mới xuất hiện</li>
+          </ul>
+
+          <div class="info-box emerald">
+            <span class="info-box-icon"><i class="fa-solid fa-bell"></i></span>
+            <div>
+              <strong>Thông báo cập nhật:</strong> Người dùng sẽ được thông báo về các thay đổi quan trọng đối với mô hình AI thông qua:
+              <ul>
+                <li>Thông báo trong ứng dụng (in-app notification)</li>
+                <li>Email thông báo (đối với thay đổi lớn)</li>
+                <li>Cập nhật trên trang Chính sách AI này</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. Liên hệ -->
+        <div class="section reveal" id="section-contact">
+          <div class="section-header">
+            <div class="section-icon teal"><i class="fa-solid fa-envelope"></i></div>
+            <h2>8. Liên hệ</h2>
+          </div>
+          <p>Nếu bạn có bất kỳ câu hỏi, thắc mắc hoặc góp ý nào liên quan đến chính sách AI này, vui lòng liên hệ chúng tôi:</p>
+
+          <div class="contact-card">
+            <div class="contact-icon teal"><i class="fa-solid fa-envelope"></i></div>
+            <div class="contact-info">
+              <h4>Email hỗ trợ</h4>
+              <p><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></p>
+            </div>
+          </div>
+
+          <div class="contact-card">
+            <div class="contact-icon blue"><i class="fa-solid fa-headset"></i></div>
+            <div class="contact-info">
+              <h4>Trang hỗ trợ</h4>
+              <p><a href="support.html">Xem FAQ & Hướng dẫn sử dụng</a></p>
+            </div>
+          </div>
+
+          <div class="info-box teal">
+            <span class="info-box-icon"><i class="fa-solid fa-clock"></i></span>
+            <div>Chúng tôi cam kết phản hồi mọi yêu cầu liên quan đến AI trong vòng <strong>48 giờ làm việc</strong>.</div>
+          </div>
+        </div>
+
+      </div>
+                    </div>
+                    <div class="legal-tab-pane" id="tab-support">
+                        <h1 style="font-size: 2.2rem; margin-bottom: 20px; font-weight:800; font-family:'Plus Jakarta Sans', sans-serif;">Hỗ trợ & Liên hệ</h1>
+                        <!-- ========== SECTION 1: CONTACT INFO ========== -->
+    <section class="reveal">
+      <div class="section-header">
+        <div class="section-tag"><i class="fa-solid fa-address-book"></i> &nbsp;Liên hệ</div>
+        <h2 class="section-title">Thông tin Liên hệ</h2>
+        <p class="section-desc">Chọn kênh liên hệ phù hợp nhất với bạn</p>
+      </div>
+      <div class="contact-grid">
+        <!-- Email -->
+        <div class="contact-card">
+          <div class="contact-card-icon teal">
+            <i class="fa-solid fa-envelope"></i>
+          </div>
+          <h3>Email Hỗ trợ</h3>
+          <p><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></p>
+          <p class="sub-text"><i class="fa-regular fa-clock"></i> Phản hồi trong vòng 24 giờ</p>
+        </div>
+        <!-- Developer -->
+        <div class="contact-card">
+          <div class="contact-card-icon amber">
+            <i class="fa-solid fa-building"></i>
+          </div>
+          <h3>Nhà phát triển</h3>
+          <p>Nhóm Phát Triển Khoá Luận DSC2F</p>
+          <p class="sub-text"><i class="fa-solid fa-location-dot"></i> [Địa chỉ]</p>
+        </div>
+        <!-- Website -->
+        <div class="contact-card">
+          <div class="contact-card-icon violet">
+            <i class="fa-solid fa-globe"></i>
+          </div>
+          <h3>Website</h3>
+          <p><a href="index.html">Legal Center – CNN Detection</a></p>
+          <p class="sub-text"><i class="fa-solid fa-scale-balanced"></i> Trung tâm pháp lý</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SECTION 2: FAQ ========== -->
+    <section class="faq-section reveal">
+      <div class="section-header">
+        <div class="section-tag"><i class="fa-solid fa-circle-question"></i> &nbsp;FAQ</div>
+        <h2 class="section-title">Câu hỏi Thường gặp</h2>
+        <p class="section-desc">Tìm câu trả lời nhanh cho các thắc mắc phổ biến</p>
+      </div>
+
+      <!-- Group 1: Về Ứng dụng -->
+      <div class="faq-group">
+        <div class="faq-group-title">
+          <i class="fa-solid fa-mobile-screen teal"></i>
+          Về Ứng dụng
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>CNN Detection là gì?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p><strong>CNN Detection - AI Image Analyzer</strong> là ứng dụng sử dụng công nghệ <strong>Deep Learning</strong> (Mạng Nơ-ron Tích chập – CNN) để phân tích và nhận diện ảnh thật/giả (<strong>Deepfake</strong>). Ứng dụng giúp người dùng kiểm tra tính xác thực của hình ảnh một cách nhanh chóng và chính xác.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Ứng dụng hoạt động trên những nền tảng nào?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>CNN Detection hỗ trợ đa nền tảng bao gồm: <span class="tech-tag"><i class="fa-solid fa-globe"></i> Web</span> <span class="tech-tag"><i class="fa-brands fa-android"></i> Android</span> <span class="tech-tag"><i class="fa-brands fa-apple"></i> iOS</span>. Bạn có thể sử dụng trên trình duyệt web hoặc tải ứng dụng di động.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Kết quả phân tích AI có chính xác 100% không?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p><strong>Không.</strong> Kết quả phân tích AI chỉ mang tính <strong>tham khảo</strong> và có thể không chính xác 100%. Các mô hình AI có giới hạn nhất định và kết quả có thể bị ảnh hưởng bởi chất lượng ảnh, độ phân giải, và nhiều yếu tố khác. Không nên sử dụng kết quả làm bằng chứng pháp lý hoặc thay thế đánh giá chuyên môn.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Ứng dụng hỗ trợ những model AI nào?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Hiện tại, CNN Detection tích hợp các kiến trúc AI tiên tiến: <span class="tech-tag">ResNet50</span> <span class="tech-tag">DualStreamCNN</span> <span class="tech-tag">DualStreamCNNEnhanced</span> <span class="tech-tag">DualStreamResNet</span>. Mỗi model có điểm mạnh riêng và bạn có thể chọn model phù hợp khi phân tích.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 2: Tài khoản -->
+      <div class="faq-group">
+        <div class="faq-group-title">
+          <i class="fa-solid fa-user amber"></i>
+          Tài khoản
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Làm thế nào để tạo tài khoản?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Bạn có thể tạo tài khoản bằng hai cách: <strong>đăng ký bằng email</strong> (nhập tên, email, mật khẩu) hoặc <strong>đăng nhập nhanh bằng Google OAuth</strong> (sử dụng tài khoản Google có sẵn). Cả hai cách đều an toàn và được bảo mật.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Tôi quên mật khẩu thì phải làm sao?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Nếu bạn quên mật khẩu, vui lòng gửi email tới <a href="mailto:support@cnndetection.com">support@cnndetection.com</a> với tiêu đề <strong>"Quên mật khẩu"</strong> kèm địa chỉ email đăng ký. Chúng tôi sẽ hỗ trợ khôi phục tài khoản trong vòng 24 giờ.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Tôi muốn xóa tài khoản thì phải làm sao?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Bạn có thể xóa tài khoản bằng hai cách: (1) Vào <strong>Cài đặt tài khoản → Xóa tài khoản</strong> trong ứng dụng, hoặc (2) gửi email yêu cầu tới <a href="mailto:support@cnndetection.com">support@cnndetection.com</a>. Xem hướng dẫn chi tiết tại trang <a href="#" onclick="openLegalModal('tab-deletion'); return false;">Chính sách Xóa Dữ liệu</a>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 3: Sử dụng -->
+      <div class="faq-group">
+        <div class="faq-group-title">
+          <i class="fa-solid fa-image violet"></i>
+          Sử dụng
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Ảnh tải lên có được lưu trữ không?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p><strong>Có.</strong> Ảnh tải lên sẽ được lưu trong lịch sử phân tích của bạn để bạn có thể xem lại kết quả. Tuy nhiên, ảnh <strong>không được sử dụng để huấn luyện</strong> mô hình AI. Bạn có thể yêu cầu xóa toàn bộ dữ liệu bất cứ lúc nào qua trang <a href="#" onclick="openLegalModal('tab-deletion'); return false;">Xóa Dữ liệu</a>.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Có giới hạn số lượng ảnh phân tích không?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Giới hạn số lượng ảnh phân tích <strong>tùy thuộc vào gói dịch vụ</strong> bạn đang sử dụng. Gói miễn phí có giới hạn nhất định, trong khi các gói nâng cao cho phép phân tích nhiều ảnh hơn. Xem chi tiết tại phần quản lý tài khoản trong ứng dụng.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Ứng dụng hỗ trợ những ngôn ngữ nào?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Hiện tại CNN Detection hỗ trợ <span class="tech-tag"><i class="fa-solid fa-flag"></i> Tiếng Việt</span> và <span class="tech-tag"><i class="fa-solid fa-flag"></i> English</span>. Bạn có thể chuyển đổi ngôn ngữ trong phần cài đặt của ứng dụng.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 4: Bảo mật -->
+      <div class="faq-group">
+        <div class="faq-group-title">
+          <i class="fa-solid fa-shield-halved rose"></i>
+          Bảo mật
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Dữ liệu của tôi được bảo mật như thế nào?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Chúng tôi áp dụng các biện pháp bảo mật tiên tiến: mã hóa mật khẩu bằng <span class="tech-tag">bcrypt</span>, xác thực phiên bằng <span class="tech-tag">JWT Token</span> có thời hạn, toàn bộ giao tiếp qua <span class="tech-tag">HTTPS/TLS</span>, và hệ thống phân quyền truy cập nghiêm ngặt (User/Admin).</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Dữ liệu có bị chia sẻ với bên thứ ba không?</span>
+            <div class="faq-icon"><i class="fa-solid fa-chevron-down"></i></div>
+          </div>
+          <div class="faq-answer">
+            <p>Chúng tôi <strong>không bán</strong> dữ liệu cá nhân của bạn cho bất kỳ bên thứ ba nào. Dữ liệu chỉ được chia sẻ với các dịch vụ cần thiết cho hoạt động ứng dụng: <span class="tech-tag">Google OAuth</span> (xác thực đăng nhập) và <span class="tech-tag">VNPAY / Momo</span> (xử lý thanh toán, nếu có). Xem chi tiết tại <a href="privacy-policy.html">Chính sách Quyền riêng tư</a>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SECTION 3: QUICK GUIDE ========== -->
+    <section class="guide-section reveal">
+      <div class="section-header">
+        <div class="section-tag"><i class="fa-solid fa-rocket"></i> &nbsp;Hướng dẫn</div>
+        <h2 class="section-title">Hướng dẫn Nhanh</h2>
+        <p class="section-desc">5 bước đơn giản để bắt đầu phân tích ảnh AI</p>
+      </div>
+      <div class="steps-container">
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <h4>Đăng ký / Đăng nhập</h4>
+          <p>Tạo tài khoản bằng email hoặc Google</p>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <h4>Chọn Model AI</h4>
+          <p>Chọn mô hình phân tích phù hợp</p>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <h4>Tải ảnh lên</h4>
+          <p>Hỗ trợ JPG, PNG, WEBP</p>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <h4>Xem kết quả</h4>
+          <p>Nhận kết quả Real / Fake ngay lập tức</p>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">5</div>
+          <h4>Xem lịch sử</h4>
+          <p>Tra cứu lại kết quả phân tích trước đó</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SECTION 4: BUG REPORT ========== -->
+    <section class="bug-section reveal">
+      <div class="section-header">
+        <div class="section-tag"><i class="fa-solid fa-bug"></i> &nbsp;Báo lỗi</div>
+        <h2 class="section-title">Báo cáo Lỗi</h2>
+        <p class="section-desc">Giúp chúng tôi cải thiện ứng dụng bằng cách báo cáo lỗi gặp phải</p>
+      </div>
+      <div class="bug-card">
+        <div class="bug-card-header">
+          <div class="icon"><i class="fa-solid fa-bug"></i></div>
+          <div>
+            <h3>Mẫu Email Báo cáo Lỗi</h3>
+            <p>Sao chép mẫu bên dưới và gửi tới support@cnndetection.com</p>
+          </div>
+        </div>
+        <div style="position: relative;">
+          <button class="copy-btn" onclick="copyBugTemplate()" id="copy-btn">
+            <i class="fa-regular fa-copy"></i> Sao chép
+          </button>
+          <div class="email-template" id="bug-template">
+            <span class="field-label">Đến:</span> support@cnndetection.com<br>
+            <span class="field-label">Tiêu đề:</span> [BÁO CÁO LỖI] - CNN Detection<br><br>
+            <span class="field-label">Nội dung:</span><br>
+            Kính gửi Đội ngũ CNN Detection,<br><br>
+            Tôi muốn báo cáo một lỗi trong ứng dụng.<br><br>
+            <span class="field-label">1. Mô tả lỗi:</span> <span class="placeholder">[Mô tả chi tiết lỗi gặp phải]</span><br>
+            <span class="field-label">2. Các bước tái hiện:</span> <span class="placeholder">[Bước 1 → Bước 2 → ...]</span><br>
+            <span class="field-label">3. Kết quả mong đợi:</span> <span class="placeholder">[Điều bạn mong đợi sẽ xảy ra]</span><br>
+            <span class="field-label">4. Kết quả thực tế:</span> <span class="placeholder">[Điều thực tế đã xảy ra]</span><br>
+            <span class="field-label">5. Thiết bị:</span> <span class="placeholder">[VD: iPhone 14 / Samsung S23 / Chrome trên Windows]</span><br>
+            <span class="field-label">6. Phiên bản ứng dụng:</span> <span class="placeholder">[VD: 1.0.0]</span><br>
+            <span class="field-label">7. Ảnh chụp màn hình:</span> <span class="placeholder">[Đính kèm nếu có]</span><br><br>
+            Trân trọng,<br>
+            <span class="placeholder">[Tên của bạn]</span>
+          </div>
+        </div>
+      </div>
+    </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        function openLegalModal(tabId) {
+            document.getElementById('legalModal').classList.add('active');
+            if(tabId) {
+                let btns = document.querySelectorAll('.modal-tab-btn');
+                btns.forEach(b => {
+                    if(b.getAttribute('onclick').includes(tabId)) {
+                        switchLegalTab(tabId, b);
+                    }
+                });
+            }
+            document.body.style.overflow = 'hidden'; 
+        }
+        
+        function closeLegalModal() {
+            document.getElementById('legalModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        function switchLegalTab(tabId, btnElement) {
+            document.querySelectorAll('.modal-tab-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            document.querySelectorAll('.legal-tab-pane').forEach(pane => pane.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelector('.modal-content-area').scrollTop = 0;
+        }
+
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            item.classList.toggle('active');
+        }
+        
+        // Close modal on outside click
+        document.getElementById('legalModal').addEventListener('click', function(e) {
+            if(e.target === this) {
+                closeLegalModal();
+            }
+        });
+
+        // Tự động tải danh sách trang CMS
+        async function loadDynamicPages() {
+            try {
+                const response = await fetch(`${window.API_BASE_URL || 'http://localhost:8000'}/pages`);
+                if (!response.ok) return;
+                const pages = await response.json();
+                
+                if (pages && pages.length > 0) {
+                    const navLinks = document.getElementById('main-nav-links');
+                    if (navLinks) {
+                        const li = document.createElement('li');
+                        li.className = 'nav-dropdown';
+                        li.innerHTML = `
+                            <a href="#"><i class="fa-solid fa-book-open"></i> Tài liệu <i class="fa-solid fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+                            <div class="nav-dropdown-menu" id="dynamic-nav-dropdown"></div>
+                        `;
+                        navLinks.appendChild(li);
+                        
+                        const dropdown = document.getElementById('dynamic-nav-dropdown');
+                        pages.forEach(p => {
+                            const a = document.createElement('a');
+                            a.href = `page.html?id=${p.slug}`;
+                            a.textContent = p.title;
+                            dropdown.appendChild(a);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.log("Không thể tải CMS pages", err);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadDynamicPages);
+    </script>
+
 </body>
 
 </html>

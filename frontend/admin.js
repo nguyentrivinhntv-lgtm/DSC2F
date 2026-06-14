@@ -75,6 +75,8 @@ function initTabs() {
             
             if (tabId === 'tab-payment-history') {
                 fetchPaymentHistory();
+            } else if (tabId === 'tab-pages') {
+                loadPagesList();
             }
         });
     });
@@ -917,6 +919,189 @@ function initCustomizeTab() {
     fetchSiteConfig();
 }
 
+// ----------------- CMS PAGES LOGIC -----------------
+let quillEditor = null;
+
+function initCMS() {
+    // Init Quill Editor
+    if (typeof Quill !== 'undefined' && !quillEditor) {
+        quillEditor = new Quill('#page-content-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'code-block'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            }
+        });
+    }
+
+    const modal = document.getElementById('page-editor-modal');
+    const btnAdd = document.getElementById('btn-add-page');
+    const btnClose = document.getElementById('btn-close-page-modal');
+    const btnCancel = document.getElementById('btn-cancel-page-modal');
+    const btnSave = document.getElementById('btn-save-page');
+
+    if (btnAdd) btnAdd.addEventListener('click', () => openPageModal('add'));
+    if (btnClose) btnClose.addEventListener('click', () => modal.classList.add('hidden'));
+    if (btnCancel) btnCancel.addEventListener('click', () => modal.classList.add('hidden'));
+    if (btnSave) btnSave.addEventListener('click', savePage);
+}
+
+async function loadPagesList() {
+    const tbody = document.getElementById('admin-pages-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">Đang tải...</td></tr>';
+    
+    try {
+        const response = await fetch(`${API_URL}/pages?is_admin=true`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) throw new Error('Không thể tải danh sách trang');
+        
+        const pages = await response.json();
+        if (pages.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Chưa có trang nào được tạo.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        pages.forEach(p => {
+            const tr = document.createElement('tr');
+            const isActive = p.is_active ? '<span class="badge" style="background:#ecfdf5;color:#065f46;">Đang bật</span>' : '<span class="badge" style="background:#fef2f2;color:#991b1b;">Đã tắt</span>';
+            const date = new Date(p.updated_at || p.created_at).toLocaleString('vi-VN');
+            
+            tr.innerHTML = `
+                <td><strong>${p.title}</strong></td>
+                <td><code>/${p.slug}</code></td>
+                <td>${isActive}</td>
+                <td>${date}</td>
+                <td>
+                    <button class="nav-btn" onclick="editPage('${p.slug}')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="nav-btn reset-btn" onclick="deletePage('${p.slug}')"><i class="fa-solid fa-trash"></i></button>
+                    <a href="page.html?id=${p.slug}" target="_blank" class="nav-btn"><i class="fa-solid fa-eye"></i></a>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:red;text-align:center;">Lỗi: ${err.message}</td></tr>`;
+    }
+}
+
+async function editPage(slug) {
+    try {
+        const response = await fetch(`${API_URL}/pages/${slug}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Lỗi tải chi tiết trang');
+        const page = await response.json();
+        
+        openPageModal('edit', page);
+    } catch (err) {
+        alert("Lỗi: " + err.message);
+    }
+}
+
+function openPageModal(mode, pageData = null) {
+    document.getElementById('page-edit-mode').value = mode;
+    document.getElementById('page-save-message').textContent = '';
+    document.getElementById('page-save-message').className = 'topup-message';
+    
+    if (mode === 'add') {
+        document.getElementById('page-modal-title').innerHTML = '<i class="fa-solid fa-plus"></i> Tạo Trang Mới';
+        document.getElementById('page-slug-input').value = '';
+        document.getElementById('page-slug-input').disabled = false;
+        document.getElementById('page-title-input').value = '';
+        document.getElementById('page-active-input').checked = true;
+        if(quillEditor) quillEditor.root.innerHTML = '';
+    } else {
+        document.getElementById('page-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Trang';
+        document.getElementById('page-slug-input').value = pageData.slug;
+        document.getElementById('page-slug-input').disabled = true; // Không cho sửa slug
+        document.getElementById('page-title-input').value = pageData.title;
+        document.getElementById('page-active-input').checked = pageData.is_active;
+        if(quillEditor) quillEditor.root.innerHTML = pageData.content;
+    }
+    
+    document.getElementById('page-editor-modal').classList.remove('hidden');
+}
+
+async function savePage() {
+    const mode = document.getElementById('page-edit-mode').value;
+    const slug = document.getElementById('page-slug-input').value.trim();
+    const title = document.getElementById('page-title-input').value.trim();
+    const content = quillEditor ? quillEditor.root.innerHTML : '';
+    const isActive = document.getElementById('page-active-input').checked;
+    const msgEl = document.getElementById('page-save-message');
+    
+    if (!slug || !title) {
+        msgEl.textContent = 'Vui lòng nhập Tiêu đề và Slug.';
+        msgEl.className = 'topup-message error';
+        return;
+    }
+    
+    // Validate slug
+    if (!/^[a-z0-9-]+$/.test(slug)) {
+        msgEl.textContent = 'Slug chỉ được chứa chữ thường không dấu, số và dấu gạch ngang.';
+        msgEl.className = 'topup-message error';
+        return;
+    }
+    
+    const payload = { slug, title, content, is_active: isActive };
+    const method = mode === 'add' ? 'POST' : 'PUT';
+    const url = mode === 'add' ? `${API_URL}/pages` : `${API_URL}/pages/${slug}`;
+    
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const resData = await response.json();
+        if (!response.ok) throw new Error(resData.detail || 'Lỗi lưu trang');
+        
+        msgEl.textContent = 'Đã lưu trang thành công!';
+        msgEl.className = 'topup-message success';
+        
+        // Tắt modal sau 1s
+        setTimeout(() => {
+            document.getElementById('page-editor-modal').classList.add('hidden');
+            loadPagesList();
+        }, 1000);
+    } catch (err) {
+        msgEl.textContent = err.message;
+        msgEl.className = 'topup-message error';
+    }
+}
+
+async function deletePage(slug) {
+    if (!confirm(`Bạn có chắc muốn xóa trang /${slug} không? Hành động này không thể hoàn tác.`)) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/pages/${slug}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) throw new Error('Không thể xóa');
+        
+        alert('Đã xóa thành công!');
+        loadPagesList();
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
 // ----------------- INIT -----------------
 syncHeaderNav();
 initTabs();
@@ -926,6 +1111,7 @@ if (ensureAdmin()) {
     fetchAdminModels();
     fetchAdminUsers();
     initCustomizeTab();
+    initCMS();
 }
 
 refreshBtn.addEventListener('click', () => {

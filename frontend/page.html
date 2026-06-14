@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang | CNN Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
+    <style>
+        .page-container {
+            max-width: 900px;
+            margin: 120px auto 60px;
+            padding: 40px;
+            border-radius: 16px;
+            min-height: 50vh;
+        }
+        .page-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+        .page-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.5rem;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+        .page-meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .page-content {
+            font-family: 'Manrope', sans-serif;
+            line-height: 1.8;
+            color: var(--text);
+            font-size: 1.05rem;
+        }
+        .page-content h1, .page-content h2, .page-content h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: var(--text);
+        }
+        .page-content p {
+            margin-bottom: 1.2em;
+        }
+        .page-content ul, .page-content ol {
+            margin-bottom: 1.2em;
+            padding-left: 20px;
+        }
+        .page-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 1em 0;
+        }
+        .page-content a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        .page-content a:hover {
+            text-decoration: underline;
+        }
+        .page-content blockquote {
+            border-left: 4px solid var(--primary);
+            padding-left: 15px;
+            color: var(--text-muted);
+            font-style: italic;
+            background: rgba(14, 165, 164, 0.05);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        .error-container {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .error-container i {
+            font-size: 4rem;
+            color: var(--color-danger, #ef4444);
+            margin-bottom: 20px;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            background: #e2e8f0;
+            background: linear-gradient(90deg, rgba(226,232,240,0.5) 25%, rgba(241,245,249,0.8) 50%, rgba(226,232,240,0.5) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-title { height: 40px; width: 60%; margin-bottom: 15px; }
+        .skeleton-meta { height: 20px; width: 30%; margin-bottom: 30px; }
+        .skeleton-text { height: 20px; width: 100%; margin-bottom: 10px; }
+        .skeleton-text.short { width: 80%; }
+        
+        [data-theme="dark"] .skeleton {
+            background: linear-gradient(90deg, rgba(51,65,85,0.5) 25%, rgba(71,85,105,0.8) 50%, rgba(51,65,85,0.5) 75%);
+            background-size: 200% 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-mesh"></div>
+
+    <header class="landing-header">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div>
+                <h1>CNN Detection Hub</h1>
+                <p>AI Forensics Platform</p>
+            </div>
+        </div>
+        <nav class="desktop-nav">
+            <ul class="nav-links">
+                <li><a href="index.html"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
+            </ul>
+        </nav>
+        <div class="header-cta">
+            <button class="btn-login" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+        </div>
+    </header>
+
+    <main class="app-container">
+        <article class="glass-panel border-frame page-container" id="page-wrapper">
+            <!-- Loading State -->
+            <div id="loading-state">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-meta"></div>
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text"></div>
+                <div class="skeleton skeleton-text short"></div>
+                <div class="skeleton skeleton-text" style="margin-top:20px;"></div>
+                <div class="skeleton skeleton-text short"></div>
+            </div>
+            
+            <!-- Content State -->
+            <div id="content-state" style="display: none;">
+                <header class="page-header">
+                    <h1 class="page-title" id="page-title">Tiêu đề trang</h1>
+                    <div class="page-meta">
+                        <i class="fa-regular fa-calendar"></i> Cập nhật lần cuối: <span id="page-date">...</span>
+                    </div>
+                </header>
+                <div class="page-content" id="page-content">
+                    <!-- Nội dung HTML được nhúng vào đây -->
+                </div>
+            </div>
+            
+            <!-- Error State -->
+            <div id="error-state" class="error-container" style="display: none;">
+                <i class="fa-regular fa-face-frown-open"></i>
+                <h2 id="error-title">Không tìm thấy trang</h2>
+                <p id="error-desc">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị gỡ bỏ.</p>
+                <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Quay lại Trang chủ</a>
+            </div>
+        </article>
+    </main>
+
+    <script src="config-loader.js?v=2.1"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const slug = urlParams.get('id');
+            
+            const loadingState = document.getElementById('loading-state');
+            const contentState = document.getElementById('content-state');
+            const errorState = document.getElementById('error-state');
+            
+            if (!slug) {
+                showError("Lỗi đường dẫn", "Không xác định được trang cần xem.");
+                return;
+            }
+
+            try {
+                // Fetch page detail from API
+                const response = await fetch(`${window.API_BASE_URL || 'http://localhost:8000'}/pages/${slug}`);
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error("Không tìm thấy trang (404)");
+                    if (response.status === 403) throw new Error("Trang này hiện đang bị tạm khóa.");
+                    throw new Error("Lỗi khi tải dữ liệu từ máy chủ.");
+                }
+                
+                const page = await response.json();
+                
+                // Populate data
+                document.title = `${page.title} | CNN Detection Hub`;
+                document.getElementById('page-title').textContent = page.title;
+                document.getElementById('page-date').textContent = new Date(page.updated_at || page.created_at).toLocaleString('vi-VN');
+                document.getElementById('page-content').innerHTML = page.content;
+                
+                // Show content
+                loadingState.style.display = 'none';
+                contentState.style.display = 'block';
+                
+            } catch (err) {
+                showError("Rất tiếc!", err.message);
+            }
+            
+            function showError(title, desc) {
+                loadingState.style.display = 'none';
+                errorState.style.display = 'block';
+                document.getElementById('error-title').textContent = title;
+                document.getElementById('error-desc').textContent = desc;
+            }
+        });
+    </script>
+</body>
+</html>
