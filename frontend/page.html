@@ -113,8 +113,8 @@
 <body>
     <div class="bg-mesh"></div>
 
-    <header class="landing-header">
-        <div class="brand">
+    <nav class="main-nav">
+        <div class="nav-brand">
             <div class="brand-icon">
                 <i class="fa-solid fa-shield-halved"></i>
             </div>
@@ -123,15 +123,15 @@
                 <p>AI Forensics Platform</p>
             </div>
         </div>
-        <nav class="desktop-nav">
-            <ul class="nav-links">
-                <li><a href="index.html"><i class="fa-solid fa-house"></i> Trang chủ</a></li>
-            </ul>
-        </nav>
-        <div class="header-cta">
-            <button class="btn-login" onclick="window.location.href='index.html'"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+        
+        <ul class="nav-links">
+            <li><a href="index.html"><i class="fa-solid fa-house"></i> Quay về trang chủ</a></li>
+        </ul>
+
+        <div class="nav-actions">
+            <a href="app.html" class="btn-login"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đi tới Dashboard</a>
         </div>
-    </header>
+    </nav>
 
     <main class="app-container">
         <article class="glass-panel border-frame page-container" id="page-wrapper">
@@ -168,6 +168,49 @@
             </div>
         </article>
     </main>
+
+    <!-- Footer -->
+    <footer class="landing-footer" style="margin-top: 60px;">
+        <div class="footer-grid">
+            <div class="footer-brand-block">
+                <h3>
+                    <div class="brand-icon" style="width:28px;height:28px;font-size:0.8rem;border-radius:8px;">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    CNN Detection Hub
+                </h3>
+                <p>Ứng dụng nhận diện ảnh AI tiên tiến, sử dụng Deep Learning để phát hiện Deepfake. Hỗ trợ đa nền tảng Web, Android & iOS.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Pháp lý</h4>
+                <ul class="footer-links-list">
+                    <li><a href="page.html?id=chinh-sach-quyen-rieng-tu">Privacy Policy</a></li>
+                    <li><a href="page.html?id=dieu-khoan-su-dung">Terms of Service</a></li>
+                    <li><a href="page.html?id=xoa-du-lieu">Data Deletion</a></li>
+                    <li><a href="page.html?id=chinh-sach-ai">AI Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Sản phẩm</h4>
+                <ul class="footer-links-list">
+                    <li><a href="app.html">User Dashboard</a></li>
+                    <li><a href="admin.html">Admin Panel</a></li>
+                    <li><a href="https://drive.google.com/uc?export=download&id=181LrX3dQ_Sjtz2_kBJ8Rpjrkhwi74NUy">Tải App Android</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul class="footer-links-list" id="footer-support-links">
+                    <li><a href="page.html?id=ho-tro-lien-he">FAQ & Trợ giúp</a></li>
+                    <li><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom-bar">
+            <span id="lp-footer" data-i18n="lp_footer">&copy; 2026 CNN Detection Hub &mdash; AI Deepfake Detection Platform</span>
+            <span>Version 1.0.0</span>
+        </div>
+    </footer>
 
     <script src="config-loader.js?v=2.1"></script>
     <script>
