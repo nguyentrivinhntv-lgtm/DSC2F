@@ -356,6 +356,7 @@ def login_google(request: GoogleLoginRequest):
         user = create_user(
             username=username,
             hashed_password=auto_password,
+            email=email,
             role="user",
             prediction_tokens=5,
         )
@@ -720,17 +721,40 @@ def api_google_callback_flutter(state: str, code: Optional[str] = None, request:
         return HTMLResponse("<h2>Không lấy được Email từ Google.</h2>")
         
     # Tái sử dụng logic lấy user hoặc tạo user
+    from app.routers.auth import _build_google_username
+    username = _build_google_username(email)
+    
     user = get_user_by_email(email)
-    from uuid import uuid4
     if not user:
-        from app.routers.auth import _build_google_username
-        username = _build_google_username(email)
-        auto_password = hash_password(f"google::{uuid4().hex}{uuid4().hex}")
-        user_id = create_user(username, email, auto_password)
-        if not user_id:
-            return HTMLResponse("<h2>Lỗi tạo tài khoản nội bộ.</h2>")
-        user = get_user_by_email(email)
+        user = get_user_by_username(username)
         
+    if not user:
+        from uuid import uuid4
+        auto_password = hash_password(f"google::{uuid4().hex}{uuid4().hex}")
+        try:
+            user = create_user(
+                username=username,
+                hashed_password=auto_password,
+                email=email,
+                role="user",
+                prediction_tokens=5
+            )
+        except Exception as e:
+            return HTMLResponse(f"<h2>Lỗi tạo tài khoản nội bộ: {str(e)}</h2>")
+            
+    # Fix bug cũ nếu email bị lưu sai hoặc thiếu
+    if user and user.get("email") != email:
+        from app.models.base_db import _get_connection
+        conn = _get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE users SET email = %s WHERE id = %s", (email, user["id"]))
+            conn.commit()
+            user["email"] = email
+        except:
+            pass
+        finally:
+            conn.close()
     # Tạo JWT của app mình
     access_token = create_access_token(
         data={"sub": user["username"], "role": user["role"]}
