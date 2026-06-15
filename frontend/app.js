@@ -376,21 +376,22 @@ async function handleHybridGoogleLogin() {
                     if (btnText) btnText.innerText = 'Đăng nhập thành công!';
                     
                     // Thực hiện login vào web
-                    token = data.token;
-                    localStorage.setItem('token', token);
-                    localStorage.setItem('username', data.user.username);
-                    localStorage.setItem('role', data.user.role);
+                    authToken = data.token;
+                    authUser = data.user.username;
+                    authRole = data.user.role;
                     
-                    document.getElementById('login-modal').classList.add('hidden');
-                    isLoggedIn = true;
-                    showLoggedInUI();
+                    localStorage.setItem('token', authToken);
+                    localStorage.setItem('username', authUser);
+                    localStorage.setItem('role', authRole);
+                    
+                    checkLogin();
                     
                     // Fetch user info thực tế
                     await fetchUserInfo();
                     
                     // Gọi API lấy số dư token
                     const topupRes = await fetch(`${API_URL}/users/me/prediction-tokens`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
+                        headers: { 'Authorization': `Bearer ${authToken}` }
                     });
                     if (topupRes.ok) {
                         const topupData = await topupRes.json();
