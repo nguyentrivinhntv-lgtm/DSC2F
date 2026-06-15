@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "username": "vinh",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 2,
+    "username": "vinhnguyen",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 3,
+    "username": "nguyentrivinhntv@gmail.com",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 4,
+    "username": "hangnyho753@gmail.com",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 5,
+    "username": "nguyenchivinh05551@gmail.com",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 6,
+    "username": "trivinh915@gmail.com",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 7,
+    "username": "vinhntvnguyentrivinh@gmail.com",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 8,
+    "username": "tho226966@student.nctu.edu.vn",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 9,
+    "username": "dh22tin04@gmail.com",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 10,
+    "username": "Nguyễn Thị Bích Quyên ",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 11,
+    "username": "minhtu",
+    "email": null,
+    "role": "user"
+  },
+  {
+    "id": 12,
+    "username": "tu1",
+    "email": null,
+    "role": "user"
+  }
+]

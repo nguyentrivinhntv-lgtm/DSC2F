@@ -8,6 +8,7 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 bcrypt==4.0.1
 google-auth>=2.29.0
+requests>=2.25.0
 
 # Configuration
 pydantic-settings>=2.0.0
@@ -21,3 +22,4 @@ numpy
 
 # Database
 PyMySQL>=1.1.1
+gdown

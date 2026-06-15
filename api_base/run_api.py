@@ -11,6 +11,7 @@ Usage:
 """
 
 import argparse
+import os
 import sys
 
 import uvicorn
@@ -27,7 +28,7 @@ def parse_args():
         help="Host để bind server."
     )
     parser.add_argument(
-        "--port", type=int, default=8000,
+        "--port", type=int, default=int(os.environ.get("PORT", 8000)),
         help="Port để chạy server."
     )
     parser.add_argument(

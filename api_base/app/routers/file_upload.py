@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from pydantic import BaseModel, Field
 
 from app.config import VALID_MODEL_TYPES, get_settings
-from app.models.base_db import log_prediction
+from app.models.base_db import log_prediction, is_model_active
 from app.models.base_db import decrement_prediction_tokens
 from app.security.security import get_current_user
 from app.utils.helpers import (
@@ -114,6 +114,11 @@ async def predict_single(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Model type '{selected_model}' không hợp lệ. Chọn: {sorted(VALID_MODEL_TYPES)}",
+        )
+    if not is_model_active(selected_model):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Model '{selected_model}' hiện đang bị tắt bởi hệ thống.",
         )
 
     if (not is_admin) and int(current_user.get("prediction_tokens", 0)) <= 0:
@@ -244,6 +249,11 @@ async def predict_batch(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Model type '{selected_model}' không hợp lệ.",
+        )
+    if not is_model_active(selected_model):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Model '{selected_model}' hiện đang bị tắt bởi hệ thống.",
         )
 
     results = []

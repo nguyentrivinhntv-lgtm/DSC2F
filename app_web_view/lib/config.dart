@@ -6,22 +6,12 @@
 class AppConfig {
   // ── BASE URLs ──────────────────────────────────────────────
   /// URL backend FastAPI (không có dấu / ở cuối)
-  static const String apiBaseUrl = 'https://buddhichat.adhightech.com/api/v1';
+  static const String apiBaseUrl = 'https://cnn-detection-api.onrender.com';
 
-  /// URL frontend web (không có dấu / ở cuối)
-  static const String webBaseUrl = 'https://buddhichat.adhightech.com';
-
-  // ── OAUTH DEEP LINK ────────────────────────────────────────
-  /// Scheme cho Deep Link callback sau Google OAuth
-  /// Phải khớp với android:scheme trong AndroidManifest.xml
-  static const String callbackScheme = 'phatgiaochatbot';
+  /// URL frontend web
+  static const String webBaseUrl = 'https://dsc-2-f.vercel.app';
 
   // ── APP INFO ───────────────────────────────────────────────
-  static const String appName = 'Chatbot Phật Giáo';
+  static const String appName = 'CNN Detection';
   static const String appVersion = '1.0.0';
-
-  // ── COMPUTED ───────────────────────────────────────────────
-  /// URL endpoint đăng nhập Google dành cho Flutter
-  static String get googleLoginFlutterUrl =>
-      '$apiBaseUrl/auth/google/login/flutter?callback_scheme=$callbackScheme';
 }

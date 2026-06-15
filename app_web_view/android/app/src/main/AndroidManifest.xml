@@ -4,7 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="Chatbot Phật Giáo"
+        android:label="CNN Detection"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
@@ -27,22 +27,21 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- (Intent filter login đã được chuyển sang CallbackActivity bên dưới) -->
         </activity>
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
 
-        <!-- ✅ Đăng ký CallbackActivity của thư viện flutter_web_auth_2 -->
+        <!-- CallbackActivity cho Google login qua Chrome Custom Tabs -->
         <activity android:name="com.linusu.flutter_web_auth_2.CallbackActivity" android:exported="true">
-            <intent-filter android:label="flutter_web_auth">
+            <intent-filter android:label="flutter_web_auth_2">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Chỉ để scheme để Chrome dễ bắt link và tự đóng tab hơn -->
-                <data android:scheme="phatgiaochatbot" />
+                <data android:scheme="cnndetection" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
     </application>
 
     <queries>
@@ -50,10 +49,14 @@
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
-        <!-- ✅ Cho phép mở Chrome Custom Tab -->
+        <!-- ✅ Cho phép mở URL bên ngoài -->
         <intent>
             <action android:name="android.intent.action.VIEW"/>
             <data android:scheme="https"/>
+        </intent>
+        <!-- ✅ Cho phép mở Chrome Custom Tabs -->
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
     </queries>
 </manifest>

@@ -40,17 +40,19 @@ class HistoryResponse(BaseModel):
     "/",
     response_model=HistoryResponse,
     summary="Lấy lịch sử prediction",
-    description="User thông thường xem lịch sử cá nhân. Admin sẽ xem tất cả.",
+    description="User thông thường xem lịch sử cá nhân. Admin có thể thêm ?all=true để xem tất cả.",
 )
-def get_history(current_user: dict = Depends(get_current_user)):
+def get_history(all: bool = False, current_user: dict = Depends(get_current_user)):
     """
     Lấy danh sách lịch sử prediction.
     """
+    # Chỉ khi user là admin và có truyền ?all=true thì mới lấy lịch sử toàn hệ thống
     is_admin = current_user.get("role") == "admin"
+    fetch_all = is_admin and all
     user_id = current_user["id"]
     
     # Lấy dữ liệu từ db
-    logs = get_prediction_history(user_id=user_id, is_admin=is_admin)
+    logs = get_prediction_history(user_id=user_id, is_admin=fetch_all)
     
     # Format
     results = []

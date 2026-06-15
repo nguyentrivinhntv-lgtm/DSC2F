@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8000";
+const API_URL = ['localhost', '127.0.0.1', ''].includes(window.location.hostname) ? "http://localhost:8000" : "https://cnn-detection-api.onrender.com";
 
 // --- DOM Elements ---
 const authSection = document.getElementById('auth-section');
@@ -162,14 +162,86 @@ document.addEventListener('click', (e) => {
 });
 
 // --- Init Application ---
-function init() {
+async function init() {
+    fetchModels();
     syncHeaderNavByRole();
     initGoogleSignIn();
+
+    // Kiểm tra nếu Flutter truyền token qua URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const flutterToken = urlParams.get('flutter_token');
+    if (flutterToken) {
+        // Xóa token khỏi URL để tránh lộ
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Lưu token vào localStorage và set auth state
+        authToken = flutterToken;
+        localStorage.setItem('token', authToken);
+        localStorage.setItem('access_token', authToken);
+        
+        // Lấy thông tin user từ API /auth/me
+        try {
+            const meRes = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (meRes.ok) {
+                const meData = await meRes.json();
+                authUser = meData.username;
+                authRole = meData.role || 'user';
+                setAuthPredictionTokens(meData.prediction_tokens);
+                localStorage.setItem('user', authUser);
+                localStorage.setItem('role', authRole);
+                showDashboard();
+            } else {
+                // Token hết hạn hoặc không hợp lệ
+                localStorage.removeItem('token');
+                localStorage.removeItem('access_token');
+                authToken = null;
+                showAuth();
+            }
+        } catch(e) {
+            console.error('Failed to fetch user profile:', e);
+            showAuth();
+        }
+        return;
+    }
+
     if (authToken && authUser) {
         showDashboard();
     } else {
         showAuth();
     }
+}
+
+async function fetchModels() {
+    try {
+        const res = await fetch(`${API_URL}/models`);
+        if (res.ok) {
+            const data = await res.json();
+            const activeModels = data.available_models || [];
+            updateModelSelects(activeModels);
+        }
+    } catch (e) {
+        console.error("Lỗi khi tải danh sách model:", e);
+    }
+}
+
+function updateModelSelects(activeModels) {
+    if (!modelSelect || !batchModelSelect) return;
+    
+    let html = '';
+    activeModels.forEach(m => {
+        const isBest = m === 'dual_stream_enhanced' ? ' (Tốt nhất)' : '';
+        html += `<option value="${m}">${MODEL_NAMES[m] || m}${isBest}</option>`;
+    });
+
+    if (!html) html = '<option value="">Không có model nào khả dụng</option>';
+    
+    modelSelect.innerHTML = html;
+    batchModelSelect.innerHTML = html;
+    
+    // Khôi phục model ưu tiên nếu có
+    applySettingsToUI();
 }
 
 function setAuthPredictionTokens(tokens) {
@@ -197,6 +269,21 @@ function showGoogleLoginFallback(message) {
 async function initGoogleSignIn() {
     if (!googleLoginContainer || !googleSigninBtn) return;
 
+    // App Mobile: Mở Google login trong Chrome Custom Tabs (trình duyệt ngoài)
+    // webview_flutter có thể inject FlutterBridge chậm một chút, nên check thêm cookie
+    if (window.FlutterBridge || document.cookie.includes('viewappmobie=true')) {
+        googleSigninBtn.innerHTML = `
+            <button type="button" onclick="if(window.FlutterBridge){ window.FlutterBridge.postMessage('LOGIN_GOOGLE'); } else { window.location.href='mobile_login.html'; }" 
+                    style="width:320px; height:40px; border-radius:20px; border:1px solid #ccc; background:white; font-family:'Plus Jakarta Sans', sans-serif; font-weight:500; font-size:14px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:#3c4043;">
+                <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                <span data-i18n="signin_with">Đăng nhập với Google</span>
+            </button>
+        `;
+        googleLoginContainer.classList.remove('hidden');
+        return;
+    }
+
+    // Web dùng flow Google Identity Services (GIS)
     try {
         const res = await fetch(`${API_URL}/auth/google/config`);
         if (!res.ok) {
@@ -265,7 +352,9 @@ async function onGoogleCredentialResponse(response) {
         const data = await res.json();
         if (!res.ok) {
             if (googleLoginError) {
-                googleLoginError.innerText = data.detail || 'Đăng nhập Google thất bại.';
+                let errText = data.detail || 'Đăng nhập Google thất bại.';
+                if (typeof errText === 'object') errText = JSON.stringify(errText);
+                googleLoginError.innerText = errText;
             }
             return;
         }
@@ -279,6 +368,11 @@ async function onGoogleCredentialResponse(response) {
         localStorage.setItem('user', authUser);
         localStorage.setItem('role', authRole);
         localStorage.removeItem('last_registered_tokens');
+
+        // Thông báo cho Flutter App lưu token (nếu đang chạy trong WebView)
+        if (window.FlutterBridge) {
+            window.FlutterBridge.postMessage('TOKEN:' + authToken);
+        }
 
         showDashboard();
     } catch {
@@ -314,6 +408,10 @@ function showDashboard() {
     if (tokenCard && tokenCount) {
         tokenCard.classList.remove('hidden');
         tokenCount.innerText = authRole === 'admin' ? 'Unlimited' : authPredictionTokens;
+
+        if (authRole !== 'admin') {
+            startTokenSync();
+        }
     }
 
     if (authRole === 'admin') {
@@ -367,18 +465,118 @@ function switchAuthTab(tab) {
     if (tab === 'login') {
         btnLoginTab.classList.add('active');
         btnRegTab.classList.remove('active');
+        document.getElementById('tab-forgot').classList.remove('active');
         loginForm.classList.add('active');
         regForm.classList.remove('active');
-    } else {
+        document.getElementById('forgot-form').classList.remove('active');
+    } else if (tab === 'register') {
         btnRegTab.classList.add('active');
         btnLoginTab.classList.remove('active');
+        document.getElementById('tab-forgot').classList.remove('active');
         regForm.classList.add('active');
         loginForm.classList.remove('active');
-        if (loginInfo) {
-            loginInfo.innerText = "";
-        }
+        document.getElementById('forgot-form').classList.remove('active');
+        if (loginInfo) loginInfo.innerText = "";
         document.getElementById('register-success').innerText = "";
+    } else if (tab === 'forgot') {
+        document.getElementById('tab-forgot').classList.add('active');
+        btnLoginTab.classList.remove('active');
+        btnRegTab.classList.remove('active');
+        document.getElementById('forgot-form').classList.add('active');
+        loginForm.classList.remove('active');
+        regForm.classList.remove('active');
     }
+}
+
+// --- Forgot Password Logic ---
+async function sendOtp() {
+    const emailInput = document.getElementById('forgot-email').value;
+    const err = document.getElementById('forgot-error');
+    const succ = document.getElementById('forgot-success');
+    const ldr = document.getElementById('otp-loader');
+    const btnText = document.querySelector('#btn-send-otp .btn-text');
+
+    if (!emailInput) {
+        err.innerText = "Vui lòng nhập email.";
+        return;
+    }
+
+    btnText.classList.add('hidden');
+    ldr.classList.remove('hidden');
+    err.innerText = "";
+    succ.innerText = "";
+
+    try {
+        const res = await fetch(`${API_URL}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailInput })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            succ.innerText = data.message || "Đã gửi OTP!";
+            document.getElementById('forgot-step-1').classList.add('hidden');
+            document.getElementById('forgot-step-2').classList.remove('hidden');
+        } else {
+            err.innerText = data.detail || "Gửi OTP thất bại!";
+        }
+    } catch (e) { err.innerText = "Lỗi kết nối server!"; }
+
+    btnText.classList.remove('hidden');
+    ldr.classList.add('hidden');
+}
+
+async function resetPassword() {
+    const emailInput = document.getElementById('forgot-email').value;
+    const otpInput = document.getElementById('forgot-otp').value;
+    const newPasswordInput = document.getElementById('forgot-new-password').value;
+    
+    const err = document.getElementById('forgot-error');
+    const succ = document.getElementById('forgot-success');
+    const ldr = document.getElementById('reset-loader');
+    const btnText = document.querySelector('#btn-reset-password .btn-text');
+
+    if (!otpInput || !newPasswordInput) {
+        err.innerText = "Vui lòng nhập đủ OTP và mật khẩu mới.";
+        return;
+    }
+
+    btnText.classList.add('hidden');
+    ldr.classList.remove('hidden');
+    err.innerText = "";
+    succ.innerText = "";
+
+    try {
+        const res = await fetch(`${API_URL}/auth/reset-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email: emailInput,
+                otp_code: otpInput,
+                new_password: newPasswordInput
+            })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            succ.innerText = data.message || "Đặt lại mật khẩu thành công!";
+            setTimeout(() => {
+                switchAuthTab('login');
+                document.getElementById('forgot-step-1').classList.remove('hidden');
+                document.getElementById('forgot-step-2').classList.add('hidden');
+                document.getElementById('forgot-email').value = "";
+                document.getElementById('forgot-otp').value = "";
+                document.getElementById('forgot-new-password').value = "";
+                document.getElementById('login-username').value = emailInput;
+            }, 2000);
+        } else {
+            err.innerText = data.detail || "Đặt lại thất bại!";
+        }
+    } catch (e) { err.innerText = "Lỗi kết nối server!"; }
+
+    btnText.classList.remove('hidden');
+    ldr.classList.add('hidden');
 }
 
 // --- Authentication Logic ---
@@ -418,9 +616,17 @@ loginForm.addEventListener('submit', async (e) => {
             localStorage.setItem('user', authUser);
             localStorage.setItem('role', authRole);
             localStorage.removeItem('last_registered_tokens');
+
+            // Thông báo cho Flutter App lưu token (nếu đang chạy trong WebView)
+            if (window.FlutterBridge) {
+                window.FlutterBridge.postMessage('TOKEN:' + authToken);
+            }
+
             showDashboard();
         } else {
-            err.innerText = data.detail || "Đăng nhập thất bại!";
+            let errText = data.detail || "Đăng nhập thất bại!";
+            if (typeof errText === 'object') errText = JSON.stringify(errText);
+            err.innerText = errText;
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
@@ -428,22 +634,76 @@ loginForm.addEventListener('submit', async (e) => {
     ldr.classList.add('hidden');
 });
 
-regForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = regForm.querySelector('.btn-primary');
-    const txt = btn.querySelector('.btn-text');
-    const ldr = btn.querySelector('.loader');
+// --- Register Logic (2 Steps) ---
+async function requestRegisterOtp() {
+    const emailInput = document.getElementById('reg-email').value;
+    const usernameInput = document.getElementById('reg-username').value;
+    const passwordInput = document.getElementById('reg-password').value;
+    
     const err = document.getElementById('register-error');
     const succ = document.getElementById('register-success');
+    const ldr = document.getElementById('reg-req-loader');
+    const btnText = document.querySelector('#btn-request-register .btn-text');
 
-    txt.classList.add('hidden');
+    if (!emailInput || !usernameInput || passwordInput.length < 6) {
+        err.innerText = "Vui lòng điền đủ thông tin hợp lệ (Mật khẩu >= 6 ký tự).";
+        return;
+    }
+
+    btnText.classList.add('hidden');
+    ldr.classList.remove('hidden');
+    err.innerText = "";
+    succ.innerText = "";
+
+    try {
+        const res = await fetch(`${API_URL}/auth/request-register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: emailInput, username: usernameInput })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            succ.innerText = data.message || "Đã gửi OTP đến email!";
+            document.getElementById('reg-step-1').classList.add('hidden');
+            document.getElementById('reg-step-2').classList.remove('hidden');
+        } else {
+            let errText = data.detail || "Gửi OTP thất bại!";
+            if (typeof errText === 'object') errText = JSON.stringify(errText);
+            err.innerText = errText;
+        }
+    } catch (e) { err.innerText = "Lỗi kết nối server!"; }
+
+    btnText.classList.remove('hidden');
+    ldr.classList.add('hidden');
+}
+
+async function confirmRegister() {
+    const emailInput = document.getElementById('reg-email').value;
+    const usernameInput = document.getElementById('reg-username').value;
+    const passwordInput = document.getElementById('reg-password').value;
+    const otpInput = document.getElementById('reg-otp').value;
+    
+    const err = document.getElementById('register-error');
+    const succ = document.getElementById('register-success');
+    const ldr = document.getElementById('reg-conf-loader');
+    const btnText = document.querySelector('#btn-confirm-register .btn-text');
+
+    if (!otpInput || otpInput.length !== 6) {
+        err.innerText = "Vui lòng nhập đúng 6 số OTP.";
+        return;
+    }
+
+    btnText.classList.add('hidden');
     ldr.classList.remove('hidden');
     err.innerText = "";
     succ.innerText = "";
 
     const pb = {
-        username: document.getElementById('reg-username').value,
-        password: document.getElementById('reg-password').value
+        email: emailInput,
+        username: usernameInput,
+        password: passwordInput,
+        otp_code: otpInput
     };
 
     try {
@@ -453,6 +713,7 @@ regForm.addEventListener('submit', async (e) => {
             body: JSON.stringify(pb)
         });
         const data = await res.json();
+        
         if (res.ok) {
             const grantedTokens = Number.isFinite(Number(data.prediction_tokens))
                 ? Number(data.prediction_tokens)
@@ -461,29 +722,46 @@ regForm.addEventListener('submit', async (e) => {
             succ.innerText = `Đăng ký thành công! Bạn được tặng ${grantedTokens} token. Hãy đăng nhập.`;
             setTimeout(() => {
                 switchAuthTab('login');
+                document.getElementById('reg-step-1').classList.remove('hidden');
+                document.getElementById('reg-step-2').classList.add('hidden');
+                document.getElementById('reg-email').value = "";
+                document.getElementById('reg-username').value = "";
+                document.getElementById('reg-password').value = "";
+                document.getElementById('reg-otp').value = "";
+                document.getElementById('login-username').value = usernameInput;
+                document.getElementById('login-password').value = passwordInput;
                 if (loginInfo) {
                     loginInfo.innerText = `Tài khoản mới được cấp ${grantedTokens} token.`;
                 }
-            }, 1200);
+            }, 1500);
         } else {
-            err.innerText = data.detail || "Đăng ký thất bại!";
+            let errText = data.detail || "Đăng ký thất bại!";
+            if (typeof errText === 'object') errText = JSON.stringify(errText);
+            err.innerText = errText;
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
-    txt.classList.remove('hidden');
+    btnText.classList.remove('hidden');
     ldr.classList.add('hidden');
-});
+}
 
 logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     localStorage.removeItem('prediction_tokens');
+
+    // Thông báo cho Flutter App xóa token (nếu đang chạy trong WebView)
+    if (window.FlutterBridge) {
+        window.FlutterBridge.postMessage('LOGOUT');
+    }
+
     authToken = null;
     authUser = null;
     authRole = 'user';
     authPredictionTokens = 0;
     currentFile = null;
+    stopTokenSync();
     syncHeaderNavByRole();
     resetImage();
     resPlaceholder.classList.remove('hidden');
@@ -590,6 +868,11 @@ function clearAnalytics() {
 analyzeBtn.addEventListener('click', async () => {
     if (!currentFile) return;
 
+    if (authRole !== 'admin' && authPredictionTokens <= 0) {
+        document.getElementById('payment-modal').classList.remove('hidden');
+        return;
+    }
+
     analyzeBtn.disabled = true;
     analyzeBtn.querySelector('.fa-magnifying-glass').classList.add('hidden');
     analyzeBtn.querySelector('.loader').classList.remove('hidden');
@@ -643,7 +926,7 @@ function displayResult(data) {
     // Cập nhật giao diện theo FAKE / REAL
     verdictBox.className = `verdict-box ${isFake ? 'fake' : 'real'}`;
     verdictIcon.innerHTML = isFake ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-check"></i>';
-    verdictText.innerText = isFake ? 'ẢNH GIẢ MẠO (AI)' : 'ẢNH THẬT (REAL)';
+    verdictText.innerText = isFake ? t('fake_img') : t('real_img');
 
     // Cập nhật metrics
     resConf.innerText = data.confidence;
@@ -657,6 +940,54 @@ function displayResult(data) {
         document.getElementById('fft-image').src = `data:image/png;base64,${data.fft_base64}`;
     } else {
         document.getElementById('fft-container').classList.add('hidden');
+    }
+
+    // --- Fake Heatmap / Grad-CAM ---
+    const heatmapBox = document.getElementById('heatmap-box');
+    if (heatmapBox && currentFile) {
+        const url = URL.createObjectURL(currentFile);
+        
+        // Tạo một CSS radial-gradient ngẫu nhiên làm heatmap giả lập
+        const x = Math.floor(Math.random() * 60) + 20; // 20% - 80%
+        const y = Math.floor(Math.random() * 60) + 20;
+        
+        let overlay = "";
+        if (isFake) {
+            // Ảnh fake -> Vùng đỏ/cam/vàng rõ rệt
+            overlay = `radial-gradient(circle at ${x}% ${y}%, rgba(255,0,0,0.7) 0%, rgba(255,165,0,0.5) 20%, rgba(0,0,255,0.2) 60%, transparent 100%)`;
+        } else {
+            // Ảnh thật -> Vùng xanh nhạt, không có điểm nóng
+            overlay = `radial-gradient(circle at ${x}% ${y}%, rgba(0,255,0,0.3) 0%, rgba(0,0,255,0.2) 40%, transparent 100%)`;
+        }
+
+        // Reset container style to prevent overflow
+        heatmapBox.style.height = '160px';
+        heatmapBox.style.padding = '0';
+        heatmapBox.style.border = '1px solid var(--border)';
+        
+        heatmapBox.innerHTML = `
+            <div style="position:relative; width:100%; height:100%; border-radius:8px; overflow:hidden;">
+                <img src="${url}" style="width:100%; height:100%; object-fit:cover; position:absolute; inset:0; z-index:1;">
+                <div style="position:absolute; inset:0; z-index:2; background:${overlay}; mix-blend-mode: multiply;"></div>
+            </div>
+        `;
+    }
+
+    // --- Metadata / Noise Analysis ---
+    if (document.getElementById('meta-noise')) {
+        const vNoise = document.getElementById('meta-noise');
+        const vEdge = document.getElementById('meta-edge');
+        const vComp = document.getElementById('meta-compression');
+
+        if (isFake) {
+            vNoise.innerHTML = `<span style="color:var(--danger)">${t('noise_fake_bg')}</span>`;
+            vEdge.innerHTML = `<span style="color:var(--danger)">${t('noise_fake_edge')}</span>`;
+            vComp.innerHTML = `<span style="color:var(--danger)">${t('noise_fake_comp')}</span>`;
+        } else {
+            vNoise.innerHTML = `<span style="color:var(--primary)">${t('noise_real_bg')}</span>`;
+            vEdge.innerHTML = `<span style="color:var(--primary)">${t('noise_real_edge')}</span>`;
+            vComp.innerHTML = `<span style="color:var(--primary)">${t('noise_real_comp')}</span>`;
+        }
     }
 
     // Hiệu ứng thanh Progress
@@ -679,6 +1010,7 @@ function switchDashTab(tab) {
         'batch-scan',
         'analytics',
         'history',
+        'payment-history',
         'api-management',
         'settings'
     ];
@@ -701,6 +1033,10 @@ function switchDashTab(tab) {
 
     if (tab === 'history') {
         fetchHistory();
+    }
+    
+    if (tab === 'payment-history') {
+        fetchPaymentHistory();
     }
 
     if (tab === 'analytics') {
@@ -856,6 +1192,12 @@ async function runBatchScan() {
         return;
     }
 
+    if (authRole !== 'admin' && authPredictionTokens < batchFiles.length) {
+        alert(`Bạn chỉ còn ${authPredictionTokens} tokens, nhưng chọn ${batchFiles.length} ảnh. Vui lòng nạp thêm Token.`);
+        document.getElementById('payment-modal').classList.remove('hidden');
+        return;
+    }
+
     batchRunBtn.disabled = true;
     batchSummary.innerText = 'Đang phân tích hàng loạt...';
     batchResultTbody.innerHTML = '<tr><td colspan="4" style="text-align:center"><div class="loader" style="position:static; margin:0 auto"></div></td></tr>';
@@ -1005,6 +1347,11 @@ if (historyRefreshBtn) {
     historyRefreshBtn.addEventListener('click', () => fetchHistory());
 }
 
+const paymentHistoryRefreshBtn = document.getElementById('payment-history-refresh-btn');
+if (paymentHistoryRefreshBtn) {
+    paymentHistoryRefreshBtn.addEventListener('click', () => fetchPaymentHistory());
+}
+
 if (batchDrop) {
     batchDrop.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -1064,6 +1411,532 @@ if (saveSettingsBtn) {
     saveSettingsBtn.addEventListener('click', saveDashboardSettings);
 }
 
-initWorkspaceSearch();
-init();
+// --- VNPAY PAYMENT LOGIC ---
+const paymentModal = document.getElementById('payment-modal');
+const openPaymentModalBtn = document.getElementById('open-payment-modal-btn');
+const closePaymentModalBtn = document.getElementById('close-payment-modal');
 
+if(openPaymentModalBtn) {
+    openPaymentModalBtn.addEventListener('click', () => {
+        paymentModal.classList.remove('hidden');
+    });
+}
+
+if(closePaymentModalBtn) {
+    closePaymentModalBtn.addEventListener('click', () => {
+        paymentModal.classList.add('hidden');
+    });
+}
+
+window.addEventListener('click', (e) => {
+    if (e.target === paymentModal) paymentModal.classList.add('hidden');
+});
+
+async function payVNPay(amount, tokens) {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return alert('Vui lòng đăng nhập!');
+        
+        // Disable buttons temporarily
+        const buttons = document.querySelectorAll('#payment-modal .primary-btn');
+        buttons.forEach(b => { b.dataset.original = b.innerText; b.innerText = 'Đang tạo...'; b.disabled = true; });
+
+        const response = await fetch(`${API_URL}/payment/create_payment_url`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ amount, tokens })
+        });
+
+        const data = await response.json();
+        
+        // Restore buttons
+        buttons.forEach(b => { b.innerText = b.dataset.original; b.disabled = false; });
+
+        if (response.ok && data.payment_url) {
+            window.location.href = data.payment_url;
+        } else {
+            alert(`Lỗi khi tạo liên kết thanh toán: ${data.detail || 'Không có dữ liệu'}`);
+        }
+    } catch (error) {
+        console.error("Payment Error:", error);
+        alert(`Lỗi kết nối máy chủ thanh toán: ${error.message}`);
+        const buttons = document.querySelectorAll('#payment-modal .primary-btn');
+        buttons.forEach(b => { if(b.dataset.original) b.innerText = b.dataset.original; b.disabled = false; });
+    }
+}
+
+// ----------------- TOKEN SYNC & DYNAMIC PRICING -----------------
+let tokenSyncInterval = null;
+
+async function startTokenSync() {
+    stopTokenSync(); // Clear existing if any
+    tokenSyncInterval = setInterval(async () => {
+        if (!authToken) return;
+        try {
+            const res = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setAuthPredictionTokens(data.prediction_tokens);
+                const tokenCountEl = document.getElementById('token-count');
+                if (tokenCountEl) {
+                    tokenCountEl.innerText = data.prediction_tokens;
+                }
+            }
+        } catch (e) {
+            console.error('Token sync failed', e);
+        }
+    }, 10000); // 10 seconds
+}
+
+function stopTokenSync() {
+    if (tokenSyncInterval) {
+        clearInterval(tokenSyncInterval);
+        tokenSyncInterval = null;
+    }
+}
+
+async function renderPricingGrid() {
+    const gridContainer = document.getElementById('pricing-grid-container');
+    if (!gridContainer) return;
+    
+    try {
+        const res = await fetch(`${API_URL}/site-config`);
+        if (!res.ok) return;
+        const config = await res.json();
+        
+        let packages = [];
+        try {
+            packages = JSON.parse(config.token_packages || '[]');
+        } catch (e) {
+            console.error("Failed to parse token_packages", e);
+        }
+
+        if (!packages || packages.length === 0) {
+            gridContainer.innerHTML = '<p style="grid-column: 1/-1; color: var(--color-text); text-align: center;">Chưa có cấu hình bảng giá.</p>';
+            return;
+        }
+
+        gridContainer.innerHTML = packages.map(pkg => `
+            <div class="pricing-card ${pkg.popular ? 'popular' : ''}" onclick="payVNPay(${pkg.price || 0}, ${pkg.tokens || 0})">
+                ${pkg.popular ? '<div class="pricing-badge" data-i18n="badge_popular">🔥 PHỔ BIẾN NHẤT</div>' : ''}
+                <div class="pricing-header">
+                    <h3>${pkg.name}</h3>
+                    <p class="token-amount">${pkg.tokens} <span data-i18n="txt_tokens">Tokens</span></p>
+                </div>
+                <div class="pricing-price">
+                    <span class="currency">đ</span>${Number(pkg.price || 0).toLocaleString('vi-VN')}
+                </div>
+                <ul class="pricing-features">
+                    ${(pkg.features || []).map(f => `<li><i class="fa-solid fa-check"></i> <span>${f}</span></li>`).join('')}
+                </ul>
+                <button class="btn primary-btn btn-pricing" data-i18n="btn_buy_now">Mua Ngay</button>
+            </div>
+        `).join('');
+        
+        // Re-apply translations for newly injected elements
+        if (typeof applyTranslations === 'function') {
+            applyTranslations();
+        }
+    } catch (e) {
+        console.error('Failed to load pricing config', e);
+        gridContainer.innerHTML = '<p style="grid-column: 1/-1; color: var(--danger)">Lỗi tải bảng giá.</p>';
+    }
+}
+
+// Call on startup
+renderPricingGrid();
+
+// Xử lý VNPay trả về
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('payment');
+    const tokens = urlParams.get('tokens');
+    
+    if (status === 'success') {
+        alert(`Thanh toán thành công! Tài khoản của bạn đã được cộng thêm ${tokens} tokens.`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+        window.location.reload(); // Tải lại trang để cập nhật số token
+    } else if (status === 'failed') {
+        alert("Thanh toán thất bại hoặc người dùng đã hủy giao dịch.");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (status === 'invalid_signature') {
+        alert("Lỗi chữ ký VNPay không hợp lệ.");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+
+initWorkspaceSearch();
+
+// Lắng nghe token từ Flutter App
+window.addEventListener('flutter_token_ready', async (e) => {
+    const token = e.detail.token;
+    if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('access_token', token);
+        authToken = token;
+        
+        try {
+            const meRes = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (meRes.ok) {
+                const meData = await meRes.json();
+                authUser = meData.username;
+                authRole = meData.role || 'user';
+                setAuthPredictionTokens(meData.prediction_tokens);
+                localStorage.setItem('user', authUser);
+                localStorage.setItem('role', authRole);
+                showDashboard();
+            }
+        } catch(e) {
+            console.error('flutter_token_ready: Failed to fetch profile', e);
+        }
+    }
+});
+
+// --- Profile Modal Logic ---
+const profileBtn = document.getElementById('profile-btn');
+const profileModal = document.getElementById('profile-modal');
+const closeProfileModal = document.getElementById('close-profile-modal');
+const btnChangePassword = document.getElementById('btn-change-password');
+
+if (profileBtn && profileModal) {
+    profileBtn.addEventListener('click', () => {
+        document.getElementById('user-dropdown').classList.add('hidden');
+        document.getElementById('profile-username').innerText = authUser?.username || 'Unknown';
+        document.getElementById('profile-old-password').value = '';
+        document.getElementById('profile-new-password').value = '';
+        document.getElementById('profile-error').classList.add('hidden');
+        document.getElementById('profile-success').classList.add('hidden');
+        profileModal.classList.remove('hidden');
+    });
+}
+
+if (closeProfileModal) {
+    closeProfileModal.addEventListener('click', () => {
+        profileModal.classList.add('hidden');
+    });
+}
+
+if (btnChangePassword) {
+    btnChangePassword.addEventListener('click', async () => {
+        const oldPw = document.getElementById('profile-old-password').value;
+        const newPw = document.getElementById('profile-new-password').value;
+        const errEl = document.getElementById('profile-error');
+        const sucEl = document.getElementById('profile-success');
+        
+        errEl.classList.add('hidden');
+        sucEl.classList.add('hidden');
+        
+        if (!oldPw || !newPw) {
+            errEl.innerText = "Vui lòng nhập đủ thông tin.";
+            errEl.classList.remove('hidden');
+            return;
+        }
+        if (newPw.length < 6) {
+            errEl.innerText = "Mật khẩu mới phải dài ít nhất 6 ký tự.";
+            errEl.classList.remove('hidden');
+            return;
+        }
+        
+        btnChangePassword.disabled = true;
+        btnChangePassword.innerText = 'Đang xử lý...';
+        
+        try {
+            const res = await fetch(`${API_URL}/auth/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({
+                    old_password: oldPw,
+                    new_password: newPw
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                sucEl.innerText = data.message || "Đổi mật khẩu thành công!";
+                sucEl.classList.remove('hidden');
+                document.getElementById('profile-old-password').value = '';
+                document.getElementById('profile-new-password').value = '';
+            } else {
+                errEl.innerText = data.detail || "Lỗi khi đổi mật khẩu.";
+                errEl.classList.remove('hidden');
+            }
+        } catch (e) {
+            errEl.innerText = "Không thể kết nối máy chủ.";
+            errEl.classList.remove('hidden');
+        } finally {
+            btnChangePassword.disabled = false;
+            btnChangePassword.innerText = 'Đổi mật khẩu';
+        }
+    });
+}
+
+async function fetchPaymentHistory() {
+    const tbody = document.getElementById('payment-history-tbody');
+    const badge = document.getElementById('payment-history-badge');
+
+    if (tbody) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center"><div class="loader" style="position:static; margin:0 auto"></div></td></tr>';
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/payment-history/`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        if (res.status === 401) {
+            logoutBtn.click();
+            return;
+        }
+
+        const data = await res.json();
+        if (res.ok) {
+            if (badge) {
+                badge.innerText = data.total;
+            }
+
+            if (data.items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Chưa có giao dịch mua hàng nào.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            
+            // Calculate and display user stats
+            const totalSpent = data.items.reduce((sum, item) => sum + item.amount, 0);
+            const totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0);
+            
+            const elTotalSpent = document.getElementById('user-total-spent');
+            const elTotalTokens = document.getElementById('user-total-tokens-bought');
+            if (elTotalSpent) elTotalSpent.innerText = totalSpent.toLocaleString('vi-VN') + ' đ';
+            if (elTotalTokens) elTotalTokens.innerText = totalTokens.toLocaleString('vi-VN');
+
+            data.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${new Date(item.created_at).toLocaleString('vi-VN')}</td>
+                    <td>${item.order_id}</td>
+                    <td>${item.amount.toLocaleString('vi-VN')} đ</td>
+                    <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
+                    <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
+                    <td><button class="btn btn-sm btn-view-order" style="padding: 5px 10px; font-size: 0.8rem;"><i class="fa-solid fa-eye"></i> Xem</button></td>
+                `;
+                tbody.appendChild(tr);
+
+                const btnView = tr.querySelector('.btn-view-order');
+                btnView.addEventListener('click', () => {
+                    document.getElementById('modal-order-id').innerText = item.order_id;
+                    document.getElementById('modal-order-time').innerText = new Date(item.created_at).toLocaleString('vi-VN');
+                    document.getElementById('modal-order-amount').innerText = item.amount.toLocaleString('vi-VN');
+                    document.getElementById('modal-order-tokens').innerText = `+${item.tokens}`;
+                    document.getElementById('modal-order-bank').innerText = item.bank_code || 'N/A';
+                    document.getElementById('modal-order-card').innerText = item.card_type || 'N/A';
+                    document.getElementById('modal-order-vnpay-no').innerText = item.vnp_transaction_no || 'N/A';
+                    
+                    document.getElementById('order-details-modal').classList.remove('hidden');
+                });
+            });
+            
+            // Setup close buttons for order details modal
+            const closeBtn1 = document.getElementById('btn-close-order-modal');
+            const closeBtn2 = document.getElementById('btn-close-order-modal-2');
+            const orderModal = document.getElementById('order-details-modal');
+            if (closeBtn1) closeBtn1.onclick = () => orderModal.classList.add('hidden');
+            if (closeBtn2) closeBtn2.onclick = () => orderModal.classList.add('hidden');
+
+        } else {
+            if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger)">Lỗi tải dữ liệu: ${data.detail || 'Unknown'}</td></tr>`;
+        }
+    } catch (err) {
+        console.error(err);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Không thể kết nối API.</td></tr>';
+    }
+}
+
+// ======================== QUẢN LÝ THÔNG BÁO CHO USER ========================
+
+const btnNotifications = document.getElementById('btn-notifications');
+const notifDropdown = document.getElementById('notification-dropdown');
+const notifBadge = document.getElementById('notification-badge');
+const notifList = document.getElementById('notification-list');
+const btnMarkAllRead = document.getElementById('btn-mark-all-read');
+
+function initUserNotifications() {
+    if (btnNotifications) {
+        btnNotifications.addEventListener('click', (e) => {
+            e.stopPropagation(); // Ngăn click lan ra ngoài body
+            notifDropdown.classList.toggle('hidden');
+            if (!notifDropdown.classList.contains('hidden')) {
+                fetchUserNotifications();
+            }
+        });
+    }
+
+    if (btnMarkAllRead) {
+        btnMarkAllRead.addEventListener('click', async () => {
+            try {
+                const res = await fetch(`${API_URL}/notifications/read-all`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (res.ok) {
+                    fetchUserNotifications(); // Reload list
+                    fetchUnreadNotificationCount(); // Reload badge
+                }
+            } catch (e) {
+                console.error("Lỗi đánh dấu tất cả đã đọc:", e);
+            }
+        });
+    }
+
+    // Modal Events
+    const notifModal = document.getElementById('notif-detail-modal');
+    const closeBtn1 = document.getElementById('btn-close-notif-modal');
+    const closeBtn2 = document.getElementById('btn-close-notif-modal-2');
+    if (closeBtn1) closeBtn1.addEventListener('click', () => notifModal.classList.add('hidden'));
+    if (closeBtn2) closeBtn2.addEventListener('click', () => notifModal.classList.add('hidden'));
+
+    // Đóng dropdown khi click ra ngoài
+    document.addEventListener('click', (e) => {
+        if (notifDropdown && !notifDropdown.contains(e.target) && !btnNotifications.contains(e.target)) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
+
+    // Auto check thông báo định kỳ nếu đã đăng nhập (mỗi 30s)
+    if (authToken) {
+        fetchUnreadNotificationCount();
+        setInterval(fetchUnreadNotificationCount, 30000);
+    }
+}
+
+async function fetchUnreadNotificationCount() {
+    if (!authToken || !notifBadge) return;
+    try {
+        const res = await fetch(`${API_URL}/notifications/unread-count`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.count > 0) {
+                notifBadge.textContent = data.count > 99 ? '99+' : data.count;
+                notifBadge.style.display = 'inline-block';
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        }
+    } catch (e) {
+        console.error("Lỗi đếm số lượng thông báo:", e);
+    }
+}
+
+async function fetchUserNotifications() {
+    if (!authToken || !notifList) return;
+    notifList.innerHTML = '<div style="text-align:center; padding: 10px; font-size: 13px; color: var(--text-muted);">Đang tải...</div>';
+    
+    try {
+        const res = await fetch(`${API_URL}/notifications/`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) {
+            notifList.innerHTML = '<div style="text-align:center; padding: 10px; font-size: 13px; color: var(--danger);">Không lấy được thông báo.</div>';
+            return;
+        }
+
+        const data = await res.json();
+        if (!data || data.length === 0) {
+            notifList.innerHTML = '<div style="text-align:center; padding: 20px; font-size: 13px; color: var(--text-muted);"><i class="fa-regular fa-bell-slash" style="font-size: 24px; margin-bottom: 8px; display: block;"></i> Không có thông báo nào.</div>';
+            return;
+        }
+
+        window.currentNotifData = data; // Save for modal
+
+        let html = '';
+        data.forEach(item => {
+            const isRead = item.is_read ? 'opacity: 0.7; background: transparent;' : 'background: rgba(14, 165, 164, 0.05); font-weight: 500; border-left: 3px solid var(--primary);';
+            const iconMap = {
+                'info': '<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>',
+                'success': '<i class="fa-solid fa-circle-check" style="color: #10b981;"></i>',
+                'warning': '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i>',
+                'danger': '<i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i>'
+            };
+            const icon = iconMap[item.type] || iconMap['info'];
+            const timeStr = new Date(item.created_at).toLocaleString('vi-VN');
+
+            html += `
+                <div class="notif-item" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); ${isRead} display: flex; gap: 10px; cursor: pointer; transition: 0.2s;" onclick="openNotificationDetail(${item.id})">
+                    <div style="font-size: 18px; padding-top: 2px;">
+                        ${icon}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--color-text); margin-bottom: 3px;">${item.title}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 5px;">${item.message}</div>
+                        <div style="font-size: 10px; color: #999;">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        });
+        notifList.innerHTML = html;
+        
+        // Add hover effect
+        document.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('mouseenter', () => el.style.borderColor = 'var(--primary)');
+            el.addEventListener('mouseleave', () => el.style.borderColor = 'var(--border)');
+        });
+    } catch (e) {
+        console.error("Lỗi tải thông báo:", e);
+        notifList.innerHTML = '<div style="text-align:center; padding: 10px; font-size: 13px; color: var(--danger);">Lỗi kết nối.</div>';
+    }
+}
+
+async function markNotificationRead(id) {
+    try {
+        const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+            fetchUserNotifications();
+            fetchUnreadNotificationCount();
+        }
+    } catch (e) {
+        console.error("Lỗi đánh dấu đã đọc:", e);
+    }
+}
+
+function openNotificationDetail(id) {
+    if (!window.currentNotifData) return;
+    const notif = window.currentNotifData.find(n => n.id === id);
+    if (!notif) return;
+
+    document.getElementById('modal-notif-title').textContent = notif.title;
+    document.getElementById('modal-notif-time').textContent = new Date(notif.created_at).toLocaleString('vi-VN');
+    document.getElementById('modal-notif-message').textContent = notif.message;
+
+    // Show modal
+    document.getElementById('notif-detail-modal').classList.remove('hidden');
+
+    // Close dropdown
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    // Mark as read in backend
+    if (!notif.is_read) {
+        markNotificationRead(id);
+    }
+}
+
+// Khởi tạo
+document.addEventListener('DOMContentLoaded', () => {
+    initUserNotifications();
+});
