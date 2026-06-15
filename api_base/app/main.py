@@ -28,7 +28,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.models.base_db import init_db
-from app.routers import auth, base, file_upload, history, payment, payment_history, pages
+from app.routers import auth, base, file_upload, history, payment, payment_history, pages, notification
 
 # Frontend directory (relative to api_base/)
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
@@ -94,6 +94,7 @@ def create_app() -> FastAPI:
     app.include_router(payment.router)
     app.include_router(payment_history.router)
     app.include_router(pages.router)
+    app.include_router(notification.router)
 
     # --- Mount Frontend Static Files ---
     # Đã tắt để giải phóng RAM cho Render, frontend được host trên Vercel
@@ -125,6 +126,10 @@ def create_app() -> FastAPI:
         download_weights_if_needed()
         
         logger.info("Database initialized.")
+
+        # Start notification scheduler
+        from app.services.scheduler import start_scheduler
+        start_scheduler()
 
         # 2. Tạo thư mục tạm
         from app.config import UPLOAD_TEMP_DIR, DOWNLOAD_DIR

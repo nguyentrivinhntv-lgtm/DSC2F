@@ -1762,3 +1762,181 @@ async function fetchPaymentHistory() {
         if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--danger)">Không thể kết nối API.</td></tr>';
     }
 }
+
+// ======================== QUẢN LÝ THÔNG BÁO CHO USER ========================
+
+const btnNotifications = document.getElementById('btn-notifications');
+const notifDropdown = document.getElementById('notification-dropdown');
+const notifBadge = document.getElementById('notification-badge');
+const notifList = document.getElementById('notification-list');
+const btnMarkAllRead = document.getElementById('btn-mark-all-read');
+
+function initUserNotifications() {
+    if (btnNotifications) {
+        btnNotifications.addEventListener('click', (e) => {
+            e.stopPropagation(); // Ngăn click lan ra ngoài body
+            notifDropdown.classList.toggle('hidden');
+            if (!notifDropdown.classList.contains('hidden')) {
+                fetchUserNotifications();
+            }
+        });
+    }
+
+    if (btnMarkAllRead) {
+        btnMarkAllRead.addEventListener('click', async () => {
+            try {
+                const res = await fetch(`${API_URL}/notifications/read-all`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` }
+                });
+                if (res.ok) {
+                    fetchUserNotifications(); // Reload list
+                    fetchUnreadNotificationCount(); // Reload badge
+                }
+            } catch (e) {
+                console.error("Lỗi đánh dấu tất cả đã đọc:", e);
+            }
+        });
+    }
+
+    // Modal Events
+    const notifModal = document.getElementById('notif-detail-modal');
+    const closeBtn1 = document.getElementById('btn-close-notif-modal');
+    const closeBtn2 = document.getElementById('btn-close-notif-modal-2');
+    if (closeBtn1) closeBtn1.addEventListener('click', () => notifModal.classList.add('hidden'));
+    if (closeBtn2) closeBtn2.addEventListener('click', () => notifModal.classList.add('hidden'));
+
+    // Đóng dropdown khi click ra ngoài
+    document.addEventListener('click', (e) => {
+        if (notifDropdown && !notifDropdown.contains(e.target) && !btnNotifications.contains(e.target)) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
+
+    // Auto check thông báo định kỳ nếu đã đăng nhập (mỗi 30s)
+    if (authToken) {
+        fetchUnreadNotificationCount();
+        setInterval(fetchUnreadNotificationCount, 30000);
+    }
+}
+
+async function fetchUnreadNotificationCount() {
+    if (!authToken || !notifBadge) return;
+    try {
+        const res = await fetch(`${API_URL}/notifications/unread-count`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.count > 0) {
+                notifBadge.textContent = data.count > 99 ? '99+' : data.count;
+                notifBadge.style.display = 'inline-block';
+            } else {
+                notifBadge.style.display = 'none';
+            }
+        }
+    } catch (e) {
+        console.error("Lỗi đếm số lượng thông báo:", e);
+    }
+}
+
+async function fetchUserNotifications() {
+    if (!authToken || !notifList) return;
+    notifList.innerHTML = '<div style="text-align:center; padding: 10px; font-size: 13px; color: var(--text-muted);">Đang tải...</div>';
+    
+    try {
+        const res = await fetch(`${API_URL}/notifications/`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!res.ok) {
+            notifList.innerHTML = '<div style="text-align:center; padding: 10px; font-size: 13px; color: var(--danger);">Không lấy được thông báo.</div>';
+            return;
+        }
+
+        const data = await res.json();
+        if (!data || data.length === 0) {
+            notifList.innerHTML = '<div style="text-align:center; padding: 20px; font-size: 13px; color: var(--text-muted);"><i class="fa-regular fa-bell-slash" style="font-size: 24px; margin-bottom: 8px; display: block;"></i> Không có thông báo nào.</div>';
+            return;
+        }
+
+        window.currentNotifData = data; // Save for modal
+
+        let html = '';
+        data.forEach(item => {
+            const isRead = item.is_read ? 'opacity: 0.7; background: transparent;' : 'background: rgba(14, 165, 164, 0.05); font-weight: 500; border-left: 3px solid var(--primary);';
+            const iconMap = {
+                'info': '<i class="fa-solid fa-circle-info" style="color: var(--primary);"></i>',
+                'success': '<i class="fa-solid fa-circle-check" style="color: #10b981;"></i>',
+                'warning': '<i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i>',
+                'danger': '<i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i>'
+            };
+            const icon = iconMap[item.type] || iconMap['info'];
+            const timeStr = new Date(item.created_at).toLocaleString('vi-VN');
+
+            html += `
+                <div class="notif-item" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border); ${isRead} display: flex; gap: 10px; cursor: pointer; transition: 0.2s;" onclick="openNotificationDetail(${item.id})">
+                    <div style="font-size: 18px; padding-top: 2px;">
+                        ${icon}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 13px; font-weight: 600; color: var(--color-text); margin-bottom: 3px;">${item.title}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.4; margin-bottom: 5px;">${item.message}</div>
+                        <div style="font-size: 10px; color: #999;">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        });
+        notifList.innerHTML = html;
+        
+        // Add hover effect
+        document.querySelectorAll('.notif-item').forEach(el => {
+            el.addEventListener('mouseenter', () => el.style.borderColor = 'var(--primary)');
+            el.addEventListener('mouseleave', () => el.style.borderColor = 'var(--border)');
+        });
+    } catch (e) {
+        console.error("Lỗi tải thông báo:", e);
+        notifList.innerHTML = '<div style="text-align:center; padding: 10px; font-size: 13px; color: var(--danger);">Lỗi kết nối.</div>';
+    }
+}
+
+async function markNotificationRead(id) {
+    try {
+        const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (res.ok) {
+            fetchUserNotifications();
+            fetchUnreadNotificationCount();
+        }
+    } catch (e) {
+        console.error("Lỗi đánh dấu đã đọc:", e);
+    }
+}
+
+function openNotificationDetail(id) {
+    if (!window.currentNotifData) return;
+    const notif = window.currentNotifData.find(n => n.id === id);
+    if (!notif) return;
+
+    document.getElementById('modal-notif-title').textContent = notif.title;
+    document.getElementById('modal-notif-time').textContent = new Date(notif.created_at).toLocaleString('vi-VN');
+    document.getElementById('modal-notif-message').textContent = notif.message;
+
+    // Show modal
+    document.getElementById('notif-detail-modal').classList.remove('hidden');
+
+    // Close dropdown
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    // Mark as read in backend
+    if (!notif.is_read) {
+        markNotificationRead(id);
+    }
+}
+
+// Khởi tạo
+document.addEventListener('DOMContentLoaded', () => {
+    initUserNotifications();
+});

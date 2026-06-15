@@ -266,6 +266,39 @@ def init_db(db_path: Optional[str] = None) -> None:
                 for p in default_pages:
                     cur.execute("INSERT IGNORE INTO pages (slug, title, content, is_active) VALUES (%s, %s, %s, 1)", p)
 
+            # --- Hệ thống thông báo ---
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    message TEXT NOT NULL,
+                    type VARCHAR(30) DEFAULT 'info',
+                    is_read TINYINT(1) DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                ) ENGINE=InnoDB
+                """
+            )
+
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS scheduled_notifications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    title VARCHAR(255) NOT NULL,
+                    message TEXT NOT NULL,
+                    type VARCHAR(30) DEFAULT 'info',
+                    target VARCHAR(50) DEFAULT 'all',
+                    scheduled_at DATETIME NOT NULL,
+                    is_sent TINYINT(1) DEFAULT 0,
+                    created_by INT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (created_by) REFERENCES users(id)
+                ) ENGINE=InnoDB
+                """
+            )
+
             # Cố gắng thêm các cột VNPay nếu bảng payment_logs cũ chưa có
             try:
                 cur.execute("ALTER TABLE payment_logs ADD COLUMN bank_code VARCHAR(50)")
@@ -919,5 +952,204 @@ def delete_page(slug: str, db_path: Optional[str] = None) -> bool:
             updated = cur.rowcount
         conn.commit()
         return updated > 0
+    finally:
+        conn.close()
+
+
+# ====================== NOTIFICATIONS ======================
+
+def create_notification(user_id: int, title: str, message: str, ntype: str = 'info', db_path: Optional[str] = None) -> Optional[int]:
+    """Tạo thông báo mới cho 1 user. Trả về id của notification."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO notifications (user_id, title, message, type) VALUES (%s, %s, %s, %s)",
+                (user_id, title, message, ntype),
+            )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+def create_notification_broadcast(title: str, message: str, ntype: str = 'info', db_path: Optional[str] = None) -> int:
+    """Tạo thông báo cho tất cả users. Trả về số lượng thông báo đã tạo."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE is_active = 1")
+            users = cur.fetchall()
+            for u in users:
+                cur.execute(
+                    "INSERT INTO notifications (user_id, title, message, type) VALUES (%s, %s, %s, %s)",
+                    (u['id'], title, message, ntype),
+                )
+        conn.commit()
+        return len(users)
+    finally:
+        conn.close()
+
+
+def get_notifications(user_id: int, limit: int = 20, offset: int = 0, db_path: Optional[str] = None) -> list:
+    """Lấy danh sách thông báo của user, mới nhất trước."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM notifications WHERE user_id = %s ORDER BY created_at DESC LIMIT %s OFFSET %s",
+                (user_id, limit, offset),
+            )
+            rows = cur.fetchall()
+            for row in rows:
+                if hasattr(row.get('created_at'), 'isoformat'):
+                    row['created_at'] = row['created_at'].isoformat()
+            return rows
+    finally:
+        conn.close()
+
+
+def get_unread_count(user_id: int, db_path: Optional[str] = None) -> int:
+    """Đếm số thông báo chưa đọc."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT COUNT(*) as cnt FROM notifications WHERE user_id = %s AND is_read = 0",
+                (user_id,),
+            )
+            row = cur.fetchone()
+            return row['cnt'] if row else 0
+    finally:
+        conn.close()
+
+
+def mark_notification_read(notification_id: int, user_id: int, db_path: Optional[str] = None) -> bool:
+    """Đánh dấu 1 thông báo đã đọc."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE notifications SET is_read = 1 WHERE id = %s AND user_id = %s",
+                (notification_id, user_id),
+            )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def mark_all_read(user_id: int, db_path: Optional[str] = None) -> int:
+    """Đánh dấu tất cả thông báo đã đọc. Trả về số dòng affected."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE notifications SET is_read = 1 WHERE user_id = %s AND is_read = 0",
+                (user_id,),
+            )
+        conn.commit()
+        return cur.rowcount
+    finally:
+        conn.close()
+
+
+def delete_notification(notification_id: int, user_id: int, db_path: Optional[str] = None) -> bool:
+    """Xóa 1 thông báo."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM notifications WHERE id = %s AND user_id = %s",
+                (notification_id, user_id),
+            )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+# ====================== SCHEDULED NOTIFICATIONS ======================
+
+def create_scheduled_notification(
+    title: str, message: str, ntype: str, target: str,
+    scheduled_at: str, created_by: int, db_path: Optional[str] = None
+) -> Optional[int]:
+    """Tạo thông báo hẹn giờ."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO scheduled_notifications
+                   (title, message, type, target, scheduled_at, created_by)
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                (title, message, ntype, target, scheduled_at, created_by),
+            )
+        conn.commit()
+        return cur.lastrowid
+    finally:
+        conn.close()
+
+
+def get_pending_scheduled(db_path: Optional[str] = None) -> list:
+    """Lấy thông báo hẹn giờ đã đến lúc gửi nhưng chưa gửi."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM scheduled_notifications WHERE is_sent = 0 AND scheduled_at <= NOW()"
+            )
+            return cur.fetchall()
+    finally:
+        conn.close()
+
+
+def mark_scheduled_sent(scheduled_id: int, db_path: Optional[str] = None) -> bool:
+    """Đánh dấu scheduled notification đã gửi."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE scheduled_notifications SET is_sent = 1 WHERE id = %s",
+                (scheduled_id,),
+            )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
+def get_all_scheduled(db_path: Optional[str] = None) -> list:
+    """Lấy tất cả scheduled notifications cho admin xem."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT s.*, u.username as created_by_username
+                   FROM scheduled_notifications s
+                   JOIN users u ON s.created_by = u.id
+                   ORDER BY s.scheduled_at DESC"""
+            )
+            rows = cur.fetchall()
+            for row in rows:
+                for key in ('scheduled_at', 'created_at'):
+                    if hasattr(row.get(key), 'isoformat'):
+                        row[key] = row[key].isoformat()
+            return rows
+    finally:
+        conn.close()
+
+
+def delete_scheduled(scheduled_id: int, db_path: Optional[str] = None) -> bool:
+    """Xóa scheduled notification."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM scheduled_notifications WHERE id = %s",
+                (scheduled_id,),
+            )
+        conn.commit()
+        return cur.rowcount > 0
     finally:
         conn.close()

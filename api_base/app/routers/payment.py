@@ -84,7 +84,35 @@ async def vnpay_return(request: Request):
             finally:
                 conn.close()
 
-            # 3. Chuyển hướng người dùng về Frontend kèm thông báo thành công
+            # 3. Tạo thông báo in-app
+            try:
+                from app.models.base_db import create_notification
+                create_notification(
+                    user_id=user_id,
+                    title="Nạp token thành công!",
+                    message=f"Bạn đã nhận được {tokens_to_add} token từ giao dịch {order_id}. Số tiền: {amount_paid:,} VND.",
+                    ntype="payment",
+                )
+            except Exception as e:
+                print(f"Lỗi tạo notification: {e}")
+
+            # 4. Gửi email xác nhận
+            try:
+                from app.models.base_db import get_user_by_id as get_user
+                from app.services.email_service import send_payment_success_email
+                payment_user = get_user(user_id)
+                if payment_user and payment_user.get('email'):
+                    send_payment_success_email(
+                        to_email=payment_user['email'],
+                        username=payment_user['username'],
+                        tokens=tokens_to_add,
+                        amount=amount_paid,
+                        order_id=order_id,
+                    )
+            except Exception as e:
+                print(f"Lỗi gửi email thanh toán: {e}")
+
+            # 5. Chuyển hướng người dùng về Frontend kèm thông báo thành công
             return RedirectResponse(url=f"{settings.FRONTEND_URL}/app.html?payment=success&tokens={tokens_to_add}")
         else:
             return RedirectResponse(url=f"{settings.FRONTEND_URL}/app.html?payment=failed")

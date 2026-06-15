@@ -75,6 +75,8 @@ function initTabs() {
             
             if (tabId === 'tab-payment-history') {
                 fetchPaymentHistory();
+            } else if (tabId === 'tab-notifications') {
+                fetchScheduledNotifications();
             } else if (tabId === 'tab-pages') {
                 loadPagesList();
             }
@@ -1208,3 +1210,277 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ======================== QUẢN LÝ THÔNG BÁO ========================
+
+const scheduledNotifBody = document.getElementById('admin-scheduled-notifications-body');
+const notifModal = document.getElementById('notification-modal');
+const btnOpenNotifModal = document.getElementById('btn-open-send-notification');
+const btnCloseNotifModal = document.getElementById('btn-close-notification-modal');
+const btnCancelNotifModal = document.getElementById('btn-cancel-notification-modal');
+const btnSendNotif = document.getElementById('btn-send-notification');
+const notifMsg = document.getElementById('notif-save-message');
+
+function initNotifications() {
+    if (btnOpenNotifModal) {
+        btnOpenNotifModal.addEventListener('click', () => {
+            // Reset form
+            document.getElementById('notif-title').value = '';
+            document.getElementById('notif-message').value = '';
+            document.getElementById('notif-type').value = 'info';
+            document.getElementById('notif-target-type').value = 'all';
+            document.getElementById('notif-target-user').value = '';
+            document.getElementById('notif-target-user-wrap').style.display = 'none';
+            
+            const dateInput = document.getElementById('notif-schedule-date');
+            if (dateInput) dateInput.value = '';
+            
+            const timeList = document.getElementById('notif-time-list');
+            if (timeList) {
+                timeList.innerHTML = `
+                    <div class="time-row" style="display: flex; gap: 10px; margin-bottom: 8px;">
+                        <input type="time" class="notif-time-input" style="flex: 1;">
+                        <button class="nav-btn reset-btn btn-remove-time" style="padding: 0 10px;" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            }
+            
+            if (notifMsg) notifMsg.textContent = '';
+            
+            notifModal.classList.remove('hidden');
+        });
+    }
+
+    if (btnCloseNotifModal) btnCloseNotifModal.addEventListener('click', () => notifModal.classList.add('hidden'));
+    if (btnCancelNotifModal) btnCancelNotifModal.addEventListener('click', () => notifModal.classList.add('hidden'));
+
+    if (btnSendNotif) {
+        btnSendNotif.addEventListener('click', handleSendNotification);
+    }
+
+    // Handle add/remove times
+    const btnAddTime = document.getElementById('btn-add-time');
+    const timeList = document.getElementById('notif-time-list');
+    
+    if (btnAddTime) {
+        btnAddTime.addEventListener('click', () => {
+            const div = document.createElement('div');
+            div.className = 'time-row';
+            div.style.cssText = 'display: flex; gap: 10px; margin-bottom: 8px;';
+            div.innerHTML = `
+                <input type="time" class="notif-time-input" style="flex: 1;">
+                <button class="nav-btn reset-btn btn-remove-time" style="padding: 0 10px;" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+            `;
+            timeList.appendChild(div);
+        });
+    }
+
+    if (timeList) {
+        timeList.addEventListener('click', (e) => {
+            const removeBtn = e.target.closest('.btn-remove-time');
+            if (removeBtn) {
+                const row = removeBtn.closest('.time-row');
+                if (timeList.children.length > 1) {
+                    row.remove();
+                } else {
+                    row.querySelector('.notif-time-input').value = ''; // Just clear if it's the last one
+                }
+            }
+        });
+    }
+}
+
+async function fetchScheduledNotifications() {
+    if (!scheduledNotifBody) return;
+    scheduledNotifBody.innerHTML = '<tr><td colspan="7" class="loading-cell">Đang tải danh sách...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_URL}/notifications/admin/scheduled`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) {
+            scheduledNotifBody.innerHTML = '<tr><td colspan="7" class="loading-cell text-danger">Không lấy được dữ liệu</td></tr>';
+            return;
+        }
+
+        const data = await res.json();
+        if (!data || data.length === 0) {
+            scheduledNotifBody.innerHTML = '<tr><td colspan="7" class="loading-cell">Chưa có thông báo hẹn giờ nào.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        data.forEach(item => {
+            const sendTime = new Date(item.scheduled_at).toLocaleString('vi-VN');
+            const statusHtml = item.is_sent 
+                ? '<span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Đã gửi</span>'
+                : '<span class="badge" style="background:#fffbeb;color:#92400e;border-color:#fcd34d;">Chờ gửi</span>';
+            
+            const targetHtml = item.target === 'all' 
+                ? 'Tất cả' 
+                : `<span style="color:var(--primary); font-weight:bold;">${item.target}</span>`;
+
+            html += `
+                <tr>
+                    <td><strong>${item.title}</strong></td>
+                    <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${item.message}">${item.message}</td>
+                    <td>${targetHtml}</td>
+                    <td>${sendTime}</td>
+                    <td>${item.created_by_username || '-'}</td>
+                    <td>${statusHtml}</td>
+                    <td>
+                        <button class="nav-btn reset-btn" style="padding: 4px 8px; font-size: 12px;" onclick="deleteScheduledNotif(${item.id})">
+                            <i class="fa-solid fa-trash"></i> Xóa
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        scheduledNotifBody.innerHTML = html;
+    } catch (e) {
+        console.error(e);
+        scheduledNotifBody.innerHTML = '<tr><td colspan="7" class="loading-cell text-danger">Lỗi kết nối API</td></tr>';
+    }
+}
+
+async function handleSendNotification() {
+    const title = document.getElementById('notif-title').value.trim();
+    const message = document.getElementById('notif-message').value.trim();
+    const type = document.getElementById('notif-type').value;
+    const targetType = document.getElementById('notif-target-type').value;
+    const targetUser = document.getElementById('notif-target-user').value.trim();
+    const dateInput = document.getElementById('notif-schedule-date');
+    const scheduledDate = dateInput ? dateInput.value : '';
+    
+    // Get all valid times
+    const timeInputs = document.querySelectorAll('.notif-time-input');
+    const scheduledTimes = [];
+    timeInputs.forEach(input => {
+        if (input.value) {
+            scheduledTimes.push(input.value);
+        }
+    });
+
+    if (notifMsg) {
+        notifMsg.className = 'topup-message';
+        notifMsg.textContent = '';
+    }
+
+    if (!title || !message) {
+        showNotifMsg('Vui lòng nhập đủ Tiêu đề và Nội dung.', 'error');
+        return;
+    }
+
+    const target = targetType === 'user' ? targetUser : 'all';
+    if (targetType === 'user' && !target) {
+        showNotifMsg('Vui lòng nhập Username mục tiêu.', 'error');
+        return;
+    }
+
+    if (scheduledTimes.length > 0 && !scheduledDate) {
+        showNotifMsg('Vui lòng chọn Ngày gửi nếu bạn đã chọn Giờ gửi.', 'error');
+        return;
+    }
+    
+    if (scheduledDate && scheduledTimes.length === 0) {
+        showNotifMsg('Vui lòng thêm ít nhất một mốc giờ gửi trong ngày.', 'error');
+        return;
+    }
+
+    btnSendNotif.disabled = true;
+    btnSendNotif.textContent = 'Đang xử lý...';
+
+    const payload = {
+        title: title,
+        message: message,
+        type: type,
+        target: target
+    };
+
+    let endpoint = `${API_URL}/notifications/admin/send`;
+    
+    if (scheduledDate && scheduledTimes.length > 0) {
+        endpoint = `${API_URL}/notifications/admin/schedule`;
+        
+        const datetimeList = [];
+        for (let time of scheduledTimes) {
+            // Combine date and time
+            const dateTimeStr = `${scheduledDate}T${time}`;
+            const dateObj = new Date(dateTimeStr);
+            if (isNaN(dateObj.getTime())) {
+                showNotifMsg(`Thời gian ${time} không hợp lệ.`, 'error');
+                btnSendNotif.disabled = false;
+                btnSendNotif.textContent = 'Gửi / Lên lịch';
+                return;
+            }
+            // Format to YYYY-MM-DD HH:MM:SS
+            const yyyy = dateObj.getFullYear();
+            const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const dd = String(dateObj.getDate()).padStart(2, '0');
+            const hh = String(dateObj.getHours()).padStart(2, '0');
+            const min = String(dateObj.getMinutes()).padStart(2, '0');
+            datetimeList.push(`${yyyy}-${mm}-${dd} ${hh}:${min}:00`);
+        }
+        
+        payload.scheduled_times = datetimeList;
+    }
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+            showNotifMsg(data.message || 'Thành công', 'success');
+            fetchScheduledNotifications();
+            setTimeout(() => {
+                notifModal.classList.add('hidden');
+            }, 1500);
+        } else {
+            showNotifMsg(data.detail || 'Lỗi khi gửi thông báo', 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showNotifMsg('Lỗi kết nối API', 'error');
+    } finally {
+        btnSendNotif.disabled = false;
+        btnSendNotif.textContent = 'Gửi / Lên lịch';
+    }
+}
+
+function showNotifMsg(text, type = 'success') {
+    if (!notifMsg) return;
+    notifMsg.textContent = text;
+    notifMsg.className = 'topup-message ' + type;
+}
+
+async function deleteScheduledNotif(id) {
+    if (!confirm('Bạn có chắc chắn muốn xóa thông báo hẹn giờ này không?')) return;
+
+    try {
+        const res = await fetch(`${API_URL}/notifications/admin/scheduled/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            fetchScheduledNotifications();
+        } else {
+            const data = await res.json();
+            alert(data.detail || 'Lỗi khi xóa');
+        }
+    } catch (e) {
+        alert('Lỗi kết nối API');
+    }
+}
+
+// Chạy khởi tạo sự kiện Notifications
+initNotifications();
+
