@@ -625,7 +625,7 @@ def api_check_login_session(session_id: str):
         # Giả lập lại user profile từ DB hoặc trả về token (frontend tự lưu)
         from jose import jwt
         settings = get_settings()
-        payload = jwt.decode(session["token"], settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(session["token"], settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         return {
             "status": "completed",
             "token": session["token"],
