@@ -384,17 +384,19 @@ async function handleHybridGoogleLogin() {
                     localStorage.setItem('username', authUser);
                     localStorage.setItem('role', authRole);
                     
-                    checkLogin();
+                    // Lấy số dư token trước khi hiện Dashboard
+                    try {
+                        const topupRes = await fetch(`${API_URL}/users/me/prediction-tokens`, {
+                            headers: { 'Authorization': `Bearer ${authToken}` }
+                        });
+                        if (topupRes.ok) {
+                            const topupData = await topupRes.json();
+                            setAuthPredictionTokens(topupData.prediction_tokens);
+                        }
+                    } catch(e) { /* ignore */ }
                     
-                    // Gọi API lấy số dư token
-                    const topupRes = await fetch(`${API_URL}/users/me/prediction-tokens`, {
-                        headers: { 'Authorization': `Bearer ${authToken}` }
-                    });
-                    if (topupRes.ok) {
-                        const topupData = await topupRes.json();
-                        setAuthPredictionTokens(topupData.prediction_tokens);
-                        updateTokenBalanceDisplay();
-                    }
+                    // Chuyển sang màn hình Dashboard
+                    showDashboard();
                 }
             } catch (err) {
                 // Ignore network errors during poll
