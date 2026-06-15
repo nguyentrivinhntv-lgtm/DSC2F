@@ -626,12 +626,18 @@ def api_check_login_session(session_id: str):
         from jose import jwt
         settings = get_settings()
         payload = jwt.decode(session["token"], settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        
+        user_id = int(payload.get("sub"))
+        user = get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User không tồn tại.")
+            
         return {
             "status": "completed",
             "token": session["token"],
             "user": {
-                "username": payload.get("sub"),
-                "role": payload.get("role", "user")
+                "username": user["username"],
+                "role": user["role"]
             }
         }
         

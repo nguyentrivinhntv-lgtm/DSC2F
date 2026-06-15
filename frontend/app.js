@@ -386,9 +386,6 @@ async function handleHybridGoogleLogin() {
                     
                     checkLogin();
                     
-                    // Fetch user info thực tế
-                    await fetchUserInfo();
-                    
                     // Gọi API lấy số dư token
                     const topupRes = await fetch(`${API_URL}/users/me/prediction-tokens`, {
                         headers: { 'Authorization': `Bearer ${authToken}` }
