@@ -299,6 +299,18 @@ def init_db(db_path: Optional[str] = None) -> None:
                 """
             )
 
+            # --- Hệ thống đăng nhập phiên Hybrid ---
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS login_sessions (
+                    session_id VARCHAR(100) PRIMARY KEY,
+                    token TEXT,
+                    status VARCHAR(20) DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB
+                """
+            )
+
             # Cố gắng thêm các cột VNPay nếu bảng payment_logs cũ chưa có
             try:
                 cur.execute("ALTER TABLE payment_logs ADD COLUMN bank_code VARCHAR(50)")
@@ -1151,5 +1163,73 @@ def delete_scheduled(scheduled_id: int, db_path: Optional[str] = None) -> bool:
             )
         conn.commit()
         return cur.rowcount > 0
+    finally:
+        conn.close()
+
+# ======================= LOGIN SESSIONS (HYBRID APP) =======================
+def create_login_session(session_id: str, db_path: Optional[str] = None) -> bool:
+    """Tạo một phiên chờ đăng nhập."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO login_sessions (session_id, status) VALUES (%s, 'pending')",
+                (session_id,)
+            )
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error create_login_session: {e}")
+        return False
+    finally:
+        conn.close()
+
+def get_login_session(session_id: str, db_path: Optional[str] = None) -> Optional[dict]:
+    """Lấy thông tin phiên chờ đăng nhập."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM login_sessions WHERE session_id = %s", (session_id,))
+            return cur.fetchone()
+    finally:
+        conn.close()
+
+def update_login_session(session_id: str, token: str, db_path: Optional[str] = None) -> bool:
+    """Cập nhật token khi đăng nhập thành công."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE login_sessions SET token = %s, status = 'completed' WHERE session_id = %s",
+                (token, session_id)
+            )
+            conn.commit()
+            return cur.rowcount > 0
+    finally:
+        conn.close()
+
+def delete_login_session(session_id: str, db_path: Optional[str] = None) -> bool:
+    """Xóa phiên sau khi hoàn thành hoặc hủy bỏ."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM login_sessions WHERE session_id = %s", (session_id,))
+            conn.commit()
+            return cur.rowcount > 0
+    finally:
+        conn.close()
+
+def cleanup_old_login_sessions(minutes: int = 10, db_path: Optional[str] = None):
+    """Xóa các phiên chờ cũ hơn `minutes` phút."""
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM login_sessions WHERE created_at < DATE_SUB(NOW(), INTERVAL %s MINUTE)",
+                (minutes,)
+            )
+        conn.commit()
+    except Exception as e:
+        print(f"Error cleanup_old_login_sessions: {e}")
     finally:
         conn.close()
