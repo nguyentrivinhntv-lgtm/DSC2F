@@ -182,8 +182,12 @@ class _WebViewScreenState extends State<WebViewScreen> {
     
     if (data == 'LOGOUT') {
       _processLogout();
+    } else if (data.startsWith('GOOGLE_LOGIN:')) {
+      // ✅ LUỒNG CLOUD-SYNC MỚI
+      final sessionId = data.split(':')[1];
+      _startCloudSyncGoogleLogin(sessionId);
     } else if (data == 'LOGIN_GOOGLE') {
-      // ✅ Mở Google login trong Chrome Custom Tabs (trình duyệt ngoài)
+      // (Fallback) Luồng cũ
       _startGoogleLogin();
     } else if (data.startsWith('TOKEN:')) {
       final token = data.substring(6);
@@ -194,7 +198,25 @@ class _WebViewScreenState extends State<WebViewScreen> {
     }
   }
 
-  /// Mở mobile_login.html trong Chrome Custom Tabs để đăng nhập Google
+  /// Mở luồng Cloud-Sync mới (Hybrid Polling)
+  Future<void> _startCloudSyncGoogleLogin(String sessionId) async {
+    try {
+      final url = '${AppConfig.apiBaseUrl}/auth/google/login/flutter?session_id=$sessionId';
+      debugPrint('==> Mở Chrome Custom Tabs (Cloud Sync): $url');
+      
+      // App chỉ mở Tab. Chờ user đăng nhập xong web tự tắt hoặc user tự tắt.
+      // Dùng callbackUrlScheme = none để app không cần bắt deep link,
+      // việc lưu token sẽ do Frontend Web lo phần Polling ngầm.
+      await FlutterWebAuth2.authenticate(
+        url: url,
+        callbackUrlScheme: 'none',
+      );
+    } catch (e) {
+      debugPrint('==> Đã đóng Tab hoặc lỗi CCT: $e');
+    }
+  }
+
+  /// Mở mobile_login.html trong Chrome Custom Tabs để đăng nhập Google (Cũ)
   Future<void> _startGoogleLogin() async {
     try {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
