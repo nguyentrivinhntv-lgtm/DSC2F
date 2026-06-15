@@ -757,7 +757,7 @@ def api_google_callback_flutter(state: str, code: Optional[str] = None, request:
             conn.close()
     # Tạo JWT của app mình
     access_token = create_access_token(
-        data={"sub": user["username"], "role": user["role"]}
+        data={"sub": str(user["id"]), "role": user["role"]}
     )
     
     # LƯU VÀO DATABASE CHO PHIÊN POLL (state chứa session_id)
