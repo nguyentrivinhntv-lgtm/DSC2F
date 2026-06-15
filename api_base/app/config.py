@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 1440  # 24 giờ
     GOOGLE_CLIENT_ID: str = "467356155966-9tv52397cuqllc6pe02c9fc32j1nfb8j.apps.googleusercontent.com"
+    GOOGLE_CLIENT_SECRET: str = ""
 
     # --- Database ---
     DATABASE_URL: str = "sqlite:///./database.db"

@@ -7,7 +7,7 @@
     <title>AI Deepfake Detection</title>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=3.2">
+    <link rel="stylesheet" href="style.css?v=3.3">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 
@@ -212,12 +212,12 @@
                             <input type="text" data-i18n-placeholder="ph_search" placeholder="Tìm chức năng, mô hình, lịch sử..." />
                         </div>
                         <div class="workspace-actions">
-                            <div class="notification-container" style="position: relative;">
+                            <div class="notification-container">
                                 <button class="btn-icon" id="btn-notifications" title="Thông báo">
                                     <i class="fa-regular fa-bell"></i>
-                                    <span id="notification-badge" class="badge" style="position: absolute; top: 0; right: 0; background: var(--danger); color: white; border-radius: 50%; padding: 2px 5px; font-size: 10px; display: none;">0</span>
+                                    <span id="notification-badge" class="badge">0</span>
                                 </button>
-                                <div id="notification-dropdown" class="notification-dropdown border-frame glass-panel hidden" style="position: absolute; top: 100%; right: 0; width: 320px; max-height: 400px; overflow-y: auto; z-index: 1000; padding: 10px; margin-top: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <div id="notification-dropdown" class="notification-dropdown border-frame glass-panel hidden">
                                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 5px;">
                                         <h4 style="margin: 0; font-size: 14px;">Thông báo</h4>
                                         <button id="btn-mark-all-read" style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;">Đánh dấu đã đọc tất cả</button>
@@ -619,7 +619,7 @@
     </div>
 
     <!-- MAIN JS -->
-    <script src="app.js?v=4.3"></script>
+    <script src="app.js?v=4.6"></script>
 </body>
 
 </html>

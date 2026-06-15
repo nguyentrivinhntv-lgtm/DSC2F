@@ -452,12 +452,27 @@ body {
     transform: scale(0.92);
 }
 
-.user-menu-container {
+.user-menu-container,
+.notification-container {
     position: relative;
     z-index: 1001;
 }
 
-.user-dropdown {
+#notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--danger);
+    color: white;
+    border-radius: 50%;
+    padding: 2px 5px;
+    font-size: 10px;
+    display: none;
+    pointer-events: none;
+}
+
+.user-dropdown,
+.notification-dropdown {
     position: absolute;
     top: calc(100% + 10px);
     right: 0;
@@ -470,6 +485,31 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     transform-origin: top right;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-dropdown {
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.user-dropdown.hidden,
+.notification-dropdown.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(10px);
+}
+
+.user-dropdown:not(.hidden),
+.notification-dropdown:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
 }
 
 .dropdown-user-header {
@@ -1129,37 +1169,43 @@ body {
         width: 100%;
     }
 
+    .user-menu-container,
+    .notification-container {
+        position: static;
+    }
+
     .workspace-actions {
+        position: relative;
         width: 100%;
-        justify-content: flex-end; /* Dịch toàn bộ icon sang bên phải */
+        justify-content: center;
         gap: 10px;
     }
 
-    #user-display, /* Obsolete */
-    .user-menu-container {
-        width: auto;
-    }
-
-    .user-dropdown {
+    .user-dropdown,
+    .notification-dropdown {
         position: absolute;
         top: calc(100% + 10px);
+        left: 0;
         right: 0;
-        left: auto;
-        width: 220px;
+        margin: 0 auto;
+        width: 90vw;
+        max-width: 340px;
         bottom: auto;
-        transform: translateY(10px);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
         z-index: 2000;
         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        transform-origin: top center;
+        transform: translateY(10px);
     }
 
-    .user-dropdown:not(.hidden) {
+    .user-dropdown:not(.hidden),
+    .notification-dropdown:not(.hidden) {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
-        transform: translateY(0);
+        transform: translateX(50%) translateY(0);
     }
 }
 
@@ -1324,37 +1370,42 @@ body {
         width: 100%;
     }
 
+    .user-menu-container,
+    .notification-container {
+        position: static;
+    }
+
     .workspace-actions {
+        position: relative;
         width: 100%;
-        justify-content: flex-end; /* Dịch toàn bộ icon sang bên phải */
+        justify-content: center;
         gap: 10px;
     }
 
-    #user-display, /* Obsolete */
-    .user-menu-container {
-        width: auto;
-    }
-
-    .user-dropdown {
+    .user-dropdown,
+    .notification-dropdown {
         position: absolute;
         top: calc(100% + 10px);
-        right: 0;
+        right: 50%;
+        transform: translateX(50%) translateY(10px);
         left: auto;
-        width: 220px;
+        width: 90vw;
+        max-width: 340px;
         bottom: auto;
-        transform: translateY(10px);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
         z-index: 2000;
         box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        transform-origin: top center;
     }
 
-    .user-dropdown:not(.hidden) {
+    .user-dropdown:not(.hidden),
+    .notification-dropdown:not(.hidden) {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
-        transform: translateY(0);
+        transform: translateX(50%) translateY(0);
     }
 }
 

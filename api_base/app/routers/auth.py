@@ -356,6 +356,7 @@ def login_google(request: GoogleLoginRequest):
         user = create_user(
             username=username,
             hashed_password=auto_password,
+            email=email,
             role="user",
             prediction_tokens=5,
         )
@@ -584,3 +585,208 @@ def change_password(request: ChangePasswordRequest, current_user: dict = Depends
     update_user_password_by_username(current_user["username"], new_hashed)
     
     return {"message": "Đổi mật khẩu thành công!"}
+
+# =============================================================================
+# HYBRID APP CLOUD-SYNC LOGIN (FLUTTER WEBVIEW)
+# =============================================================================
+
+from fastapi import Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from app.models.base_db import (
+    create_login_session,
+    get_login_session,
+    update_login_session,
+    delete_login_session,
+    cleanup_old_login_sessions,
+    get_user_by_id
+)
+import urllib.parse
+import requests
+
+@router.post("/login-session")
+def api_create_login_session(session_id: str = Form(...)):
+    """Frontend khởi tạo một phiên đăng nhập (cho App Android)."""
+    cleanup_old_login_sessions()
+    success = create_login_session(session_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Không thể tạo phiên chờ.")
+    return {"message": "Đã tạo phiên", "session_id": session_id}
+
+@router.get("/login-session/{session_id}")
+def api_check_login_session(session_id: str):
+    """Frontend gọi hàm này (polling) liên tục để check trạng thái đăng nhập."""
+    session = get_login_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Phiên chờ đã hết hạn hoặc không tồn tại.")
+        
+    if session["status"] == "completed" and session["token"]:
+        # Xóa phiên ngay sau khi trả về Token để đảm bảo dùng 1 lần (One-time use)
+        delete_login_session(session_id)
+        
+        # Giả lập lại user profile từ DB hoặc trả về token (frontend tự lưu)
+        from jose import jwt
+        settings = get_settings()
+        payload = jwt.decode(session["token"], settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        
+        user_id = int(payload.get("sub"))
+        user = get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User không tồn tại.")
+            
+        return {
+            "status": "completed",
+            "token": session["token"],
+            "user": {
+                "username": user["username"],
+                "role": user["role"]
+            }
+        }
+        
+    return {"status": session["status"]}
+
+from fastapi import Request
+
+@router.get("/google/login/flutter")
+def api_google_login_flutter(session_id: str, request: Request):
+    """App WebView sẽ mở link này. Nó sẽ chuyển hướng người dùng sang trang Đăng nhập của Google."""
+    settings = get_settings()
+    client_id = settings.GOOGLE_CLIENT_ID
+    
+    # Xác định đường dẫn callback tự động
+    base_url = str(request.base_url).rstrip('/')
+    # Thường request.base_url trả về http://localhost:8000
+    redirect_uri = f"{base_url}/auth/google/callback/flutter"
+    
+    # Sinh URL Google OAuth 2.0 (Dùng Implicit Flow để lấy id_token nếu ko có Secret, hoặc Authorization Code)
+    # Vì Frontend GIS gửi thẳng `id_token`, ta có thể thử yêu cầu Google trả về thẳng `id_token` (Implicit Flow) qua URL Hash
+    # Tuy nhiên, Implicit flow (response_type=id_token) không truyền state tới server (nó nằm ở Hash).
+    # Buộc phải dùng `response_type=code` và có `client_secret` để lấy lại JWT, HOẶC trả về một trang web trung gian thu thập id_token.
+    
+    # Ở đây dùng trang web tĩnh chứa Google Signin, hoặc Form redirect:
+    # Do policy của Google WebView không cho popup, nên dùng redirect.
+    # Phương án an toàn: Chuyển thẳng về Google với response_type=code. Nếu không có SECRET, đoạn sau sẽ lỗi.
+    auth_url = (
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={client_id}&"
+        f"redirect_uri={urllib.parse.quote(redirect_uri)}&"
+        "response_type=code&"
+        "scope=openid%20email%20profile&"
+        f"state={session_id}&"
+        "access_type=online"
+    )
+    return RedirectResponse(auth_url)
+
+@router.get("/google/callback/flutter")
+def api_google_callback_flutter(state: str, code: Optional[str] = None, request: Request = None):
+    """Callback nhận authorization_code từ Google, đổi lấy id_token và đăng nhập."""
+    if not code:
+        return HTMLResponse("<h2>Đăng nhập thất bại hoặc bị hủy. Hãy đóng tab này.</h2>")
+        
+    settings = get_settings()
+    client_secret = getattr(settings, "GOOGLE_CLIENT_SECRET", "")
+    
+    if not client_secret:
+        return HTMLResponse("<h2>Hệ thống chưa cấu hình GOOGLE_CLIENT_SECRET. Hãy báo Admin!</h2>")
+    
+    base_url = str(request.base_url).rstrip('/')
+    redirect_uri = f"{base_url}/auth/google/callback/flutter"
+    
+    # Đổi Code lấy Token
+    token_url = "https://oauth2.googleapis.com/token"
+    payload = {
+        "client_id": settings.GOOGLE_CLIENT_ID,
+        "client_secret": client_secret,
+        "code": code,
+        "grant_type": "authorization_code",
+        "redirect_uri": redirect_uri
+    }
+    
+    res = requests.post(token_url, data=payload)
+    if not res.ok:
+        return HTMLResponse(f"<h2>Lỗi chứng thực từ Google: {res.text}</h2>")
+        
+    token_data = res.json()
+    id_token_str = token_data.get("id_token")
+    if not id_token_str:
+        return HTMLResponse("<h2>Không nhận được id_token từ Google.</h2>")
+        
+    # --- Xác thực ID Token y như login_google() ---
+    try:
+        from google.oauth2 import id_token as g_id_token
+        from google.auth.transport import requests as google_requests
+        idinfo = g_id_token.verify_oauth2_token(
+            id_token_str, 
+            google_requests.Request(), 
+            settings.GOOGLE_CLIENT_ID,
+            clock_skew_in_seconds=60
+        )
+    except Exception as e:
+        return HTMLResponse(f"<h2>Token không hợp lệ: {str(e)}</h2>")
+        
+    email = idinfo.get("email")
+    if not email:
+        return HTMLResponse("<h2>Không lấy được Email từ Google.</h2>")
+        
+    # Tái sử dụng logic lấy user hoặc tạo user
+    from app.routers.auth import _build_google_username
+    username = _build_google_username(email)
+    
+    user = get_user_by_email(email)
+    if not user:
+        user = get_user_by_username(username)
+        
+    if not user:
+        from uuid import uuid4
+        auto_password = hash_password(f"google::{uuid4().hex}{uuid4().hex}")
+        try:
+            user = create_user(
+                username=username,
+                hashed_password=auto_password,
+                email=email,
+                role="user",
+                prediction_tokens=5
+            )
+        except Exception as e:
+            return HTMLResponse(f"<h2>Lỗi tạo tài khoản nội bộ: {str(e)}</h2>")
+            
+    # Fix bug cũ nếu email bị lưu sai hoặc thiếu
+    if user and user.get("email") != email:
+        from app.models.base_db import _get_connection
+        conn = _get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("UPDATE users SET email = %s WHERE id = %s", (email, user["id"]))
+            conn.commit()
+            user["email"] = email
+        except:
+            pass
+        finally:
+            conn.close()
+    # Tạo JWT của app mình
+    access_token = create_access_token(
+        data={"sub": str(user["id"]), "role": user["role"]}
+    )
+    
+    # LƯU VÀO DATABASE CHO PHIÊN POLL (state chứa session_id)
+    update_login_session(state, access_token)
+    
+    return HTMLResponse("""
+    <html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { font-family: sans-serif; text-align: center; padding-top: 50px; background: #f0fdf4; color: #166534; }
+            .box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: inline-block; }
+            h2 { margin-top: 0; }
+            p { color: #555; }
+        </style>
+    </head>
+    <body>
+        <div class="box">
+            <h2>Đăng nhập thành công! 🎉</h2>
+            <p>Hệ thống đã kết nối tài khoản an toàn.</p>
+            <p><strong>Bạn hãy đóng Tab này (hoặc bấm quay lại) để trở về App nhé.</strong></p>
+        </div>
+    </body>
+    </html>
+    """)
