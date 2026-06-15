@@ -597,7 +597,8 @@ from app.models.base_db import (
     get_login_session,
     update_login_session,
     delete_login_session,
-    cleanup_old_login_sessions
+    cleanup_old_login_sessions,
+    get_user_by_id
 )
 import urllib.parse
 import requests
