@@ -384,9 +384,9 @@ const translations = {
 
         // --- App (Dashboard) ---
         "app_title": "Detection Suite",
-        "tab_single_scan": "Quét Đơn Lẻ",
+        "tab_single_scan": "Single Scan",
         "tab_dashboard": "Dashboard",
-        "tab_batch_scan": "Quét Hàng Loạt",
+        "tab_batch_scan": "Batch Scan",
         "tab_analytics": "Analytics",
         "tab_history": "Detailed History",
         "tab_payment_history": "Payment History",
