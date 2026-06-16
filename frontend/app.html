@@ -464,17 +464,17 @@
 
                         <div class="tab-content hidden" id="payment-history-tab">
                             <div class="history-container white-card border-frame">
-                                <h3><i class="fa-solid fa-money-bill-transfer text-gradient"></i> Lịch Sử Mua Hàng <span id="payment-history-badge" class="badge"></span></h3>
+                                <h3><i class="fa-solid fa-money-bill-transfer text-gradient"></i> <span data-i18n="tab_payment_history">Lịch Sử Mua Hàng</span> <span id="payment-history-badge" class="badge"></span></h3>
                                 <div class="action-row">
                                     <button id="payment-history-refresh-btn" class="btn-icon" title="Làm mới lịch sử"><i class="fa-solid fa-rotate-right"></i></button>
                                 </div>
                                 <div class="admin-stats-grid" style="margin-bottom: 20px;">
                                     <article class="glass-panel border-frame stat-card" style="padding: 15px;">
-                                        <p>Tổng tiền đã nạp</p>
+                                        <p data-i18n="stat_user_spent">Tổng tiền đã nạp</p>
                                         <h3 id="user-total-spent">0 đ</h3>
                                     </article>
                                     <article class="glass-panel border-frame stat-card" style="padding: 15px;">
-                                        <p>Tổng token nhận được</p>
+                                        <p data-i18n="stat_user_tokens">Tổng token nhận được</p>
                                         <h3 id="user-total-tokens-bought">0</h3>
                                     </article>
                                 </div>
@@ -482,12 +482,12 @@
                                     <table class="history-table">
                                         <thead>
                                             <tr>
-                                                <th>Thời Gian</th>
-                                                <th>Mã Giao Dịch</th>
-                                                <th>Số Tiền (VND)</th>
-                                                <th>Tokens Nhận</th>
-                                                <th>Trạng Thái</th>
-                                                <th>Thao Tác</th>
+                                                <th data-i18n="col_time">Thời Gian</th>
+                                                <th data-i18n="col_order_id">Mã Giao Dịch</th>
+                                                <th data-i18n="col_amount">Số Tiền (VND)</th>
+                                                <th data-i18n="col_tokens">Tokens Nhận</th>
+                                                <th data-i18n="col_status">Trạng Thái</th>
+                                                <th data-i18n="col_action">Thao Tác</th>
                                             </tr>
                                         </thead>
                                         <tbody id="payment-history-tbody">
