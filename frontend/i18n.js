@@ -264,6 +264,8 @@ const translations = {
         "status_success": "Thành công",
         "btn_view": "Xem",
         "currency_vnd": "đ",
+        "stat_user_spent": "Tổng tiền đã nạp",
+        "stat_user_tokens": "Tổng token nhận được",
 
         // --- Index Missing ---
         "nav_about": "Giới thiệu",
@@ -566,6 +568,8 @@ const translations = {
         "status_success": "Success",
         "btn_view": "View",
         "currency_vnd": "VND",
+        "stat_user_spent": "Total amount spent",
+        "stat_user_tokens": "Total tokens received",
 
         // --- Index Missing ---
         "nav_about": "About",
