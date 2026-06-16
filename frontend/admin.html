@@ -55,11 +55,11 @@
             <button class="tab-btn" data-tab="tab-tokens"><i class="fa-solid fa-coins"></i> <span data-i18n="tab_tokens">Nạp Token</span></button>
             <button class="tab-btn" data-tab="tab-users"><i class="fa-solid fa-users-gear"></i> <span data-i18n="tab_users">Quản lý User</span></button>
             <button class="tab-btn" data-tab="tab-history"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_history">Lịch sử</span></button>
-            <button class="tab-btn" data-tab="tab-payment-history"><i class="fa-solid fa-money-bill-transfer"></i> Lịch sử Mua Hàng</button>
+            <button class="tab-btn" data-tab="tab-payment-history"><i class="fa-solid fa-money-bill-transfer"></i> <span data-i18n="tab_payments">Lịch sử Mua Hàng</span></button>
             <button class="tab-btn" data-tab="tab-customize"><i class="fa-solid fa-palette"></i> <span data-i18n="tab_ui">Tùy chỉnh giao diện</span></button>
-            <button class="tab-btn" data-tab="tab-pages"><i class="fa-solid fa-file-lines"></i> Quản lý Trang</button>
-            <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> Thông báo</button>
-            <button class="tab-btn" data-tab="tab-ai"><i class="fa-solid fa-robot"></i> Cấu hình AI</button>
+            <button class="tab-btn" data-tab="tab-pages"><i class="fa-solid fa-file-lines"></i> <span data-i18n="tab_pages">Quản lý Trang</span></button>
+            <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> <span data-i18n="tab_notifications">Thông báo</span></button>
+            <button class="tab-btn" data-tab="tab-ai"><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_config">Cấu hình AI</span></button>
         </div>
 
         <!-- TAB: THỐNG KÊ -->
@@ -308,6 +308,17 @@
                 </div>
                 <p id="config-save-message" class="topup-message"></p>
 
+                <div class="config-lang-toggle" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.02); padding: 10px 15px; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: 600; font-size: 0.9rem;" data-i18n="cfg_edit_lang">Ngôn ngữ cấu hình:</span>
+                        <div class="toggle-group" style="display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;">
+                            <button id="btn-cfg-lang-vi" class="cfg-lang-btn active" style="padding: 5px 12px; border: none; background: var(--primary); color: white; cursor: pointer;">Tiếng Việt</button>
+                            <button id="btn-cfg-lang-en" class="cfg-lang-btn" style="padding: 5px 12px; border: none; background: white; color: var(--text); cursor: pointer;">Tiếng Anh</button>
+                        </div>
+                    </div>
+                    <button id="btn-ai-translate-config" class="nav-btn" style="border: 1px solid var(--primary); color: var(--primary);"><i class="fa-solid fa-language"></i> <span data-i18n="btn_ai_translate_all">Dịch tất cả (AI)</span></button>
+                </div>
+
                 <!-- Nhóm: Màu sắc -->
                 <div class="config-group">
                     <h4><i class="fa-solid fa-droplet"></i> <span data-i18n="ui_colors">Màu sắc</span></h4>
@@ -505,7 +516,7 @@
             <section class="glass-panel border-frame admin-table-wrap">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div>
-                        <h3><i class="fa-solid fa-file-lines"></i> Quản lý Trang Web</h3>
+                        <h3><i class="fa-solid fa-file-lines"></i> <span data-i18n="tab_pages_title">Quản lý Trang Web</span></h3>
                         <p class="section-desc">Tạo và chỉnh sửa nội dung các trang tuỳ chỉnh.</p>
                     </div>
                     <button id="btn-add-page" class="btn-analyze admin-btn">
@@ -537,7 +548,7 @@
             <div class="glass-panel border-frame" style="max-width: 800px; margin: 0 auto;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
                     <div>
-                        <h3><i class="fa-solid fa-robot"></i> Cấu hình AI Dịch Thuật</h3>
+                        <h3><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_title">Cấu hình AI Dịch Thuật</span></h3>
                         <p class="section-desc">Cài đặt API Key cho các nhà cung cấp AI để tự động dịch trang sang Tiếng Anh.</p>
                     </div>
                 </div>
@@ -592,7 +603,7 @@
             <section class="glass-panel border-frame admin-table-wrap">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div>
-                        <h3><i class="fa-solid fa-bullhorn"></i> Quản lý Thông báo</h3>
+                        <h3><i class="fa-solid fa-bullhorn"></i> <span data-i18n="tab_notif_title">Quản lý Thông báo</span></h3>
                         <p class="section-desc">Gửi thông báo thủ công hoặc hẹn giờ cho người dùng.</p>
                     </div>
                     <button class="btn-analyze admin-btn" id="btn-open-send-notification">
@@ -628,7 +639,7 @@
     <div id="order-details-modal" class="modal hidden">
         <div class="modal-content glass-panel border-frame">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-file-invoice"></i> Chi Tiết Hoá Đơn</h3>
+                <h3><i class="fa-solid fa-file-invoice"></i> <span data-i18n="title_invoice_detail">Chi Tiết Hoá Đơn</span></h3>
                 <button class="close-modal" id="btn-close-order-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body" style="line-height: 1.6;">
@@ -653,7 +664,7 @@
     <div id="page-editor-modal" class="modal hidden">
         <div class="modal-content glass-panel border-frame" style="max-width: 900px; width: 95%;">
             <div class="modal-header">
-                <h3 id="page-modal-title"><i class="fa-solid fa-pen-to-square"></i> Soạn Thảo Trang</h3>
+                <h3 id="page-modal-title"><i class="fa-solid fa-pen-to-square"></i> <span data-i18n="title_edit_page">Soạn Thảo Trang</span></h3>
                 <button class="close-modal" id="btn-close-page-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body" style="line-height: 1.6; display: flex; flex-direction: column; gap: 15px;">
@@ -705,7 +716,7 @@
     <div id="notification-modal" class="modal hidden">
         <div class="modal-content glass-panel border-frame" style="max-width: 600px; width: 95%;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-paper-plane"></i> Gửi Thông Báo Mới</h3>
+                <h3><i class="fa-solid fa-paper-plane"></i> <span data-i18n="title_send_notif">Gửi Thông Báo Mới</span></h3>
                 <button class="close-modal" id="btn-close-notification-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body" style="line-height: 1.6; display: flex; flex-direction: column; gap: 15px; padding-top: 15px;">

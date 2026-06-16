@@ -663,6 +663,16 @@ function exportCsv() {
 
 // ----------------- TÙY CHỈNH GIAO DIỆN -----------------
 
+let currentConfigLang = 'vi';
+let cachedSiteConfig = {};
+
+const MULTILANG_CONFIG_KEYS = [
+    'site_slogan', 'footer_text', 'hero_title_line1', 'hero_title_line2', 
+    'hero_desc', 'hero_cta_text', 'feature1_title', 'feature1_desc',
+    'feature2_title', 'feature2_desc', 'feature3_title', 'feature3_desc',
+    'step1_title', 'step1_desc', 'step2_title', 'step2_desc', 'step3_title', 'step3_desc'
+];
+
 // Mapping: form field ID -> config key
 const CONFIG_FIELDS = {
     'cfg-color-primary': 'color_primary',
@@ -729,6 +739,20 @@ function setupColorSync() {
     });
 }
 
+function populateConfigForm() {
+    for (const [fieldId, baseKey] of Object.entries(CONFIG_FIELDS)) {
+        const el = document.getElementById(fieldId);
+        if (el) {
+            const configKey = (currentConfigLang === 'en' && MULTILANG_CONFIG_KEYS.includes(baseKey)) ? `${baseKey}_en` : baseKey;
+            if (cachedSiteConfig[configKey] !== undefined) {
+                el.value = cachedSiteConfig[configKey];
+            } else {
+                el.value = ''; // empty if not found
+            }
+        }
+    }
+}
+
 async function fetchSiteConfig() {
     try {
         const token = localStorage.getItem('token');
@@ -738,13 +762,11 @@ async function fetchSiteConfig() {
         if (!res.ok) return;
         const config = await res.json();
 
-        // Fill text/color fields
-        for (const [fieldId, configKey] of Object.entries(CONFIG_FIELDS)) {
-            const el = document.getElementById(fieldId);
-            if (el && config[configKey] !== undefined) {
-                el.value = config[configKey];
-            }
-        }
+        // Save to cache
+        cachedSiteConfig = config;
+
+        // Fill text/color fields based on currentConfigLang
+        populateConfigForm();
 
         // Fill toggles
         for (const [fieldId, configKey] of Object.entries(TOGGLE_FIELDS)) {
@@ -815,10 +837,14 @@ async function fetchSiteConfig() {
 async function saveSiteConfig() {
     const data = {};
 
-    // Collect text/color fields
-    for (const [fieldId, configKey] of Object.entries(CONFIG_FIELDS)) {
+    // Collect text/color fields based on currentConfigLang
+    for (const [fieldId, baseKey] of Object.entries(CONFIG_FIELDS)) {
         const el = document.getElementById(fieldId);
-        if (el) data[configKey] = el.value;
+        if (el) {
+            const configKey = (currentConfigLang === 'en' && MULTILANG_CONFIG_KEYS.includes(baseKey)) ? `${baseKey}_en` : baseKey;
+            data[configKey] = el.value;
+            cachedSiteConfig[configKey] = el.value; // update cache
+        }
     }
 
     // Collect toggles
@@ -912,6 +938,96 @@ async function uploadLogo(file) {
 
 function initCustomizeTab() {
     setupColorSync();
+
+    const btnLangVi = document.getElementById('btn-cfg-lang-vi');
+    const btnLangEn = document.getElementById('btn-cfg-lang-en');
+    
+    if (btnLangVi && btnLangEn) {
+        const switchLang = (lang) => {
+            // Cập nhật giá trị vào cache cho ngôn ngữ cũ trước khi chuyển
+            for (const [fieldId, baseKey] of Object.entries(CONFIG_FIELDS)) {
+                const el = document.getElementById(fieldId);
+                if (el) {
+                    const configKey = (currentConfigLang === 'en' && MULTILANG_CONFIG_KEYS.includes(baseKey)) ? `${baseKey}_en` : baseKey;
+                    cachedSiteConfig[configKey] = el.value;
+                }
+            }
+
+            // Chuyển ngôn ngữ
+            currentConfigLang = lang;
+            
+            // Cập nhật UI button
+            if (lang === 'vi') {
+                btnLangVi.classList.add('active');
+                btnLangVi.style.background = 'var(--primary)';
+                btnLangVi.style.color = 'white';
+                btnLangEn.classList.remove('active');
+                btnLangEn.style.background = 'white';
+                btnLangEn.style.color = 'var(--text)';
+            } else {
+                btnLangEn.classList.add('active');
+                btnLangEn.style.background = 'var(--primary)';
+                btnLangEn.style.color = 'white';
+                btnLangVi.classList.remove('active');
+                btnLangVi.style.background = 'white';
+                btnLangVi.style.color = 'var(--text)';
+            }
+
+            // Điền lại form
+            populateConfigForm();
+        };
+
+        btnLangVi.addEventListener('click', () => switchLang('vi'));
+        btnLangEn.addEventListener('click', () => switchLang('en'));
+    }
+
+    const btnAiTranslate = document.getElementById('btn-ai-translate-config');
+    if (btnAiTranslate) {
+        btnAiTranslate.addEventListener('click', async () => {
+            if (currentConfigLang !== 'en') {
+                alert('Vui lòng chuyển sang "Tiếng Anh" để dịch tự động!');
+                return;
+            }
+            if (!confirm('Bạn có chắc muốn dùng AI tự động dịch các trường nội dung sang Tiếng Anh không?')) return;
+            
+            btnAiTranslate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang dịch...';
+            btnAiTranslate.disabled = true;
+
+            const token = localStorage.getItem('token');
+            for (const [fieldId, baseKey] of Object.entries(CONFIG_FIELDS)) {
+                if (MULTILANG_CONFIG_KEYS.includes(baseKey)) {
+                    const viVal = cachedSiteConfig[baseKey] || '';
+                    if (!viVal.trim()) continue; // Bỏ qua nếu không có text Tiếng Việt
+                    
+                    try {
+                        const res = await fetch(`${API_URL}/admin/ai-translate`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                title: `Translate config key: ${baseKey}`,
+                                content: viVal
+                            })
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            const el = document.getElementById(fieldId);
+                            if (el && data.translated_content) {
+                                el.value = data.translated_content;
+                                cachedSiteConfig[`${baseKey}_en`] = data.translated_content;
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Translation error for', baseKey, err);
+                    }
+                }
+            }
+            btnAiTranslate.innerHTML = '<i class="fa-solid fa-language"></i> Dịch tất cả (AI)';
+            btnAiTranslate.disabled = false;
+        });
+    }
 
     const saveBtn = document.getElementById('btn-save-config');
     const resetBtn = document.getElementById('btn-reset-config');
