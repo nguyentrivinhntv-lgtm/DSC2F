@@ -232,6 +232,7 @@ const translations = {
         "title_send_notif": "Gửi Thông Báo Mới",
 
         // Missing Admin Tab Contents
+        "tab_users": "Quản lý Người dùng & Phân quyền",
         "admin_users_desc": "Thay đổi quyền truy cập của người dùng. Tài khoản admin có toàn quyền quản trị.",
         "col_id": "ID",
         "col_email": "Email",
@@ -259,6 +260,10 @@ const translations = {
         "col_target": "Mục tiêu",
         "col_send_time": "Thời gian gửi",
         "col_creator": "Người tạo",
+        "empty_payment": "Chưa có giao dịch mua hàng nào.",
+        "status_success": "Thành công",
+        "btn_view": "Xem",
+        "currency_vnd": "đ",
 
         // --- Index Missing ---
         "nav_about": "Giới thiệu",
@@ -529,6 +534,7 @@ const translations = {
         "title_send_notif": "Send New Notification",
 
         // Missing Admin Tab Contents
+        "tab_users": "User Management & Roles",
         "admin_users_desc": "Change user access rights. Administrator accounts have full control.",
         "col_id": "ID",
         "col_email": "Email",
@@ -556,6 +562,10 @@ const translations = {
         "col_target": "Target",
         "col_send_time": "Send Time",
         "col_creator": "Creator",
+        "empty_payment": "No payment history found.",
+        "status_success": "Success",
+        "btn_view": "View",
+        "currency_vnd": "VND",
 
         // --- Index Missing ---
         "nav_about": "About",
