@@ -740,9 +740,10 @@ function updateLangButton(lang) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inject Language Toggle Button dynamically if container exists
-    const headers = document.querySelectorAll('.site-header .site-nav, .landing-header');
-    if (headers.length > 0) {
-        const header = headers[0];
+    const landingHeader = document.querySelector('.landing-header');
+    const siteNav = document.querySelector('.site-nav');
+
+    if (landingHeader || siteNav) {
         const btn = document.createElement('button');
         btn.id = 'lang-toggle';
         btn.className = 'btn-lang-toggle';
@@ -752,7 +753,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // Dispatch event so app.js can re-render dynamic strings if needed
             window.dispatchEvent(new Event('languageChanged'));
         };
-        header.insertBefore(btn, header.firstChild);
+
+        if (landingHeader) {
+            // On index.html, put it next to the "Go to Dashboard" (.header-cta) button
+            const ctaBtn = landingHeader.querySelector('.header-cta');
+            if (ctaBtn) {
+                // Wrap it in a container if needed, or just insert before CTA
+                // However, inserting before CTA works perfectly since they are flex items
+                landingHeader.insertBefore(btn, ctaBtn);
+            } else {
+                landingHeader.appendChild(btn);
+            }
+        } else if (siteNav) {
+            // On app.html / admin.html, append to the end of the navigation bar
+            siteNav.appendChild(btn);
+        }
+        
         updateLangButton(getLang());
     }
 
