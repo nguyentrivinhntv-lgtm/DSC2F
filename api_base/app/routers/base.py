@@ -241,7 +241,7 @@ def admin_ai_translate(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
                 json={
-                    "model": "llama3-8b-8192",
+                    "model": "llama-3.3-70b-versatile",
                     "messages": [
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
@@ -249,6 +249,8 @@ def admin_ai_translate(
                 },
                 timeout=30
             )
+            if not resp.ok:
+                raise ValueError(f"Groq Error: {resp.text}")
             resp.raise_for_status()
             text = resp.json()["choices"][0]["message"]["content"]
             
