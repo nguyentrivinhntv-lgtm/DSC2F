@@ -731,6 +731,7 @@ function setupColorSync() {
 
 async function fetchSiteConfig() {
     try {
+        const token = localStorage.getItem('token');
         const res = await fetch(`${API_URL}/admin/site-config`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -926,7 +927,7 @@ function initCustomizeTab() {
     const btnSaveAI = document.getElementById('btn-save-ai');
     if (btnSaveAI) {
         btnSaveAI.addEventListener('click', async () => {
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('token');
             const btn = document.getElementById('btn-save-ai');
             const msg = document.getElementById('ai-save-message');
             
@@ -1034,7 +1035,7 @@ function initCMS() {
     const btnTranslate = document.getElementById('btn-ai-translate');
     if (btnTranslate) {
         btnTranslate.addEventListener('click', async () => {
-            const token = localStorage.getItem('access_token');
+            const token = localStorage.getItem('token');
             const titleVi = document.getElementById('page-title-input').value;
             const contentVi = quillEditor ? quillEditor.root.innerHTML : '';
             
