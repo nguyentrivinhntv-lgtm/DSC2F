@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import List, Optional
 
@@ -52,15 +52,32 @@ def get_pages(is_admin: bool = False):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{slug}", response_model=PageDetailResponse)
-def get_page(slug: str):
+def get_page(slug: str, request: Request):
     """Lấy chi tiết một trang theo slug."""
     try:
         page = base_db.get_page_by_slug(slug)
         if not page:
             raise HTTPException(status_code=404, detail="Page not found")
-        # Nếu trang bị vô hiệu hoá, chỉ admin mới nên xem (đơn giản hoá: chặn luôn)
+        
+        # Nếu trang bị vô hiệu hoá, chỉ admin mới nên xem
         if not page["is_active"]:
-            raise HTTPException(status_code=403, detail="Page is not active")
+            auth_header = request.headers.get("Authorization")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                raise HTTPException(status_code=403, detail="Page is not active")
+            
+            token = auth_header.split(" ")[1]
+            from app.security.security import decode_access_token
+            try:
+                payload = decode_access_token(token)
+                user_id = payload.get("sub")
+                if not user_id:
+                    raise HTTPException(status_code=403, detail="Page is not active")
+                user = base_db.get_user_by_id(int(user_id))
+                if not user or user.get("role") != "admin":
+                    raise HTTPException(status_code=403, detail="Page is not active")
+            except Exception:
+                raise HTTPException(status_code=403, detail="Page is not active")
+
         return page
     except HTTPException:
         raise
