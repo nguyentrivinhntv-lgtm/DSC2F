@@ -245,13 +245,28 @@ def init_db(db_path: Optional[str] = None) -> None:
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     slug VARCHAR(100) UNIQUE NOT NULL,
                     title VARCHAR(255) NOT NULL,
+                    title_en VARCHAR(255) NULL,
                     content LONGTEXT,
+                    content_en LONGTEXT NULL,
                     is_active TINYINT(1) DEFAULT 1,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB
                 """
             )
+
+            # Cố gắng thêm cột title_en và content_en nếu table cũ chưa có
+            try:
+                cur.execute("ALTER TABLE pages ADD COLUMN title_en VARCHAR(255) NULL")
+            except MySQLError as exc:
+                if getattr(exc, "args", [None])[0] != 1060: # 1060: Duplicate column name
+                    raise
+            try:
+                cur.execute("ALTER TABLE pages ADD COLUMN content_en LONGTEXT NULL")
+            except MySQLError as exc:
+                if getattr(exc, "args", [None])[0] != 1060:
+                    raise
+
             
             # Khởi tạo 5 trang mặc định nếu chưa có
             cur.execute("SELECT COUNT(*) as cnt FROM pages")
@@ -677,6 +692,11 @@ DEFAULT_SITE_CONFIG = {
     "show_features": "1",
     "show_howitworks": "1",
     "show_cta": "1",
+    "ai_provider": "groq",
+    "ai_groq_key": "",
+    "ai_gemini_key": "",
+    "ai_openai_key": "",
+    "ai_system_prompt": "You are a professional translator. Translate the following Vietnamese text or HTML content to English. Preserve all HTML tags, structure, and formatting. Return ONLY the translated English text/HTML, nothing else.",
     # Logo URL (empty = default icon)
     "logo_url": "",
     # Pricing Packages (JSON array)
@@ -879,7 +899,7 @@ def get_all_pages(db_path: Optional[str] = None) -> list:
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages ORDER BY created_at DESC")
+            cur.execute("SELECT id, slug, title, title_en, is_active, created_at, updated_at FROM pages ORDER BY created_at DESC")
             rows = cur.fetchall()
             for row in rows:
                 if hasattr(row.get("created_at"), "isoformat"):
@@ -895,7 +915,7 @@ def get_active_pages(db_path: Optional[str] = None) -> list:
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages WHERE is_active = 1 ORDER BY created_at DESC")
+            cur.execute("SELECT id, slug, title, title_en, is_active, created_at, updated_at FROM pages WHERE is_active = 1 ORDER BY created_at DESC")
             rows = cur.fetchall()
             for row in rows:
                 if hasattr(row.get("created_at"), "isoformat"):
@@ -922,14 +942,14 @@ def get_page_by_slug(slug: str, db_path: Optional[str] = None) -> Optional[dict]
     finally:
         conn.close()
 
-def create_page(slug: str, title: str, content: str, is_active: int = 1, db_path: Optional[str] = None) -> bool:
+def create_page(slug: str, title: str, content: str, title_en: Optional[str] = None, content_en: Optional[str] = None, is_active: int = 1, db_path: Optional[str] = None) -> bool:
     """Tạo mới một trang CMS."""
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO pages (slug, title, content, is_active) VALUES (%s, %s, %s, %s)",
-                (slug, title, content, is_active)
+                "INSERT INTO pages (slug, title, content, title_en, content_en, is_active) VALUES (%s, %s, %s, %s, %s, %s)",
+                (slug, title, content, title_en, content_en, is_active)
             )
         conn.commit()
         return True
@@ -940,14 +960,14 @@ def create_page(slug: str, title: str, content: str, is_active: int = 1, db_path
     finally:
         conn.close()
 
-def update_page(slug: str, title: str, content: str, is_active: int, db_path: Optional[str] = None) -> bool:
+def update_page(slug: str, title: str, content: str, title_en: Optional[str] = None, content_en: Optional[str] = None, is_active: int = 1, db_path: Optional[str] = None) -> bool:
     """Cập nhật một trang CMS."""
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "UPDATE pages SET title = %s, content = %s, is_active = %s WHERE slug = %s",
-                (title, content, is_active, slug)
+                "UPDATE pages SET title = %s, content = %s, title_en = %s, content_en = %s, is_active = %s WHERE slug = %s",
+                (title, content, title_en, content_en, is_active, slug)
             )
             updated = cur.rowcount
         conn.commit()

@@ -10,24 +10,30 @@ router = APIRouter(prefix="/pages", tags=["Pages"])
 class PageCreate(BaseModel):
     slug: str
     title: str
+    title_en: Optional[str] = None
     content: str
+    content_en: Optional[str] = None
     is_active: bool = True
 
 class PageUpdate(BaseModel):
     title: str
+    title_en: Optional[str] = None
     content: str
+    content_en: Optional[str] = None
     is_active: bool = True
 
 class PageResponse(BaseModel):
     id: int
     slug: str
     title: str
+    title_en: Optional[str] = None
     is_active: bool
     created_at: str
     updated_at: str
 
 class PageDetailResponse(PageResponse):
     content: str
+    content_en: Optional[str] = None
 
 @router.get("", response_model=List[PageResponse])
 def get_pages(is_admin: bool = False):
@@ -69,6 +75,8 @@ def create_page(page: PageCreate, admin_user: dict = Depends(require_admin)):
             slug=page.slug,
             title=page.title,
             content=page.content,
+            title_en=page.title_en,
+            content_en=page.content_en,
             is_active=1 if page.is_active else 0
         )
         return {"message": "Tạo trang thành công"}
@@ -90,6 +98,8 @@ def update_page(slug: str, page: PageUpdate, admin_user: dict = Depends(require_
             slug=slug,
             title=page.title,
             content=page.content,
+            title_en=page.title_en,
+            content_en=page.content_en,
             is_active=1 if page.is_active else 0
         )
         return {"message": "Cập nhật trang thành công"}

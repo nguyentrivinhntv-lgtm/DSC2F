@@ -299,10 +299,20 @@
                 const page = await response.json();
                 
                 // Populate data
-                document.title = `${page.title} | CNN Detection Hub`;
-                document.getElementById('page-title').textContent = page.title;
-                document.getElementById('page-date').textContent = new Date(page.updated_at || page.created_at).toLocaleString('vi-VN');
-                document.getElementById('page-content').innerHTML = page.content;
+                const renderContent = () => {
+                    const lang = typeof getLang === 'function' ? getLang() : 'vi';
+                    const isEn = lang === 'en';
+                    const titleText = (isEn && page.title_en) ? page.title_en : page.title;
+                    const contentHtml = (isEn && page.content_en) ? page.content_en : page.content;
+                    
+                    document.title = `${titleText} | CNN Detection Hub`;
+                    document.getElementById('page-title').textContent = titleText;
+                    document.getElementById('page-date').textContent = new Date(page.updated_at || page.created_at).toLocaleString('vi-VN');
+                    document.getElementById('page-content').innerHTML = contentHtml;
+                };
+                
+                renderContent();
+                window.addEventListener('languageChanged', renderContent);
                 
                 // Show content
                 loadingState.style.display = 'none';

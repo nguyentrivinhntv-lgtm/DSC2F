@@ -59,6 +59,7 @@
             <button class="tab-btn" data-tab="tab-customize"><i class="fa-solid fa-palette"></i> <span data-i18n="tab_ui">Tùy chỉnh giao diện</span></button>
             <button class="tab-btn" data-tab="tab-pages"><i class="fa-solid fa-file-lines"></i> Quản lý Trang</button>
             <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> Thông báo</button>
+            <button class="tab-btn" data-tab="tab-ai"><i class="fa-solid fa-robot"></i> Cấu hình AI</button>
         </div>
 
         <!-- TAB: THỐNG KÊ -->
@@ -531,6 +532,61 @@
             </section>
         </div>
 
+        <!-- TAB: CẤU HÌNH AI -->
+        <div id="tab-ai" class="tab-content">
+            <div class="glass-panel border-frame" style="max-width: 800px; margin: 0 auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+                    <div>
+                        <h3><i class="fa-solid fa-robot"></i> Cấu hình AI Dịch Thuật</h3>
+                        <p class="section-desc">Cài đặt API Key cho các nhà cung cấp AI để tự động dịch trang sang Tiếng Anh.</p>
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-section full-width">
+                        <h4><i class="fa-solid fa-microchip"></i> Lựa chọn AI</h4>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-provider">Nhà cung cấp dịch thuật chính</label>
+                            <select id="cfg-ai-provider" class="admin-input">
+                                <option value="groq">Groq (Nhanh nhất - Llama 3)</option>
+                                <option value="gemini">Google Gemini (Miễn phí tốt nhất)</option>
+                                <option value="openai">ChatGPT (Độ chính xác cao)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width">
+                        <h4><i class="fa-solid fa-key"></i> API Keys</h4>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-groq">Groq API Key</label>
+                            <input type="password" id="cfg-ai-groq" class="admin-input" placeholder="gsk_...">
+                        </div>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-gemini">Gemini API Key</label>
+                            <input type="password" id="cfg-ai-gemini" class="admin-input" placeholder="AIza...">
+                        </div>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-openai">OpenAI API Key</label>
+                            <input type="password" id="cfg-ai-openai" class="admin-input" placeholder="sk-...">
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width">
+                        <h4><i class="fa-solid fa-terminal"></i> System Prompt</h4>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-prompt">Lệnh hướng dẫn AI dịch (Tiếng Anh)</label>
+                            <textarea id="cfg-ai-prompt" class="admin-input" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; text-align: right;">
+                    <button class="btn-analyze admin-btn" id="btn-save-ai">Lưu Cấu Hình AI</button>
+                    <p id="ai-save-message" class="topup-message" style="display:inline-block; margin-left: 15px;"></p>
+                </div>
+            </div>
+        </div>
+
         <!-- TAB: QUẢN LÝ THÔNG BÁO -->
         <div id="tab-notifications" class="tab-content">
             <section class="glass-panel border-frame admin-table-wrap">
@@ -604,8 +660,13 @@
                 <input type="hidden" id="page-edit-mode" value="add">
                 
                 <div class="config-field full-width">
-                    <label>Tiêu đề trang</label>
+                    <label>Tiêu đề trang (Tiếng Việt)</label>
                     <input type="text" id="page-title-input" placeholder="VD: Hướng dẫn sử dụng">
+                </div>
+                
+                <div class="config-field full-width">
+                    <label>Tiêu đề trang (Tiếng Anh)</label>
+                    <input type="text" id="page-title-en-input" placeholder="VD: User Guide">
                 </div>
                 
                 <div class="config-field full-width">
@@ -613,9 +674,17 @@
                     <input type="text" id="page-slug-input" placeholder="huong-dan">
                 </div>
                 
-                <div class="config-field full-width">
-                    <label>Nội dung HTML (Sử dụng trình soạn thảo)</label>
+                <div class="config-field full-width" style="position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
+                        <label style="margin-bottom: 0;">Nội dung HTML (Tiếng Việt)</label>
+                        <button id="btn-ai-translate" class="nav-btn" style="padding: 4px 10px; font-size: 0.8rem; height: auto;"><i class="fa-solid fa-language"></i> Dịch sang Tiếng Anh</button>
+                    </div>
                     <div id="page-content-editor" style="height: 300px; background: #fff; color: #333; border-radius: 4px;"></div>
+                </div>
+
+                <div class="config-field full-width">
+                    <label>Nội dung HTML (Tiếng Anh)</label>
+                    <div id="page-content-en-editor" style="height: 300px; background: #fff; color: #333; border-radius: 4px;"></div>
                 </div>
 
                 <label class="toggle-label" style="display:inline-flex; align-items:center; gap:8px;">

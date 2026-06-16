@@ -731,7 +731,9 @@ function setupColorSync() {
 
 async function fetchSiteConfig() {
     try {
-        const res = await fetch(`${API_URL}/site-config`);
+        const res = await fetch(`${API_URL}/admin/site-config`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!res.ok) return;
         const config = await res.json();
 
@@ -749,6 +751,28 @@ async function fetchSiteConfig() {
             if (el && config[configKey] !== undefined) {
                 el.checked = config[configKey] === '1';
             }
+        }
+
+        // Fill AI Configs
+        if (config.ai_provider) {
+            const el = document.getElementById('cfg-ai-provider');
+            if (el) el.value = config.ai_provider;
+        }
+        if (config.ai_groq_key) {
+            const el = document.getElementById('cfg-ai-groq');
+            if (el) el.value = config.ai_groq_key;
+        }
+        if (config.ai_gemini_key) {
+            const el = document.getElementById('cfg-ai-gemini');
+            if (el) el.value = config.ai_gemini_key;
+        }
+        if (config.ai_openai_key) {
+            const el = document.getElementById('cfg-ai-openai');
+            if (el) el.value = config.ai_openai_key;
+        }
+        if (config.ai_system_prompt) {
+            const el = document.getElementById('cfg-ai-prompt');
+            if (el) el.value = config.ai_system_prompt;
         }
 
         // Sync color hex displays
@@ -898,6 +922,51 @@ function initCustomizeTab() {
     if (resetBtn) resetBtn.addEventListener('click', resetSiteConfig);
     if (previewBtn) previewBtn.addEventListener('click', () => window.open('index.html', '_blank'));
 
+    // --- Init Cấu hình AI ---
+    const btnSaveAI = document.getElementById('btn-save-ai');
+    if (btnSaveAI) {
+        btnSaveAI.addEventListener('click', async () => {
+            const token = localStorage.getItem('access_token');
+            const btn = document.getElementById('btn-save-ai');
+            const msg = document.getElementById('ai-save-message');
+            
+            const payload = {
+                ai_provider: document.getElementById('cfg-ai-provider').value,
+                ai_groq_key: document.getElementById('cfg-ai-groq').value,
+                ai_gemini_key: document.getElementById('cfg-ai-gemini').value,
+                ai_openai_key: document.getElementById('cfg-ai-openai').value,
+                ai_system_prompt: document.getElementById('cfg-ai-prompt').value
+            };
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+            try {
+                const res = await fetch(`${API_URL}/admin/site-config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    msg.innerHTML = '<span style="color:var(--color-success)"><i class="fa-solid fa-check"></i> Đã lưu cấu hình AI</span>';
+                    setTimeout(() => msg.innerHTML = '', 3000);
+                } else {
+                    const data = await res.json();
+                    msg.innerHTML = `<span style="color:var(--color-danger)">Lỗi: ${data.detail || 'Không thể lưu'}</span>`;
+                }
+            } catch (err) {
+                console.error(err);
+                msg.innerHTML = '<span style="color:var(--color-danger)">Lỗi kết nối</span>';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Lưu Cấu Hình AI';
+            }
+        });
+    }
+
     if (logoInput) {
         logoInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) {
@@ -922,25 +991,33 @@ function initCustomizeTab() {
 }
 
 // ----------------- CMS PAGES LOGIC -----------------
-let quillEditor = null;
+let quillEditorEn = null;
 
 function initCMS() {
     // Init Quill Editor
-    if (typeof Quill !== 'undefined' && !quillEditor) {
-        quillEditor = new Quill('#page-content-editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    ['blockquote', 'code-block'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['link', 'image', 'video'],
-                    ['clean']
-                ]
-            }
-        });
+    if (typeof Quill !== 'undefined') {
+        const toolbarOptions = [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            [{ 'color': [] }, { 'background': [] }],
+            ['link', 'image', 'video'],
+            ['clean']
+        ];
+        
+        if (!quillEditor && document.getElementById('page-content-editor')) {
+            quillEditor = new Quill('#page-content-editor', {
+                theme: 'snow',
+                modules: { toolbar: toolbarOptions }
+            });
+        }
+        if (!quillEditorEn && document.getElementById('page-content-en-editor')) {
+            quillEditorEn = new Quill('#page-content-en-editor', {
+                theme: 'snow',
+                modules: { toolbar: toolbarOptions }
+            });
+        }
     }
 
     const modal = document.getElementById('page-editor-modal');
@@ -953,6 +1030,74 @@ function initCMS() {
     if (btnClose) btnClose.addEventListener('click', () => modal.classList.add('hidden'));
     if (btnCancel) btnCancel.addEventListener('click', () => modal.classList.add('hidden'));
     if (btnSave) btnSave.addEventListener('click', savePage);
+    
+    const btnTranslate = document.getElementById('btn-ai-translate');
+    if (btnTranslate) {
+        btnTranslate.addEventListener('click', async () => {
+            const token = localStorage.getItem('access_token');
+            const titleVi = document.getElementById('page-title-input').value;
+            const contentVi = quillEditor ? quillEditor.root.innerHTML : '';
+            
+            if (!titleVi || !contentVi || contentVi === '<p><br></p>') {
+                alert("Vui lòng nhập nội dung Tiếng Việt trước khi dịch!");
+                return;
+            }
+            
+            const originalText = btnTranslate.innerHTML;
+            btnTranslate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang dịch...';
+            btnTranslate.disabled = true;
+            
+            try {
+                const res = await fetch(`${API_URL}/admin/ai-translate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: titleVi,
+                        content: contentVi
+                    })
+                });
+                
+                const data = await res.json();
+                if (res.ok) {
+                    if (data.ai_provider) {
+                        const el = document.getElementById('cfg-ai-provider');
+                        if (el) el.value = data.ai_provider;
+                    }
+                    if (data.ai_groq_key) {
+                        const el = document.getElementById('cfg-ai-groq');
+                        if (el) el.value = data.ai_groq_key;
+                    }
+                    if (data.ai_gemini_key) {
+                        const el = document.getElementById('cfg-ai-gemini');
+                        if (el) el.value = data.ai_gemini_key;
+                    }
+                    if (data.ai_openai_key) {
+                        const el = document.getElementById('cfg-ai-openai');
+                        if (el) el.value = data.ai_openai_key;
+                    }
+                    if (data.ai_system_prompt) {
+                        const el = document.getElementById('cfg-ai-prompt');
+                        if (el) el.value = data.ai_system_prompt;
+                    }
+                    document.getElementById('page-title-en-input').value = data.title_en || '';
+                    if (quillEditorEn) {
+                        quillEditorEn.root.innerHTML = data.content_en || '';
+                    }
+                } else {
+                    alert("Lỗi dịch thuật: " + (data.detail || "Không xác định"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Lỗi kết nối khi gọi AI");
+            } finally {
+                btnTranslate.innerHTML = originalText;
+                btnTranslate.disabled = false;
+            }
+        });
+    }
 }
 
 async function loadPagesList() {
@@ -1019,18 +1164,22 @@ function openPageModal(mode, pageData = null) {
     
     if (mode === 'add') {
         document.getElementById('page-modal-title').innerHTML = '<i class="fa-solid fa-plus"></i> Tạo Trang Mới';
+        document.getElementById('page-title-input').value = '';
+        document.getElementById('page-title-en-input').value = '';
         document.getElementById('page-slug-input').value = '';
         document.getElementById('page-slug-input').disabled = false;
-        document.getElementById('page-title-input').value = '';
         document.getElementById('page-active-input').checked = true;
         if(quillEditor) quillEditor.root.innerHTML = '';
+        if(quillEditorEn) quillEditorEn.root.innerHTML = '';
     } else {
         document.getElementById('page-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Chỉnh Sửa Trang';
         document.getElementById('page-slug-input').value = pageData.slug;
         document.getElementById('page-slug-input').disabled = true; // Không cho sửa slug
         document.getElementById('page-title-input').value = pageData.title;
+        document.getElementById('page-title-en-input').value = pageData.title_en || '';
         document.getElementById('page-active-input').checked = pageData.is_active;
         if(quillEditor) quillEditor.root.innerHTML = pageData.content;
+        if(quillEditorEn) quillEditorEn.root.innerHTML = pageData.content_en || '';
     }
     
     document.getElementById('page-editor-modal').classList.remove('hidden');
@@ -1038,10 +1187,12 @@ function openPageModal(mode, pageData = null) {
 
 async function savePage() {
     const mode = document.getElementById('page-edit-mode').value;
-    const slug = document.getElementById('page-slug-input').value.trim();
     const title = document.getElementById('page-title-input').value.trim();
-    const content = quillEditor ? quillEditor.root.innerHTML : '';
+    const title_en = document.getElementById('page-title-en-input').value.trim();
+    const slug = document.getElementById('page-slug-input').value.trim();
     const isActive = document.getElementById('page-active-input').checked;
+    const content = quillEditor ? quillEditor.root.innerHTML : '';
+    const content_en = quillEditorEn ? quillEditorEn.root.innerHTML : '';
     const msgEl = document.getElementById('page-save-message');
     
     if (!slug || !title) {
@@ -1057,7 +1208,13 @@ async function savePage() {
         return;
     }
     
-    const payload = { slug, title, content, is_active: isActive };
+    const payload = {
+        title,
+        title_en,
+        content,
+        content_en,
+        is_active: isActive
+    };
     const method = mode === 'add' ? 'POST' : 'PUT';
     const url = mode === 'add' ? `${API_URL}/pages` : `${API_URL}/pages/${slug}`;
     
