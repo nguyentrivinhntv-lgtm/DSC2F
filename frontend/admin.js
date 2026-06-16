@@ -992,6 +992,7 @@ function initCustomizeTab() {
 }
 
 // ----------------- CMS PAGES LOGIC -----------------
+let quillEditor = null;
 let quillEditorEn = null;
 
 function initCMS() {
