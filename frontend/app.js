@@ -1794,7 +1794,8 @@ async function fetchPaymentHistory() {
             }
 
             if (data.items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Chưa có giao dịch mua hàng nào.</td></tr>';
+                const emptyText = typeof t === 'function' ? t('empty_payment') : 'Chưa có giao dịch mua hàng nào.';
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">${emptyText}</td></tr>`;
                 return;
             }
 
@@ -1804,9 +1805,13 @@ async function fetchPaymentHistory() {
             const totalSpent = data.items.reduce((sum, item) => sum + item.amount, 0);
             const totalTokens = data.items.reduce((sum, item) => sum + item.tokens, 0);
             
+            const currency = typeof t === 'function' ? t('currency_vnd') : 'đ';
+            const statusSuccess = typeof t === 'function' ? t('status_success') : 'Thành công';
+            const btnView = typeof t === 'function' ? t('btn_view') : 'Xem';
+
             const elTotalSpent = document.getElementById('user-total-spent');
             const elTotalTokens = document.getElementById('user-total-tokens-bought');
-            if (elTotalSpent) elTotalSpent.innerText = totalSpent.toLocaleString('vi-VN') + ' đ';
+            if (elTotalSpent) elTotalSpent.innerText = totalSpent.toLocaleString('vi-VN') + ' ' + currency;
             if (elTotalTokens) elTotalTokens.innerText = totalTokens.toLocaleString('vi-VN');
 
             data.items.forEach(item => {
@@ -1814,10 +1819,10 @@ async function fetchPaymentHistory() {
                 tr.innerHTML = `
                     <td>${new Date(item.created_at).toLocaleString('vi-VN')}</td>
                     <td>${item.order_id}</td>
-                    <td>${item.amount.toLocaleString('vi-VN')} đ</td>
+                    <td>${item.amount.toLocaleString('vi-VN')} ${currency}</td>
                     <td style="color:var(--primary);font-weight:bold;">+${item.tokens}</td>
-                    <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></td>
-                    <td><button class="btn btn-sm btn-view-order" style="padding: 5px 10px; font-size: 0.8rem;"><i class="fa-solid fa-eye"></i> Xem</button></td>
+                    <td><span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">${statusSuccess}</span></td>
+                    <td><button class="btn btn-sm btn-view-order" style="padding: 5px 10px; font-size: 0.8rem;"><i class="fa-solid fa-eye"></i> ${btnView}</button></td>
                 `;
                 tbody.appendChild(tr);
 

@@ -55,10 +55,11 @@
             <button class="tab-btn" data-tab="tab-tokens"><i class="fa-solid fa-coins"></i> <span data-i18n="tab_tokens">Nạp Token</span></button>
             <button class="tab-btn" data-tab="tab-users"><i class="fa-solid fa-users-gear"></i> <span data-i18n="tab_users">Quản lý User</span></button>
             <button class="tab-btn" data-tab="tab-history"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="tab_history">Lịch sử</span></button>
-            <button class="tab-btn" data-tab="tab-payment-history"><i class="fa-solid fa-money-bill-transfer"></i> Lịch sử Mua Hàng</button>
+            <button class="tab-btn" data-tab="tab-payment-history"><i class="fa-solid fa-money-bill-transfer"></i> <span data-i18n="tab_payments">Lịch sử Mua Hàng</span></button>
             <button class="tab-btn" data-tab="tab-customize"><i class="fa-solid fa-palette"></i> <span data-i18n="tab_ui">Tùy chỉnh giao diện</span></button>
-            <button class="tab-btn" data-tab="tab-pages"><i class="fa-solid fa-file-lines"></i> Quản lý Trang</button>
-            <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> Thông báo</button>
+            <button class="tab-btn" data-tab="tab-pages"><i class="fa-solid fa-file-lines"></i> <span data-i18n="tab_pages">Quản lý Trang</span></button>
+            <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> <span data-i18n="tab_notifications">Thông báo</span></button>
+            <button class="tab-btn" data-tab="tab-ai"><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_config">Cấu hình AI</span></button>
         </div>
 
         <!-- TAB: THỐNG KÊ -->
@@ -148,25 +149,25 @@
         <div id="tab-users" class="tab-content">
             <section class="glass-panel border-frame admin-table-wrap">
                 <h3><i class="fa-solid fa-users-gear"></i> <span data-i18n="tab_users">Quản lý Người dùng & Phân quyền</span></h3>
-                <p class="section-desc">Thay đổi quyền truy cập của người dùng. Tài khoản admin có toàn quyền quản trị.</p>
+                <p class="section-desc" data-i18n="admin_users_desc">Thay đổi quyền truy cập của người dùng. Tài khoản admin có toàn quyền quản trị.</p>
                 <div class="filter-control" style="margin: 15px 0;">
-                    <input id="search-users-input" type="text" placeholder="Tìm kiếm theo username hoặc email..." style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--color-bg); color: var(--color-text);">
+                    <input id="search-users-input" type="text" data-i18n-placeholder="ph_search_user" placeholder="Tìm kiếm theo username hoặc email..." style="width: 100%; max-width: 400px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--color-bg); color: var(--color-text);">
                 </div>
                 <p id="user-role-message" class="topup-message"></p>
                 <div class="table-responsive">
                     <table class="history-table admin-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>Tokens</th>
-                                <th>Phân quyền</th>
+                                <th data-i18n="col_id">ID</th>
+                                <th data-i18n="col_user">Username</th>
+                                <th data-i18n="col_email">Email</th>
+                                <th data-i18n="col_tokens">Tokens</th>
+                                <th data-i18n="col_role">Phân quyền</th>
                             </tr>
                         </thead>
                         <tbody id="admin-users-body">
                             <tr>
-                                <td colspan="5" class="loading-cell">Đang tải dữ liệu...</td>
+                                <td colspan="5" class="loading-cell" data-i18n="loading_data">Đang tải dữ liệu...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -175,7 +176,6 @@
         </div>
 
         <!-- TAB: LỊCH SỬ -->
-
         <div id="tab-history" class="tab-content">
             <section class="glass-panel border-frame admin-filters">
                 <div class="filter-control">
@@ -228,35 +228,15 @@
         <div id="tab-payment-history" class="tab-content">
             <section class="admin-stats-grid" style="margin-bottom: 20px;">
                 <article class="glass-panel border-frame stat-card">
-                    <p>Tổng doanh thu</p>
+                    <p data-i18n="stat_revenue">Tổng doanh thu</p>
                     <h3 id="admin-total-revenue">0 đ</h3>
                 </article>
                 <article class="glass-panel border-frame stat-card">
-                    <p>Tổng Token đã cấp</p>
+                    <p data-i18n="stat_tokens_granted">Tổng Token đã cấp</p>
                     <h3 id="admin-total-tokens-granted">0</h3>
                 </article>
                 <article class="glass-panel border-frame stat-card">
-                    <p>Số lượt giao dịch</p>
-                    <h3 id="admin-total-transactions">0</h3>
-                </article>
-            </section>
-            
-            <section class="glass-panel border-frame admin-table-wrap">
-                <div class="table-responsive">
-                    <table class="history-table admin-table">
-        <!-- TAB: LỊCH SỬ MUA HÀNG -->
-        <div id="tab-payment-history" class="tab-content">
-            <section class="admin-stats-grid" style="margin-bottom: 20px;">
-                <article class="glass-panel border-frame stat-card">
-                    <p>Tổng doanh thu</p>
-                    <h3 id="admin-total-revenue">0 đ</h3>
-                </article>
-                <article class="glass-panel border-frame stat-card">
-                    <p>Tổng Token đã cấp</p>
-                    <h3 id="admin-total-tokens-granted">0</h3>
-                </article>
-                <article class="glass-panel border-frame stat-card">
-                    <p>Số lượt giao dịch</p>
+                    <p data-i18n="stat_transactions">Số lượt giao dịch</p>
                     <h3 id="admin-total-transactions">0</h3>
                 </article>
             </section>
@@ -266,13 +246,13 @@
                     <table class="history-table admin-table">
                         <thead>
                             <tr>
-                                <th>Thời gian</th>
-                                <th>User</th>
-                                <th>Mã giao dịch</th>
-                                <th>Số Tiền (VND)</th>
-                                <th>Tokens</th>
-                                <th>Trạng Thái</th>
-                                <th>Thao Tác</th>
+                                <th data-i18n="col_time">Thời gian</th>
+                                <th data-i18n="col_user">User</th>
+                                <th data-i18n="col_order_id">Mã giao dịch</th>
+                                <th data-i18n="col_amount">Số Tiền (VND)</th>
+                                <th data-i18n="col_tokens">Tokens</th>
+                                <th data-i18n="col_status">Trạng Thái</th>
+                                <th data-i18n="col_action">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody id="admin-payment-history-body">
@@ -306,6 +286,17 @@
                     </div>
                 </div>
                 <p id="config-save-message" class="topup-message"></p>
+
+                <div class="config-lang-toggle" style="margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.02); padding: 10px 15px; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: 600; font-size: 0.9rem;" data-i18n="cfg_edit_lang">Ngôn ngữ cấu hình:</span>
+                        <div class="toggle-group" style="display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;">
+                            <button id="btn-cfg-lang-vi" class="cfg-lang-btn active" style="padding: 5px 12px; border: none; background: var(--primary); color: white; cursor: pointer;">Tiếng Việt</button>
+                            <button id="btn-cfg-lang-en" class="cfg-lang-btn" style="padding: 5px 12px; border: none; background: white; color: var(--text); cursor: pointer;">Tiếng Anh</button>
+                        </div>
+                    </div>
+                    <button id="btn-ai-translate-config" class="nav-btn" style="border: 1px solid var(--primary); color: var(--primary);"><i class="fa-solid fa-language"></i> <span data-i18n="btn_ai_translate_all">Dịch tất cả (AI)</span></button>
+                </div>
 
                 <!-- Nhóm: Màu sắc -->
                 <div class="config-group">
@@ -504,11 +495,11 @@
             <section class="glass-panel border-frame admin-table-wrap">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div>
-                        <h3><i class="fa-solid fa-file-lines"></i> Quản lý Trang Web</h3>
-                        <p class="section-desc">Tạo và chỉnh sửa nội dung các trang tuỳ chỉnh.</p>
+                        <h3><i class="fa-solid fa-file-lines"></i> <span data-i18n="tab_pages_title">Quản lý Trang Web</span></h3>
+                        <p class="section-desc" data-i18n="admin_pages_desc">Tạo và chỉnh sửa nội dung các trang tuỳ chỉnh.</p>
                     </div>
                     <button id="btn-add-page" class="btn-analyze admin-btn">
-                        <i class="fa-solid fa-plus"></i> Tạo Trang Mới
+                        <i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_page">Tạo Trang Mới</span>
                     </button>
                 </div>
                 
@@ -516,19 +507,74 @@
                     <table class="history-table admin-table">
                         <thead>
                             <tr>
-                                <th>Tiêu đề</th>
-                                <th>Đường dẫn (Slug)</th>
-                                <th>Trạng thái</th>
-                                <th>Cập nhật lần cuối</th>
-                                <th>Hành động</th>
+                                <th data-i18n="col_title">Tiêu đề</th>
+                                <th data-i18n="col_slug">Đường dẫn (Slug)</th>
+                                <th data-i18n="col_status">Trạng thái</th>
+                                <th data-i18n="col_updated">Cập nhật lần cuối</th>
+                                <th data-i18n="col_action">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="admin-pages-body">
-                            <tr><td colspan="5" class="loading-cell">Đang tải danh sách trang...</td></tr>
+                            <tr><td colspan="5" class="loading-cell" data-i18n="loading_data">Đang tải danh sách trang...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
+        </div>
+
+        <!-- TAB: CẤU HÌNH AI -->
+        <div id="tab-ai" class="tab-content">
+            <div class="glass-panel border-frame" style="max-width: 800px; margin: 0 auto;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+                    <div>
+                        <h3><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_title">Cấu hình AI Dịch Thuật</span></h3>
+                        <p class="section-desc" data-i18n="admin_ai_desc">Cài đặt API Key cho các nhà cung cấp AI để tự động dịch trang sang Tiếng Anh.</p>
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-section full-width">
+                        <h4><i class="fa-solid fa-microchip"></i> <span data-i18n="ai_provider_title">Lựa chọn AI</span></h4>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-provider" data-i18n="ai_provider_lbl">Nhà cung cấp dịch thuật chính</label>
+                            <select id="cfg-ai-provider" class="admin-input">
+                                <option value="groq">Groq (Nhanh nhất - Llama 3)</option>
+                                <option value="gemini">Google Gemini (Miễn phí tốt nhất)</option>
+                                <option value="openai">ChatGPT (Độ chính xác cao)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width">
+                        <h4><i class="fa-solid fa-key"></i> API Keys</h4>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-groq">Groq API Key</label>
+                            <input type="password" id="cfg-ai-groq" class="admin-input" placeholder="gsk_...">
+                        </div>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-gemini">Gemini API Key</label>
+                            <input type="password" id="cfg-ai-gemini" class="admin-input" placeholder="AIza...">
+                        </div>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-openai">OpenAI API Key</label>
+                            <input type="password" id="cfg-ai-openai" class="admin-input" placeholder="sk-...">
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width">
+                        <h4><i class="fa-solid fa-terminal"></i> System Prompt</h4>
+                        <div class="config-field full-width">
+                            <label for="cfg-ai-prompt" data-i18n="ai_prompt_lbl">Lệnh hướng dẫn AI dịch (Tiếng Anh)</label>
+                            <textarea id="cfg-ai-prompt" class="admin-input" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 30px; text-align: right;">
+                    <button class="btn-analyze admin-btn" id="btn-save-ai"><span data-i18n="btn_save_ai">Lưu Cấu Hình AI</span></button>
+                    <p id="ai-save-message" class="topup-message" style="display:inline-block; margin-left: 15px;"></p>
+                </div>
+            </div>
         </div>
 
         <!-- TAB: QUẢN LÝ THÔNG BÁO -->
@@ -536,30 +582,30 @@
             <section class="glass-panel border-frame admin-table-wrap">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div>
-                        <h3><i class="fa-solid fa-bullhorn"></i> Quản lý Thông báo</h3>
-                        <p class="section-desc">Gửi thông báo thủ công hoặc hẹn giờ cho người dùng.</p>
+                        <h3><i class="fa-solid fa-bullhorn"></i> <span data-i18n="tab_notif_title">Quản lý Thông báo</span></h3>
+                        <p class="section-desc" data-i18n="admin_notif_desc">Gửi thông báo thủ công hoặc hẹn giờ cho người dùng.</p>
                     </div>
                     <button class="btn-analyze admin-btn" id="btn-open-send-notification">
-                        <i class="fa-solid fa-paper-plane"></i> Gửi Thông báo Mới
+                        <i class="fa-solid fa-paper-plane"></i> <span data-i18n="btn_send_notif">Gửi Thông báo Mới</span>
                     </button>
                 </div>
                 
-                <h4 style="margin-top: 20px; margin-bottom: 10px;">Danh sách Thông báo Hẹn giờ</h4>
+                <h4 style="margin-top: 20px; margin-bottom: 10px;" data-i18n="title_notif_list">Danh sách Thông báo Hẹn giờ</h4>
                 <div class="table-responsive">
                     <table class="history-table admin-table">
                         <thead>
                             <tr>
-                                <th>Tiêu đề</th>
-                                <th>Nội dung</th>
-                                <th>Mục tiêu</th>
-                                <th>Thời gian gửi</th>
-                                <th>Người tạo</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
+                                <th data-i18n="col_title">Tiêu đề</th>
+                                <th data-i18n="col_content">Nội dung</th>
+                                <th data-i18n="col_target">Mục tiêu</th>
+                                <th data-i18n="col_send_time">Thời gian gửi</th>
+                                <th data-i18n="col_creator">Người tạo</th>
+                                <th data-i18n="col_status">Trạng thái</th>
+                                <th data-i18n="col_action">Hành động</th>
                             </tr>
                         </thead>
                         <tbody id="admin-scheduled-notifications-body">
-                            <tr><td colspan="7" class="loading-cell">Đang tải danh sách...</td></tr>
+                            <tr><td colspan="7" class="loading-cell" data-i18n="loading_data">Đang tải danh sách...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -572,7 +618,7 @@
     <div id="order-details-modal" class="modal hidden">
         <div class="modal-content glass-panel border-frame">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-file-invoice"></i> Chi Tiết Hoá Đơn</h3>
+                <h3><i class="fa-solid fa-file-invoice"></i> <span data-i18n="title_invoice_detail">Chi Tiết Hoá Đơn</span></h3>
                 <button class="close-modal" id="btn-close-order-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body" style="line-height: 1.6;">
@@ -597,37 +643,50 @@
     <div id="page-editor-modal" class="modal hidden">
         <div class="modal-content glass-panel border-frame" style="max-width: 900px; width: 95%;">
             <div class="modal-header">
-                <h3 id="page-modal-title"><i class="fa-solid fa-pen-to-square"></i> Soạn Thảo Trang</h3>
+                <h3 id="page-modal-title"><i class="fa-solid fa-pen-to-square"></i> <span data-i18n="title_edit_page">Soạn Thảo Trang</span></h3>
                 <button class="close-modal" id="btn-close-page-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body" style="line-height: 1.6; display: flex; flex-direction: column; gap: 15px;">
                 <input type="hidden" id="page-edit-mode" value="add">
                 
                 <div class="config-field full-width">
-                    <label>Tiêu đề trang</label>
-                    <input type="text" id="page-title-input" placeholder="VD: Hướng dẫn sử dụng">
+                    <label data-i18n="lbl_page_title_vi">Tiêu đề trang (Tiếng Việt)</label>
+                    <input type="text" id="page-title-input" data-i18n-placeholder="ph_page_title_vi" placeholder="VD: Hướng dẫn sử dụng">
                 </div>
                 
                 <div class="config-field full-width">
-                    <label>Đường dẫn (Slug) <small style="color:var(--text-muted)">(Không dấu, viết liền, ví dụ: huong-dan)</small></label>
-                    <input type="text" id="page-slug-input" placeholder="huong-dan">
+                    <label data-i18n="lbl_page_title_en">Tiêu đề trang (Tiếng Anh)</label>
+                    <input type="text" id="page-title-en-input" data-i18n-placeholder="ph_page_title_en" placeholder="VD: User Guide">
                 </div>
                 
                 <div class="config-field full-width">
-                    <label>Nội dung HTML (Sử dụng trình soạn thảo)</label>
+                    <label><span data-i18n="lbl_page_slug">Đường dẫn (Slug)</span> <small style="color:var(--text-muted)" data-i18n="desc_page_slug">(Không dấu, viết liền, ví dụ: huong-dan)</small></label>
+                    <input type="text" id="page-slug-input" data-i18n-placeholder="ph_page_slug" placeholder="huong-dan">
+                </div>
+                
+                <div class="config-field full-width" style="position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
+                        <label style="margin-bottom: 0;" data-i18n="lbl_page_html_vi">Nội dung HTML (Tiếng Việt)</label>
+                        <button id="btn-ai-translate" class="nav-btn" style="padding: 4px 10px; font-size: 0.8rem; height: auto;"><i class="fa-solid fa-language"></i> <span data-i18n="btn_translate_en">Dịch sang Tiếng Anh</span></button>
+                    </div>
                     <div id="page-content-editor" style="height: 300px; background: #fff; color: #333; border-radius: 4px;"></div>
+                </div>
+
+                <div class="config-field full-width">
+                    <label data-i18n="lbl_page_html_en">Nội dung HTML (Tiếng Anh)</label>
+                    <div id="page-content-en-editor" style="height: 300px; background: #fff; color: #333; border-radius: 4px;"></div>
                 </div>
 
                 <label class="toggle-label" style="display:inline-flex; align-items:center; gap:8px;">
                     <input type="checkbox" id="page-active-input" checked>
-                    <span>Kích hoạt (Hiển thị công khai)</span>
+                    <span data-i18n="lbl_page_active">Kích hoạt (Hiển thị công khai)</span>
                 </label>
                 
                 <p id="page-save-message" class="topup-message" style="margin: 0;"></p>
             </div>
             <div class="modal-footer" style="margin-top: 20px; text-align: right; display:flex; gap:10px; justify-content:flex-end;">
-                <button class="nav-btn reset-btn" id="btn-cancel-page-modal">Hủy</button>
-                <button class="btn-analyze admin-btn" id="btn-save-page">Lưu Trang</button>
+                <button class="nav-btn reset-btn" id="btn-cancel-page-modal" data-i18n="btn_cancel">Hủy</button>
+                <button class="btn-analyze admin-btn" id="btn-save-page" data-i18n="btn_save_page">Lưu Trang</button>
             </div>
         </div>
     </div>
@@ -636,65 +695,65 @@
     <div id="notification-modal" class="modal hidden">
         <div class="modal-content glass-panel border-frame" style="max-width: 600px; width: 95%;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-paper-plane"></i> Gửi Thông Báo Mới</h3>
+                <h3><i class="fa-solid fa-paper-plane"></i> <span data-i18n="title_send_notif">Gửi Thông Báo Mới</span></h3>
                 <button class="close-modal" id="btn-close-notification-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body" style="line-height: 1.6; display: flex; flex-direction: column; gap: 15px; padding-top: 15px;">
                 <div class="config-field full-width">
-                    <label>Tiêu đề thông báo</label>
-                    <input type="text" id="notif-title" placeholder="VD: Bảo trì hệ thống">
+                    <label data-i18n="lbl_notif_title">Tiêu đề thông báo</label>
+                    <input type="text" id="notif-title" data-i18n-placeholder="ph_notif_title" placeholder="VD: Bảo trì hệ thống">
                 </div>
                 <div class="config-field full-width">
-                    <label>Nội dung</label>
-                    <textarea id="notif-message" rows="4" placeholder="Nhập nội dung..."></textarea>
+                    <label data-i18n="lbl_notif_content">Nội dung</label>
+                    <textarea id="notif-message" rows="4" data-i18n-placeholder="ph_notif_content" placeholder="Nhập nội dung..."></textarea>
                 </div>
                 <div class="config-row">
                     <div class="config-field">
-                        <label>Loại thông báo</label>
+                        <label data-i18n="lbl_notif_type">Loại thông báo</label>
                         <select id="notif-type">
-                            <option value="info">Thông tin (Info)</option>
-                            <option value="success">Thành công (Success)</option>
-                            <option value="warning">Cảnh báo (Warning)</option>
-                            <option value="danger">Nghiêm trọng (Danger)</option>
+                            <option value="info" data-i18n="notif_type_info">Thông tin (Info)</option>
+                            <option value="success" data-i18n="notif_type_success">Thành công (Success)</option>
+                            <option value="warning" data-i18n="notif_type_warning">Cảnh báo (Warning)</option>
+                            <option value="danger" data-i18n="notif_type_danger">Nghiêm trọng (Danger)</option>
                         </select>
                     </div>
                     <div class="config-field">
-                        <label>Mục tiêu</label>
+                        <label data-i18n="lbl_notif_target">Mục tiêu</label>
                         <select id="notif-target-type" onchange="document.getElementById('notif-target-user-wrap').style.display = this.value === 'user' ? 'block' : 'none'">
-                            <option value="all">Tất cả người dùng</option>
-                            <option value="user">Người dùng cụ thể</option>
+                            <option value="all" data-i18n="notif_target_all">Tất cả người dùng</option>
+                            <option value="user" data-i18n="notif_target_user">Người dùng cụ thể</option>
                         </select>
                     </div>
                 </div>
                 <div class="config-field full-width" id="notif-target-user-wrap" style="display:none;">
-                    <label>Username mục tiêu</label>
-                    <input type="text" id="notif-target-user" placeholder="Nhập username...">
+                    <label data-i18n="lbl_notif_target_user">Username mục tiêu</label>
+                    <input type="text" id="notif-target-user" data-i18n-placeholder="ph_notif_target_user" placeholder="Nhập username...">
                 </div>
                 <div class="config-field full-width" id="notif-schedule-container">
-                    <label>Ngày gửi (Bỏ trống ngày để gửi ngay)</label>
+                    <label data-i18n="lbl_notif_date">Ngày gửi (Bỏ trống ngày để gửi ngay)</label>
                     <input type="date" id="notif-schedule-date" style="margin-bottom: 10px; width: 100%;">
                     
-                    <label>Các mốc thời gian trong ngày</label>
+                    <label data-i18n="lbl_notif_time">Các mốc thời gian trong ngày</label>
                     <div id="notif-time-list">
                         <div class="time-row" style="display: flex; gap: 10px; margin-bottom: 8px;">
                             <input type="time" class="notif-time-input" style="flex: 1;">
                             <button class="nav-btn reset-btn btn-remove-time" style="padding: 0 10px;" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </div>
-                    <button id="btn-add-time" class="btn btn-secondary" style="margin-top: 5px; padding: 5px 10px; font-size: 13px; border-radius: 6px;"><i class="fa-solid fa-plus"></i> Thêm giờ</button>
+                    <button id="btn-add-time" class="btn btn-secondary" style="margin-top: 5px; padding: 5px 10px; font-size: 13px; border-radius: 6px;"><i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_time">Thêm giờ</span></button>
                 </div>
                 <p id="notif-save-message" class="topup-message" style="margin: 0;"></p>
             </div>
             <div class="modal-footer" style="margin-top: 20px; text-align: right; display:flex; gap:10px; justify-content:flex-end;">
-                <button class="nav-btn reset-btn" id="btn-cancel-notification-modal">Hủy</button>
-                <button class="btn-analyze admin-btn" id="btn-send-notification">Gửi / Lên lịch</button>
+                <button class="nav-btn reset-btn" id="btn-cancel-notification-modal" data-i18n="btn_cancel">Hủy</button>
+                <button class="btn-analyze admin-btn" id="btn-send-notification" data-i18n="btn_send_notif">Gửi / Lên lịch</button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    <script src="i18n.js?v=3.4"></script>
+    <script src="i18n.js?v=3.9"></script>
     <script src="config-loader.js?v=2.1"></script>
     <script src="admin.js?v=4.2"></script>
 </body>

@@ -41,28 +41,42 @@
         }
 
         // Apply text content (Only works on Landing Page index.html)
-        const setText = (id, val) => { const el = document.getElementById(id); if (el && val) el.textContent = val; };
-        setText('lp-site-name', c.site_name);
-        setText('lp-site-slogan', c.site_slogan);
-        setText('lp-hero-line1', c.hero_title_line1);
-        setText('lp-hero-line2', c.hero_title_line2);
-        setText('lp-hero-cta', c.hero_cta_text);
-        setText('lp-f1-title', c.feature1_title);
-        setText('lp-f1-desc', c.feature1_desc);
-        setText('lp-f2-title', c.feature2_title);
-        setText('lp-f2-desc', c.feature2_desc);
-        setText('lp-f3-title', c.feature3_title);
-        setText('lp-f3-desc', c.feature3_desc);
-        setText('lp-s1-title', c.step1_title);
-        setText('lp-s1-desc', c.step1_desc);
-        setText('lp-s2-title', c.step2_title);
-        setText('lp-s2-desc', c.step2_desc);
-        setText('lp-s3-title', c.step3_title);
-        setText('lp-s3-desc', c.step3_desc);
-        setText('lp-footer', c.footer_text);
+        const applyTextConfig = () => {
+            const isEn = typeof getLang === 'function' && getLang() === 'en';
+            const setText = (id, val, valEn) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const finalVal = (isEn && valEn) ? valEn : val;
+                if (finalVal) el.textContent = finalVal;
+            };
 
-        const heroDescEl = document.getElementById('lp-hero-desc');
-        if (heroDescEl && c.hero_desc) heroDescEl.textContent = c.hero_desc;
+            setText('lp-site-name', c.site_name, null); // No en for site name
+            setText('lp-site-slogan', c.site_slogan, null);
+            setText('lp-hero-line1', c.hero_title_line1, c.hero_title_line1_en);
+            setText('lp-hero-line2', c.hero_title_line2, c.hero_title_line2_en);
+            setText('lp-hero-cta', c.hero_cta_text, c.hero_cta_text_en);
+            setText('lp-f1-title', c.feature1_title, c.feature1_title_en);
+            setText('lp-f1-desc', c.feature1_desc, c.feature1_desc_en);
+            setText('lp-f2-title', c.feature2_title, c.feature2_title_en);
+            setText('lp-f2-desc', c.feature2_desc, c.feature2_desc_en);
+            setText('lp-f3-title', c.feature3_title, c.feature3_title_en);
+            setText('lp-f3-desc', c.feature3_desc, c.feature3_desc_en);
+            setText('lp-s1-title', c.step1_title, c.step1_title_en);
+            setText('lp-s1-desc', c.step1_desc, c.step1_desc_en);
+            setText('lp-s2-title', c.step2_title, c.step2_title_en);
+            setText('lp-s2-desc', c.step2_desc, c.step2_desc_en);
+            setText('lp-s3-title', c.step3_title, c.step3_title_en);
+            setText('lp-s3-desc', c.step3_desc, c.step3_desc_en);
+            setText('lp-footer', c.footer_text, c.footer_text_en);
+
+            const heroDescEl = document.getElementById('lp-hero-desc');
+            if (heroDescEl) {
+                const descVal = (isEn && c.hero_desc_en) ? c.hero_desc_en : c.hero_desc;
+                if (descVal) heroDescEl.textContent = descVal;
+            }
+        };
+        applyTextConfig();
+        window.addEventListener('languageChanged', applyTextConfig);
 
         // Apply section visibility (Only works on Landing Page)
         const toggleSection = (id, val) => { const el = document.getElementById(id); if (el) el.style.display = val === '0' ? 'none' : ''; };

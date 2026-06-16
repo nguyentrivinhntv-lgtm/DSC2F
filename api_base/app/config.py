@@ -11,7 +11,7 @@ Sử dụng pydantic-settings để validate và type-check config.
 import os
 from functools import lru_cache
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 ENV_FILE_PATH = str(Path(__file__).resolve().parents[1] / ".env")
@@ -59,11 +59,12 @@ class Settings(BaseSettings):
     # --- Frontend ---
     FRONTEND_URL: str = "http://localhost:5500"
 
-    class Config:
-        """Cấu hình cho pydantic-settings."""
-        env_file = ENV_FILE_PATH
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=ENV_FILE_PATH,
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
 
 
 # ---------------------------------------------------------------------------

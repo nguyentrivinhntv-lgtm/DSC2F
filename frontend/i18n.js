@@ -13,9 +13,11 @@ const translations = {
         // --- App (Dashboard) ---
         "app_title": "Detection Suite",
         "tab_single_scan": "Quét Đơn Lẻ",
+        "tab_dashboard": "Trang Chủ",
         "tab_batch_scan": "Quét Hàng Loạt",
         "tab_analytics": "Phân Tích & Báo Cáo",
-        "tab_history": "Lịch Sử",
+        "tab_history": "Lịch Sử Chi Tiết",
+        "tab_payment_history": "Lịch Sử Mua Hàng",
                 "tab_settings": "Cài Đặt",
         "stat_total_scans": "Tổng lượt quét",
         "stat_fake_rate": "Tỷ lệ Fake",
@@ -216,6 +218,158 @@ const translations = {
         "ph_pkg_tokens": "Số Token",
         "filter_all_models": "Tất cả model",
         "filter_all": "Tất cả",
+
+        // --- Admin Missing ---
+        "tab_payments": "Lịch sử Mua Hàng",
+        "tab_pages": "Quản lý Trang",
+        "tab_notifications": "Thông báo",
+        "tab_ai_config": "Cấu hình AI",
+        "tab_pages_title": "Quản lý Trang Web",
+        "tab_ai_title": "Cấu hình AI Dịch Thuật",
+        "tab_notif_title": "Quản lý Thông báo",
+        "title_invoice_detail": "Chi Tiết Hoá Đơn",
+        "title_edit_page": "Soạn Thảo Trang",
+        "title_send_notif": "Gửi Thông Báo Mới",
+
+        // Missing Admin Tab Contents
+        "tab_users": "Quản lý Người dùng & Phân quyền",
+        "admin_users_desc": "Thay đổi quyền truy cập của người dùng. Tài khoản admin có toàn quyền quản trị.",
+        "col_id": "ID",
+        "col_email": "Email",
+        "col_tokens": "Tokens",
+        "col_role": "Phân quyền",
+        "stat_revenue": "Tổng doanh thu",
+        "stat_tokens_granted": "Tổng Token đã cấp",
+        "stat_transactions": "Số lượt giao dịch",
+        "col_order_id": "Mã giao dịch",
+        "col_amount": "Số Tiền (VND)",
+        "admin_pages_desc": "Tạo và chỉnh sửa nội dung các trang tuỳ chỉnh.",
+        "btn_add_page": "Tạo Trang Mới",
+        "col_title": "Tiêu đề",
+        "col_slug": "Đường dẫn (Slug)",
+        "col_updated": "Cập nhật lần cuối",
+        "admin_ai_desc": "Cài đặt API Key cho các nhà cung cấp AI để tự động dịch trang sang Tiếng Anh.",
+        "ai_provider_title": "Lựa chọn AI",
+        "ai_provider_lbl": "Nhà cung cấp dịch thuật chính",
+        "ai_prompt_lbl": "Lệnh hướng dẫn AI dịch (Tiếng Anh)",
+        "btn_save_ai": "Lưu Cấu Hình AI",
+        "admin_notif_desc": "Gửi thông báo thủ công hoặc hẹn giờ cho người dùng.",
+        "btn_send_notif": "Gửi Thông báo Mới",
+        "title_notif_list": "Danh sách Thông báo Hẹn giờ",
+        "col_content": "Nội dung",
+        "col_target": "Mục tiêu",
+        "col_send_time": "Thời gian gửi",
+        "col_creator": "Người tạo",
+        "empty_payment": "Chưa có giao dịch mua hàng nào.",
+        "status_success": "Thành công",
+        "btn_view": "Xem",
+        "currency_vnd": "đ",
+        "stat_user_spent": "Tổng tiền đã nạp",
+        "stat_user_tokens": "Tổng token nhận được",
+
+        // Profile Modal
+        "title_profile": "Hồ sơ cá nhân",
+        "lbl_account": "Tài khoản:",
+        "title_change_pwd": "Đổi mật khẩu",
+        "lbl_old_pwd": "Mật khẩu cũ",
+        "ph_old_pwd": "Nhập mật khẩu hiện tại",
+        "lbl_new_pwd": "Mật khẩu mới",
+        "ph_new_pwd": "Nhập mật khẩu mới",
+        "btn_change_pwd": "Đổi mật khẩu",
+
+        // Scans & Models
+        "model_ds_enh": "Dual-Stream Enhanced (Tốt nhất)",
+        "model_ds_res": "Dual-Stream ResNet18",
+        "model_rn50": "ResNet-50 Single",
+        "lbl_real": "Thật (Real)",
+        "lbl_fake": "Giả (Fake)",
+        "lbl_fft_img": "Ảnh Phổ Cấu Trúc Không Gian (FFT)",
+        
+        "title_batch_scan": "Quét Hàng Loạt",
+        "desc_batch_scan": "Tải nhiều ảnh để quét hàng loạt bằng cùng 1 model.",
+        "btn_batch_scan": "Quét Hàng Loạt",
+        "lbl_batch_drop": "Kéo thả nhiều ảnh vào đây (tối đa 20 ảnh/lần)",
+        "lbl_batch_summary": "Chưa có dữ liệu batch.",
+        "col_filename": "Tên File",
+        "col_model": "Model",
+        "col_fake_pct": "Fake (%)",
+        "col_pred": "Kết Luận",
+
+        // Modals
+        "title_edit_page": "Soạn Thảo Trang",
+        "lbl_page_title_vi": "Tiêu đề trang (Tiếng Việt)",
+        "lbl_page_title_en": "Tiêu đề trang (Tiếng Anh)",
+        "ph_page_title_vi": "VD: Hướng dẫn sử dụng",
+        "ph_page_title_en": "VD: User Guide",
+        "lbl_page_slug": "Đường dẫn (Slug)",
+        "desc_page_slug": "(Không dấu, viết liền, ví dụ: huong-dan)",
+        "ph_page_slug": "huong-dan",
+        "lbl_page_html_vi": "Nội dung HTML (Tiếng Việt)",
+        "btn_translate_en": "Dịch sang Tiếng Anh",
+        "lbl_page_html_en": "Nội dung HTML (Tiếng Anh)",
+        "lbl_page_active": "Kích hoạt (Hiển thị công khai)",
+        "btn_cancel": "Hủy",
+        "btn_save_page": "Lưu Trang",
+        
+        "title_send_notif": "Gửi Thông Báo Mới",
+        "lbl_notif_title": "Tiêu đề thông báo",
+        "ph_notif_title": "VD: Bảo trì hệ thống",
+        "lbl_notif_content": "Nội dung",
+        "ph_notif_content": "Nhập nội dung...",
+        "lbl_notif_type": "Loại thông báo",
+        "notif_type_info": "Thông tin (Info)",
+        "notif_type_success": "Thành công (Success)",
+        "notif_type_warning": "Cảnh báo (Warning)",
+        "notif_type_danger": "Nghiêm trọng (Danger)",
+        "lbl_notif_target": "Mục tiêu",
+        "notif_target_all": "Tất cả người dùng",
+        "notif_target_user": "Người dùng cụ thể",
+        "lbl_notif_target_user": "Username mục tiêu",
+        "ph_notif_target_user": "Nhập username...",
+        "lbl_notif_date": "Ngày gửi (Bỏ trống ngày để gửi ngay)",
+        "lbl_notif_time": "Các mốc thời gian trong ngày",
+        "btn_add_time": "Thêm giờ",
+        "btn_send_notif": "Gửi / Lên lịch",
+        
+        "btn_learn_more": "Tìm hiểu thêm",
+
+        "title_page": "Quản lý Trang (CMS)",
+
+        // --- Index Missing ---
+        "nav_about": "Giới thiệu",
+        "nav_features": "Tính năng",
+        "nav_legal": "Pháp lý",
+        "nav_documents": "Tài liệu",
+        "about_tag": "Khoá Luận Tốt Nghiệp DSC2F",
+        "about_title": "Về Dự Án CNN Detection",
+        "about_mission_title": "Sứ mệnh",
+        "about_mission_desc": "Trong thời đại AI phát triển, ranh giới giữa thật và giả đang mờ dần. CNN Detection ra đời nhằm cung cấp một công cụ mạnh mẽ để dễ dàng phát hiện hình ảnh bị chỉnh sửa hoặc tạo bởi AI (Deepfake).",
+        "about_tech_title": "Công nghệ Tiên tiến",
+        "about_tech_desc": "Sử dụng mạng nơ-ron tích chập đa luồng (Dual Stream CNN). Bằng cách phân tích cả dữ liệu không gian (RGB) và tần số (Noise), mô hình phát hiện những dấu vết giả mạo tinh vi nhất mà mắt người không thể nhìn thấy.",
+        "about_team_title": "Đội ngũ phát triển",
+        "about_team_desc": "Dự án được thực hiện bởi nhóm Nghiên cứu Khoá Luận Tốt Nghiệp DSC2F với sự tâm huyết cao độ. Cam kết liên tục cập nhật các mô hình AI mới nhất (ResNet, EfficientNet) để đối phó kỹ thuật giả mạo ngày càng tinh vi.",
+        "lp_legal_title": "Chính Sách & Điều Khoản",
+        "lp_legal_desc": "Minh bạch và bảo vệ quyền riêng tư của bạn. Tuân thủ Google Play & App Store.",
+        "legal_tag": "Pháp lý & Tin cậy",
+        "legal_privacy_title": "Chính sách Quyền riêng tư",
+        "legal_privacy_desc": "Cách chúng tôi thu thập, sử dụng và bảo vệ dữ liệu cá nhân của bạn.",
+        "legal_badge_req": "Bắt buộc",
+        "legal_view_more": "Xem chi tiết",
+        "legal_terms_title": "Điều khoản Sử dụng",
+        "legal_terms_desc": "Quy định và điều kiện khi sử dụng ứng dụng CNN Detection.",
+        "legal_data_title": "Xóa Dữ liệu",
+        "legal_data_desc": "Yêu cầu xóa tài khoản và toàn bộ dữ liệu cá nhân khỏi hệ thống.",
+        "legal_badge_warn": "Thường bắt buộc",
+        "legal_ai_title": "Chính sách AI",
+        "legal_ai_desc": "Cách AI hoạt động, mô hình Deep Learning và giới hạn kết quả phân tích.",
+        "legal_badge_apple": "Apple đánh giá cao",
+        "legal_support_title": "Hỗ trợ & Liên hệ",
+        "legal_support_desc": "FAQ, hướng dẫn sử dụng, báo lỗi và thông tin liên hệ đội ngũ hỗ trợ.",
+        "legal_badge_rec": "Nên có",
+        "footer_desc": "Ứng dụng nhận diện ảnh AI tiên tiến, sử dụng Deep Learning để phát hiện Deepfake. Hỗ trợ đa nền tảng Web, Android & iOS.",
+        "footer_col1": "Pháp lý",
+        "footer_col2": "Sản phẩm",
+        "footer_col3": "Hỗ trợ",
     },
     en: {
         // --- General ---
@@ -230,11 +384,13 @@ const translations = {
 
         // --- App (Dashboard) ---
         "app_title": "Detection Suite",
-        "tab_single_scan": "Quét Đơn Lẻ",
-        "tab_batch_scan": "Quét Hàng Loạt",
+        "tab_single_scan": "Single Scan",
+        "tab_dashboard": "Dashboard",
+        "tab_batch_scan": "Batch Scan",
         "tab_analytics": "Analytics",
-        "tab_history": "History",
-                "tab_settings": "Settings",
+        "tab_history": "Detailed History",
+        "tab_payment_history": "Payment History",
+        "tab_settings": "Settings",
         "stat_total_scans": "Total Scans",
         "stat_fake_rate": "Fake Rate",
         "stat_real_rate": "Real Rate",
@@ -434,6 +590,158 @@ const translations = {
         "ph_pkg_tokens": "Tokens",
         "filter_all_models": "All models",
         "filter_all": "All",
+
+        // --- Admin Missing ---
+        "tab_payments": "Payment History",
+        "tab_pages": "CMS Pages",
+        "tab_notifications": "Notifications",
+        "tab_ai_config": "AI Configuration",
+        "tab_pages_title": "Page Management",
+        "tab_ai_title": "AI Translation Configuration",
+        "tab_notif_title": "Notification Management",
+        "title_invoice_detail": "Invoice Details",
+        "title_edit_page": "Edit Page",
+        "title_send_notif": "Send New Notification",
+
+        // Missing Admin Tab Contents
+        "tab_users": "User Management & Roles",
+        "admin_users_desc": "Change user access rights. Administrator accounts have full control.",
+        "col_id": "ID",
+        "col_email": "Email",
+        "col_tokens": "Tokens",
+        "col_role": "Role",
+        "stat_revenue": "Total Revenue",
+        "stat_tokens_granted": "Tokens Granted",
+        "stat_transactions": "Transactions",
+        "col_order_id": "Order ID",
+        "col_amount": "Amount",
+        "admin_pages_desc": "Create and edit custom page content.",
+        "btn_add_page": "Create New Page",
+        "col_title": "Title",
+        "col_slug": "Slug URL",
+        "col_updated": "Last Updated",
+        "admin_ai_desc": "Configure API Keys for AI providers to automatically translate pages to English.",
+        "ai_provider_title": "AI Selection",
+        "ai_provider_lbl": "Primary Translation Provider",
+        "ai_prompt_lbl": "AI Translation Prompt (English)",
+        "btn_save_ai": "Save AI Config",
+        "admin_notif_desc": "Send manual or scheduled notifications to users.",
+        "btn_send_notif": "Send New Notification",
+        "title_notif_list": "Scheduled Notifications List",
+        "col_content": "Content",
+        "col_target": "Target",
+        "col_send_time": "Send Time",
+        "col_creator": "Creator",
+        "empty_payment": "No payment history found.",
+        "status_success": "Success",
+        "btn_view": "View",
+        "currency_vnd": "VND",
+        "stat_user_spent": "Total amount spent",
+        "stat_user_tokens": "Total tokens received",
+
+        // Profile Modal
+        "title_profile": "Profile",
+        "lbl_account": "Account:",
+        "title_change_pwd": "Change Password",
+        "lbl_old_pwd": "Old Password",
+        "ph_old_pwd": "Enter current password",
+        "lbl_new_pwd": "New Password",
+        "ph_new_pwd": "Enter new password",
+        "btn_change_pwd": "Change Password",
+
+        // Scans & Models
+        "model_ds_enh": "Dual-Stream Enhanced (Best)",
+        "model_ds_res": "Dual-Stream ResNet18",
+        "model_rn50": "ResNet-50 Single",
+        "lbl_real": "Real",
+        "lbl_fake": "Fake",
+        "lbl_fft_img": "Spatial Structure Spectrum (FFT)",
+        
+        "title_batch_scan": "Batch Scan",
+        "desc_batch_scan": "Upload multiple images to scan them at once.",
+        "btn_batch_scan": "Run Batch Scan",
+        "lbl_batch_drop": "Drag & drop multiple images here (max 20)",
+        "lbl_batch_summary": "No batch data yet.",
+        "col_filename": "Filename",
+        "col_model": "Model",
+        "col_fake_pct": "Fake (%)",
+        "col_pred": "Verdict",
+
+        // Modals
+        "title_edit_page": "Edit Page",
+        "lbl_page_title_vi": "Page Title (Vietnamese)",
+        "lbl_page_title_en": "Page Title (English)",
+        "ph_page_title_vi": "Ex: Huong dan su dung",
+        "ph_page_title_en": "Ex: User Guide",
+        "lbl_page_slug": "URL Slug",
+        "desc_page_slug": "(No spaces or accents, e.g., user-guide)",
+        "ph_page_slug": "user-guide",
+        "lbl_page_html_vi": "HTML Content (Vietnamese)",
+        "btn_translate_en": "Translate to English",
+        "lbl_page_html_en": "HTML Content (English)",
+        "lbl_page_active": "Active (Publicly Visible)",
+        "btn_cancel": "Cancel",
+        "btn_save_page": "Save Page",
+        
+        "title_send_notif": "Send New Notification",
+        "lbl_notif_title": "Notification Title",
+        "ph_notif_title": "Ex: System Maintenance",
+        "lbl_notif_content": "Content",
+        "ph_notif_content": "Enter content...",
+        "lbl_notif_type": "Notification Type",
+        "notif_type_info": "Information (Info)",
+        "notif_type_success": "Success",
+        "notif_type_warning": "Warning",
+        "notif_type_danger": "Critical (Danger)",
+        "lbl_notif_target": "Target",
+        "notif_target_all": "All Users",
+        "notif_target_user": "Specific User",
+        "lbl_notif_target_user": "Target Username",
+        "ph_notif_target_user": "Enter username...",
+        "lbl_notif_date": "Send Date (Leave blank to send immediately)",
+        "lbl_notif_time": "Time Slots (Time of day)",
+        "btn_add_time": "Add Time",
+        "btn_send_notif": "Send / Schedule",
+        
+        "btn_learn_more": "Learn More",
+
+        "title_page": "Page Management (CMS)",
+
+        // --- Index Missing ---
+        "nav_about": "About",
+        "nav_features": "Features",
+        "nav_legal": "Legal",
+        "nav_documents": "Documents",
+        "about_tag": "DSC2F Graduation Thesis",
+        "about_title": "About CNN Detection",
+        "about_mission_title": "Mission",
+        "about_mission_desc": "In the era of AI, the line between real and fake is blurring. CNN Detection provides a powerful tool to easily detect AI-manipulated or AI-generated images (Deepfakes).",
+        "about_tech_title": "Advanced Technology",
+        "about_tech_desc": "Utilizing Dual Stream CNNs. By analyzing both spatial (RGB) and frequency (Noise) data, the model detects subtle manipulation traces invisible to the naked eye.",
+        "about_team_title": "Development Team",
+        "about_team_desc": "The project is carried out by the DSC2F Graduation Thesis Research team with high dedication. Committed to continuously updating the latest AI models (ResNet, EfficientNet) to counter increasingly sophisticated forgery techniques.",
+        "lp_legal_title": "Policies & Terms",
+        "lp_legal_desc": "Transparency and protecting your privacy. Complies with Google Play & App Store.",
+        "legal_tag": "Legal & Trust",
+        "legal_privacy_title": "Privacy Policy",
+        "legal_privacy_desc": "How we collect, use, and protect your personal data.",
+        "legal_badge_req": "Required",
+        "legal_view_more": "View Details",
+        "legal_terms_title": "Terms of Service",
+        "legal_terms_desc": "Rules and conditions when using the CNN Detection app.",
+        "legal_data_title": "Data Deletion",
+        "legal_data_desc": "Request account and data deletion from the system.",
+        "legal_badge_warn": "Usually Required",
+        "legal_ai_title": "AI Policy",
+        "legal_ai_desc": "How AI works, Deep Learning models, and analysis limitations.",
+        "legal_badge_apple": "Highly rated by Apple",
+        "legal_support_title": "Support & Contact",
+        "legal_support_desc": "FAQs, guides, bug reporting, and support team contact info.",
+        "legal_badge_rec": "Recommended",
+        "footer_desc": "Advanced AI image detection app, using Deep Learning to detect Deepfakes. Supports Web, Android & iOS platforms.",
+        "footer_col1": "Legal",
+        "footer_col2": "Products",
+        "footer_col3": "Support",
     }
 };
 
@@ -488,9 +796,10 @@ function updateLangButton(lang) {
 
 document.addEventListener('DOMContentLoaded', () => {
     // Inject Language Toggle Button dynamically if container exists
-    const headers = document.querySelectorAll('.site-header .site-nav, .landing-header');
-    if (headers.length > 0) {
-        const header = headers[0];
+    const landingHeader = document.querySelector('.landing-header');
+    const siteNav = document.querySelector('.site-nav');
+
+    if (landingHeader || siteNav) {
         const btn = document.createElement('button');
         btn.id = 'lang-toggle';
         btn.className = 'btn-lang-toggle';
@@ -500,7 +809,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // Dispatch event so app.js can re-render dynamic strings if needed
             window.dispatchEvent(new Event('languageChanged'));
         };
-        header.insertBefore(btn, header.firstChild);
+
+        if (landingHeader) {
+            // On index.html, put it next to the "Go to Dashboard" (.header-cta) button
+            const ctaBtn = landingHeader.querySelector('.header-cta');
+            if (ctaBtn) {
+                // Wrap it in a container if needed, or just insert before CTA
+                // However, inserting before CTA works perfectly since they are flex items
+                landingHeader.insertBefore(btn, ctaBtn);
+            } else {
+                landingHeader.appendChild(btn);
+            }
+        } else if (siteNav) {
+            // On app.html / admin.html, append to the end of the navigation bar
+            siteNav.appendChild(btn);
+        }
+        
         updateLangButton(getLang());
     }
 

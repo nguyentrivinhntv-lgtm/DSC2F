@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import os
 import uuid
+import requests
 
 from app.config import VALID_MODEL_TYPES, get_settings
 from app.models.base_db import (
@@ -129,6 +130,22 @@ def admin_toggle_model(req: ToggleModelRequest, current_user: dict = Depends(get
 )
 def public_get_site_config():
     """Trả về toàn bộ site config cho frontend render."""
+    config = get_site_config()
+    # Loại bỏ các key bảo mật
+    keys_to_remove = [k for k in config.keys() if k.startswith("ai_") and k.endswith("_key")]
+    for k in keys_to_remove:
+        config.pop(k, None)
+    return config
+
+@router.get(
+    "/admin/site-config",
+    summary="Lấy toàn bộ cấu hình giao diện (Admin)",
+    description="Trả về toàn bộ config bao gồm cả API Keys.",
+)
+def admin_get_site_config(current_user: dict = Depends(get_current_user)):
+    """Trả về toàn bộ site config cho Admin."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền thực hiện.")
     return get_site_config()
 
 
@@ -193,3 +210,99 @@ async def admin_upload_image(
 
     # Return URL path relative to static serving
     return {"url": f"/uploads/{filename}", "filename": filename}
+class AITranslateRequest(BaseModel):
+    title: str
+    content: str
+
+@router.post(
+    "/admin/ai-translate",
+    summary="Dịch nội dung bằng AI",
+    description="Gọi API AI tương ứng để dịch HTML sang tiếng Anh.",
+)
+def admin_ai_translate(
+    req: AITranslateRequest,
+    current_user: dict = Depends(get_current_user),
+):
+    """Dịch bằng AI."""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Chỉ admin mới có quyền thực hiện.")
+        
+    config = get_site_config()
+    provider = config.get("ai_provider", "groq")
+    system_prompt = config.get("ai_system_prompt", "Translate to English. Keep HTML tags.")
+    
+    user_prompt = f"Title:\n{req.title}\n\nContent:\n{req.content}"
+    
+    try:
+        if provider == "groq":
+            key = config.get("ai_groq_key")
+            if not key: raise ValueError("Chưa cấu hình Groq API Key")
+            resp = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                json={
+                    "model": "llama-3.3-70b-versatile",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ]
+                },
+                timeout=30
+            )
+            if not resp.ok:
+                raise ValueError(f"Groq Error: {resp.text}")
+            resp.raise_for_status()
+            text = resp.json()["choices"][0]["message"]["content"]
+            
+        elif provider == "openai":
+            key = config.get("ai_openai_key")
+            if not key: raise ValueError("Chưa cấu hình OpenAI API Key")
+            resp = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+                json={
+                    "model": "gpt-3.5-turbo",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt}
+                    ]
+                },
+                timeout=30
+            )
+            resp.raise_for_status()
+            text = resp.json()["choices"][0]["message"]["content"]
+            
+        elif provider == "gemini":
+            key = config.get("ai_gemini_key")
+            if not key: raise ValueError("Chưa cấu hình Gemini API Key")
+            resp = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "system_instruction": {
+                        "parts": [{"text": system_prompt}]
+                    },
+                    "contents": [{
+                        "parts": [{"text": user_prompt}]
+                    }]
+                },
+                timeout=30
+            )
+            resp.raise_for_status()
+            text = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+        else:
+            raise ValueError(f"Provider {provider} không được hỗ trợ")
+            
+        # Tách Title và Content
+        parts = text.split("Content:", 1)
+        if len(parts) > 1:
+            title_en = parts[0].replace("Title:", "").strip()
+            content_en = parts[1].strip()
+        else:
+            title_en = req.title + " (Translated)"
+            content_en = text.strip()
+            
+        return {"title_en": title_en, "content_en": content_en}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi khi dịch bằng {provider}: {str(e)}")

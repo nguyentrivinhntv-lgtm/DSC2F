@@ -245,13 +245,28 @@ def init_db(db_path: Optional[str] = None) -> None:
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     slug VARCHAR(100) UNIQUE NOT NULL,
                     title VARCHAR(255) NOT NULL,
+                    title_en VARCHAR(255) NULL,
                     content LONGTEXT,
+                    content_en LONGTEXT NULL,
                     is_active TINYINT(1) DEFAULT 1,
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 ) ENGINE=InnoDB
                 """
             )
+
+            # Cố gắng thêm cột title_en và content_en nếu table cũ chưa có
+            try:
+                cur.execute("ALTER TABLE pages ADD COLUMN title_en VARCHAR(255) NULL")
+            except MySQLError as exc:
+                if getattr(exc, "args", [None])[0] != 1060: # 1060: Duplicate column name
+                    raise
+            try:
+                cur.execute("ALTER TABLE pages ADD COLUMN content_en LONGTEXT NULL")
+            except MySQLError as exc:
+                if getattr(exc, "args", [None])[0] != 1060:
+                    raise
+
             
             # Khởi tạo 5 trang mặc định nếu chưa có
             cur.execute("SELECT COUNT(*) as cnt FROM pages")
@@ -652,31 +667,53 @@ DEFAULT_SITE_CONFIG = {
     "site_name": "CNN Detection Hub",
     "site_slogan": "AI Forensics Platform",
     "footer_text": "© 2026 CNN Detection Hub — AI Deepfake Detection Platform",
+    "footer_text_en": "© 2026 CNN Detection Hub — AI Deepfake Detection Platform",
     # Hero Section
     "hero_title_line1": "Nhận Diện Ảnh Giả Mạo",
+    "hero_title_line1_en": "Fake Image Detection",
     "hero_title_line2": "Bằng AI Chuyên Nghiệp",
+    "hero_title_line2_en": "With Professional AI",
     "hero_desc": "Bảo vệ bạn khỏi thông tin sai lệch bằng hệ thống phân tích hình ảnh chuyên sâu, sử dụng các mô hình Deep Learning tiên tiến nhất hiện nay.",
+    "hero_desc_en": "Protect yourself from misinformation with an in-depth image analysis system, using the most advanced Deep Learning models available today.",
     "hero_cta_text": "Bắt đầu sử dụng miễn phí",
+    "hero_cta_text_en": "Start using for free",
     # Features
     "feature1_title": "Dual Stream Enhanced",
+    "feature1_title_en": "Dual Stream Enhanced",
     "feature1_desc": "Kiến trúc hai luồng song song trích xuất đặc trưng hình ảnh và nhiễu (noise) để phát hiện dấu vết cắt ghép tinh vi nhất.",
+    "feature1_desc_en": "Parallel dual-stream architecture extracts image features and noise to detect the most sophisticated forgery traces.",
     "feature2_title": "Xử Lý Thời Gian Thực",
+    "feature2_title_en": "Real-time Processing",
     "feature2_desc": "Tốc độ phân tích cực nhanh, trả về kết quả xác suất thật/giả kèm độ tin cậy chỉ trong vài giây.",
+    "feature2_desc_en": "Ultra-fast analysis speed, returning real/fake probability results with confidence score in just a few seconds.",
     "feature3_title": "Batch Scan",
+    "feature3_title_en": "Batch Scan",
     "feature3_desc": "Phân tích hàng loạt tối đa 20 ảnh cùng lúc, giúp tiết kiệm thời gian tối đa cho quản trị viên.",
+    "feature3_desc_en": "Batch analysis of up to 20 images at once, saving maximum time for administrators.",
     # Steps
     "step1_title": "Tải Ảnh Lên",
+    "step1_title_en": "Upload Image",
     "step1_desc": "Kéo thả hoặc chọn bức ảnh bạn nghi ngờ là sản phẩm AI hoặc Deepfake.",
+    "step1_desc_en": "Drag and drop or select the image you suspect is an AI product or Deepfake.",
     "step2_title": "AI Phân Tích",
+    "step2_title_en": "AI Analysis",
     "step2_desc": "Hệ thống đưa ảnh qua mạng nơ-ron CNN để phân tích ở cấp độ điểm ảnh và tần số.",
+    "step2_desc_en": "The system passes the image through CNN neural networks for analysis at pixel and frequency levels.",
     "step3_title": "Nhận Kết Quả",
+    "step3_title_en": "Get Results",
     "step3_desc": "Nhận đánh giá FAKE/REAL kèm biểu đồ trực quan (Heatmap, Phổ FFT) giải thích lý do.",
+    "step3_desc_en": "Get FAKE/REAL assessment with visual charts (Heatmap, FFT Spectrum) explaining the reason.",
     # Section visibility (1 = hiện, 0 = ẩn)
     "show_stats": "1",
     "show_marquee": "1",
     "show_features": "1",
     "show_howitworks": "1",
     "show_cta": "1",
+    "ai_provider": "groq",
+    "ai_groq_key": "",
+    "ai_gemini_key": "",
+    "ai_openai_key": "",
+    "ai_system_prompt": "You are a professional translator. Translate the following Vietnamese text or HTML content to English. Preserve all HTML tags, structure, and formatting. Return ONLY the translated English text/HTML, nothing else.",
     # Logo URL (empty = default icon)
     "logo_url": "",
     # Pricing Packages (JSON array)
@@ -879,7 +916,7 @@ def get_all_pages(db_path: Optional[str] = None) -> list:
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages ORDER BY created_at DESC")
+            cur.execute("SELECT id, slug, title, title_en, is_active, created_at, updated_at FROM pages ORDER BY created_at DESC")
             rows = cur.fetchall()
             for row in rows:
                 if hasattr(row.get("created_at"), "isoformat"):
@@ -895,7 +932,7 @@ def get_active_pages(db_path: Optional[str] = None) -> list:
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT id, slug, title, is_active, created_at, updated_at FROM pages WHERE is_active = 1 ORDER BY created_at DESC")
+            cur.execute("SELECT id, slug, title, title_en, is_active, created_at, updated_at FROM pages WHERE is_active = 1 ORDER BY created_at DESC")
             rows = cur.fetchall()
             for row in rows:
                 if hasattr(row.get("created_at"), "isoformat"):
@@ -922,14 +959,14 @@ def get_page_by_slug(slug: str, db_path: Optional[str] = None) -> Optional[dict]
     finally:
         conn.close()
 
-def create_page(slug: str, title: str, content: str, is_active: int = 1, db_path: Optional[str] = None) -> bool:
+def create_page(slug: str, title: str, content: str, title_en: Optional[str] = None, content_en: Optional[str] = None, is_active: int = 1, db_path: Optional[str] = None) -> bool:
     """Tạo mới một trang CMS."""
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "INSERT INTO pages (slug, title, content, is_active) VALUES (%s, %s, %s, %s)",
-                (slug, title, content, is_active)
+                "INSERT INTO pages (slug, title, content, title_en, content_en, is_active) VALUES (%s, %s, %s, %s, %s, %s)",
+                (slug, title, content, title_en, content_en, is_active)
             )
         conn.commit()
         return True
@@ -940,14 +977,14 @@ def create_page(slug: str, title: str, content: str, is_active: int = 1, db_path
     finally:
         conn.close()
 
-def update_page(slug: str, title: str, content: str, is_active: int, db_path: Optional[str] = None) -> bool:
+def update_page(slug: str, title: str, content: str, title_en: Optional[str] = None, content_en: Optional[str] = None, is_active: int = 1, db_path: Optional[str] = None) -> bool:
     """Cập nhật một trang CMS."""
     conn = _get_connection(db_path)
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "UPDATE pages SET title = %s, content = %s, is_active = %s WHERE slug = %s",
-                (title, content, is_active, slug)
+                "UPDATE pages SET title = %s, content = %s, title_en = %s, content_en = %s, is_active = %s WHERE slug = %s",
+                (title, content, title_en, content_en, is_active, slug)
             )
             updated = cur.rowcount
         conn.commit()
