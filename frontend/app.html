@@ -269,10 +269,9 @@
                                     <div class="setting-group">
                                         <label><i class="fa-solid fa-microchip"></i> <span data-i18n="lbl_select_model">Chọn Mô Hình (AI Model)</span></label>
                                         <select id="model-select" class="glass-select">
-                                            <option value="dual_stream_enhanced" selected>Dual-Stream Enhanced (Tốt nhất)
-                                            </option>
-                                            <option value="dual_stream_resnet">Dual-Stream ResNet18</option>
-                                            <option value="resnet50">ResNet-50 Single</option>
+                                            <option value="dual_stream_enhanced" selected data-i18n="model_ds_enh">Dual-Stream Enhanced (Tốt nhất)</option>
+                                            <option value="dual_stream_resnet" data-i18n="model_ds_res">Dual-Stream ResNet18</option>
+                                            <option value="resnet50" data-i18n="model_rn50">ResNet-50 Single</option>
                                         </select>
                                     </div>
 
@@ -326,8 +325,8 @@
 
                                         <div class="prob-bar-container">
                                             <div class="prob-bar-labels">
-                                                <span>Real</span>
-                                                <span>Fake</span>
+                                                <span data-i18n="lbl_real">Real</span>
+                                                <span data-i18n="lbl_fake">Fake</span>
                                             </div>
                                             <div class="prob-bar-bg">
                                                 <div class="prob-bar-fill" id="prob-bar-fill"></div>
@@ -352,8 +351,8 @@
 
                                         <div class="fft-container hidden" id="fft-container">
                                             <span class="label"
-                                                style="display:block;margin-top:1.5rem;margin-bottom:0.8rem;text-align:center">Ảnh
-                                                Phổ Cấu Trúc Khôn Gian (FFT)</span>
+                                                style="display:block;margin-top:1.5rem;margin-bottom:0.8rem;text-align:center" data-i18n="lbl_fft_img">Ảnh
+                                                Phổ Cấu Trúc Không Gian (FFT)</span>
                                             <div style="display:flex; justify-content:center;">
                                                 <img id="fft-image" src="" alt="FFT Spectrum"
                                                     style="max-width: 15rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
@@ -366,27 +365,27 @@
 
                         <div class="tab-content hidden" id="batch-scan-tab">
                             <div class="white-card border-frame feature-card">
-                                <h3>Batch Scan</h3>
-                                <p>Tải nhiều ảnh để quét hàng loạt bằng cùng 1 model.</p>
+                                <h3 data-i18n="title_batch_scan">Batch Scan</h3>
+                                <p data-i18n="desc_batch_scan">Tải nhiều ảnh để quét hàng loạt bằng cùng 1 model.</p>
                                 <div class="batch-controls">
                                     <select id="batch-model-select" class="glass-select">
-                                        <option value="dual_stream_enhanced" selected>Dual-Stream Enhanced (Tốt nhất)</option>
-                                        <option value="dual_stream_resnet">Dual-Stream ResNet18</option>
-                                        <option value="resnet50">ResNet-50 Single</option>
+                                        <option value="dual_stream_enhanced" selected data-i18n="model_ds_enh">Dual-Stream Enhanced (Tốt nhất)</option>
+                                        <option value="dual_stream_resnet" data-i18n="model_ds_res">Dual-Stream ResNet18</option>
+                                        <option value="resnet50" data-i18n="model_rn50">ResNet-50 Single</option>
                                     </select>
                                     <input type="file" id="batch-file-input" accept="image/jpeg, image/png, image/webp" multiple>
-                                    <button id="batch-run-btn" class="btn-analyze"><i class="fa-solid fa-layer-group"></i> Quét Hàng Loạt</button>
+                                    <button id="batch-run-btn" class="btn-analyze"><i class="fa-solid fa-layer-group"></i> <span data-i18n="btn_batch_scan">Quét Hàng Loạt</span></button>
                                 </div>
-                                <div class="batch-drop" id="batch-drop">Kéo thả nhiều ảnh vào đây (tối đa 20 ảnh/lần)</div>
-                                <p id="batch-summary" class="muted-line">Chưa có dữ liệu batch.</p>
+                                <div class="batch-drop" id="batch-drop" data-i18n="lbl_batch_drop">Kéo thả nhiều ảnh vào đây (tối đa 20 ảnh/lần)</div>
+                                <p id="batch-summary" class="muted-line" data-i18n="lbl_batch_summary">Chưa có dữ liệu batch.</p>
                                 <div class="table-responsive">
                                     <table class="history-table batch-result-table">
                                         <thead>
                                             <tr>
-                                                <th>Tên File</th>
-                                                <th>Model</th>
-                                                <th>Fake (%)</th>
-                                                <th>Kết Luận</th>
+                                                <th data-i18n="col_filename">Tên File</th>
+                                                <th data-i18n="col_model">Model</th>
+                                                <th data-i18n="col_fake_pct">Fake (%)</th>
+                                                <th data-i18n="col_pred">Kết Luận</th>
                                             </tr>
                                         </thead>
                                         <tbody id="batch-result-tbody"></tbody>
@@ -549,31 +548,31 @@
     <div id="profile-modal" class="modal hidden">
         <div class="modal-content white-card border-frame" style="max-width: 400px;">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-user-gear"></i> Hồ sơ cá nhân</h3>
+                <h3><i class="fa-solid fa-user-gear"></i> <span data-i18n="title_profile">Hồ sơ cá nhân</span></h3>
                 <span class="close-modal" id="close-profile-modal">&times;</span>
             </div>
             <div class="modal-body" style="padding-top:10px;">
-                <p>Tài khoản: <strong id="profile-username">...</strong></p>
+                <p><span data-i18n="lbl_account">Tài khoản:</span> <strong id="profile-username">...</strong></p>
                 <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;" />
-                <h4 style="margin-bottom: 10px;">Đổi mật khẩu</h4>
+                <h4 style="margin-bottom: 10px;" data-i18n="title_change_pwd">Đổi mật khẩu</h4>
                 <div class="input-group">
-                    <label>Mật khẩu cũ</label>
-                    <input type="password" id="profile-old-password" placeholder="Nhập mật khẩu hiện tại" class="glass-input" />
+                    <label data-i18n="lbl_old_pwd">Mật khẩu cũ</label>
+                    <input type="password" id="profile-old-password" data-i18n-placeholder="ph_old_pwd" placeholder="Nhập mật khẩu hiện tại" class="glass-input" />
                 </div>
                 <div class="input-group">
-                    <label>Mật khẩu mới</label>
-                    <input type="password" id="profile-new-password" placeholder="Nhập mật khẩu mới" class="glass-input" />
+                    <label data-i18n="lbl_new_pwd">Mật khẩu mới</label>
+                    <input type="password" id="profile-new-password" data-i18n-placeholder="ph_new_pwd" placeholder="Nhập mật khẩu mới" class="glass-input" />
                 </div>
                 <div id="profile-error" class="error-msg hidden" style="margin-top:10px;"></div>
                 <div id="profile-success" class="success-msg hidden" style="color:var(--primary);margin-top:10px;font-size:0.9rem;"></div>
             </div>
             <div class="modal-footer">
-                <button id="btn-change-password" class="btn-primary" style="width:100%">Đổi mật khẩu</button>
+                <button id="btn-change-password" class="btn-primary" style="width:100%" data-i18n="btn_change_pwd">Đổi mật khẩu</button>
             </div>
         </div>
     </div>
 
-    <script src="i18n.js?v=3.8"></script>
+    <script src="i18n.js?v=3.9"></script>
     <script src="config-loader.js?v=2.1"></script>
     
     <!-- Order Details Modal -->

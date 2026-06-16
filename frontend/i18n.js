@@ -267,6 +267,34 @@ const translations = {
         "stat_user_spent": "Tổng tiền đã nạp",
         "stat_user_tokens": "Tổng token nhận được",
 
+        // Profile Modal
+        "title_profile": "Hồ sơ cá nhân",
+        "lbl_account": "Tài khoản:",
+        "title_change_pwd": "Đổi mật khẩu",
+        "lbl_old_pwd": "Mật khẩu cũ",
+        "ph_old_pwd": "Nhập mật khẩu hiện tại",
+        "lbl_new_pwd": "Mật khẩu mới",
+        "ph_new_pwd": "Nhập mật khẩu mới",
+        "btn_change_pwd": "Đổi mật khẩu",
+
+        // Scans & Models
+        "model_ds_enh": "Dual-Stream Enhanced (Tốt nhất)",
+        "model_ds_res": "Dual-Stream ResNet18",
+        "model_rn50": "ResNet-50 Single",
+        "lbl_real": "Thật (Real)",
+        "lbl_fake": "Giả (Fake)",
+        "lbl_fft_img": "Ảnh Phổ Cấu Trúc Không Gian (FFT)",
+        
+        "title_batch_scan": "Quét Hàng Loạt",
+        "desc_batch_scan": "Tải nhiều ảnh để quét hàng loạt bằng cùng 1 model.",
+        "btn_batch_scan": "Quét Hàng Loạt",
+        "lbl_batch_drop": "Kéo thả nhiều ảnh vào đây (tối đa 20 ảnh/lần)",
+        "lbl_batch_summary": "Chưa có dữ liệu batch.",
+        "col_filename": "Tên File",
+        "col_model": "Model",
+        "col_fake_pct": "Fake (%)",
+        "col_pred": "Kết Luận",
+
         // Modals
         "title_edit_page": "Soạn Thảo Trang",
         "lbl_page_title_vi": "Tiêu đề trang (Tiếng Việt)",
@@ -610,6 +638,34 @@ const translations = {
         "currency_vnd": "VND",
         "stat_user_spent": "Total amount spent",
         "stat_user_tokens": "Total tokens received",
+
+        // Profile Modal
+        "title_profile": "Profile",
+        "lbl_account": "Account:",
+        "title_change_pwd": "Change Password",
+        "lbl_old_pwd": "Old Password",
+        "ph_old_pwd": "Enter current password",
+        "lbl_new_pwd": "New Password",
+        "ph_new_pwd": "Enter new password",
+        "btn_change_pwd": "Change Password",
+
+        // Scans & Models
+        "model_ds_enh": "Dual-Stream Enhanced (Best)",
+        "model_ds_res": "Dual-Stream ResNet18",
+        "model_rn50": "ResNet-50 Single",
+        "lbl_real": "Real",
+        "lbl_fake": "Fake",
+        "lbl_fft_img": "Spatial Structure Spectrum (FFT)",
+        
+        "title_batch_scan": "Batch Scan",
+        "desc_batch_scan": "Upload multiple images to scan them at once.",
+        "btn_batch_scan": "Run Batch Scan",
+        "lbl_batch_drop": "Drag & drop multiple images here (max 20)",
+        "lbl_batch_summary": "No batch data yet.",
+        "col_filename": "Filename",
+        "col_model": "Model",
+        "col_fake_pct": "Fake (%)",
+        "col_pred": "Verdict",
 
         // Modals
         "title_edit_page": "Edit Page",
