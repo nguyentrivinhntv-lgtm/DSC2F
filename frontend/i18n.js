@@ -144,6 +144,9 @@ const translations = {
         "loading_data": "Đang tải dữ liệu...",
 
         // --- Admin UI ---
+        "cfg_edit_lang": "Ngôn ngữ cấu hình:",
+        "lang_vi": "Tiếng Việt",
+        "lang_en": "Tiếng Anh",
         "ui_desc": "Thay đổi màu sắc, nội dung, ảnh và bật/tắt các phần trên trang giới thiệu.",
         "btn_preview": "Xem trước",
         "btn_save_changes": "Lưu thay đổi",
@@ -523,6 +526,9 @@ const translations = {
         "loading_data": "Loading data...",
 
         // --- Admin UI ---
+        "cfg_edit_lang": "Configuration Language:",
+        "lang_vi": "Vietnamese",
+        "lang_en": "English",
         "ui_desc": "Change colors, content, images and toggle sections on the landing page.",
         "btn_preview": "Preview",
         "btn_save_changes": "Save Changes",
