@@ -700,7 +700,16 @@ const CONFIG_FIELDS = {
     'cfg-s2-desc': 'step2_desc',
     'cfg-s3-title': 'step3_title',
     'cfg-s3-desc': 'step3_desc',
-
+    'cfg-vnpay-tmn': 'vnpay_tmn_code',
+    'cfg-vnpay-hash': 'vnpay_hash_secret',
+    'cfg-vnpay-url': 'vnpay_payment_url',
+    'cfg-vnpay-return': 'vnpay_return_url',
+    'cfg-google-id': 'google_client_id',
+    'cfg-google-secret': 'google_client_secret',
+    'cfg-smtp-server': 'smtp_server',
+    'cfg-smtp-port': 'smtp_port',
+    'cfg-smtp-user': 'smtp_user',
+    'cfg-smtp-pass': 'smtp_pass',
 };
 
 const TOGGLE_FIELDS = {
@@ -711,13 +720,20 @@ const TOGGLE_FIELDS = {
     'cfg-show-cta': 'show_cta',
 };
 
-const configMsg = document.getElementById('config-save-message');
-
 function showConfigMsg(text, type = 'success') {
-    if (!configMsg) return;
-    configMsg.textContent = text;
-    configMsg.className = 'topup-message ' + type;
-    setTimeout(() => { configMsg.textContent = ''; configMsg.className = 'topup-message'; }, 4000);
+    const configMsg = document.getElementById('config-save-message');
+    const paymentMsg = document.getElementById('payment-config-save-message');
+    
+    if (configMsg) {
+        configMsg.textContent = text;
+        configMsg.className = 'topup-message ' + type;
+        setTimeout(() => { configMsg.textContent = ''; configMsg.className = 'topup-message'; }, 4000);
+    }
+    if (paymentMsg) {
+        paymentMsg.textContent = text;
+        paymentMsg.className = 'topup-message ' + type;
+        setTimeout(() => { paymentMsg.textContent = ''; paymentMsg.className = 'topup-message'; }, 4000);
+    }
 }
 
 // Sync color hex display
@@ -1036,6 +1052,12 @@ function initCustomizeTab() {
     const removeLogoBtn = document.getElementById('btn-remove-logo');
 
     if (saveBtn) saveBtn.addEventListener('click', saveSiteConfig);
+    
+    const savePaymentBtn = document.getElementById('btn-save-payment-config');
+    if (savePaymentBtn) {
+        savePaymentBtn.addEventListener('click', saveSiteConfig);
+    }
+    
     if (resetBtn) resetBtn.addEventListener('click', resetSiteConfig);
     if (previewBtn) previewBtn.addEventListener('click', () => window.open('index.html', '_blank'));
 

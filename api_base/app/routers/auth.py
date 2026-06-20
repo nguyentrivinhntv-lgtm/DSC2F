@@ -12,7 +12,7 @@ from uuid import uuid4
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
@@ -24,7 +24,8 @@ from app.models.base_db import (
     save_email_otp,
     verify_email_otp,
     update_user_password,
-    update_user_password_by_username
+    update_user_password_by_username,
+    get_site_config
 )
 from app.config import get_settings
 from app.services.email_service import send_otp_email
@@ -35,6 +36,18 @@ from app.security.security import (
     verify_password,
 )
 import random
+import re
+
+
+def _validate_password_strength(password: str) -> str:
+    """Kiểm tra mật khẩu phải có chữ, số và ký tự đặc biệt."""
+    if not re.search(r'[A-Za-z]', password):
+        raise ValueError('Mật khẩu phải chứa ít nhất 1 chữ cái (a-z, A-Z)')
+    if not re.search(r'[0-9]', password):
+        raise ValueError('Mật khẩu phải chứa ít nhất 1 chữ số (0-9)')
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?~`]', password):
+        raise ValueError('Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (!@#$%^&*...)')
+    return password
 
 def require_admin(current_user: dict = Depends(get_current_user)):
     """Dependency to check if current user is admin."""
@@ -69,7 +82,7 @@ class RegisterRequest(BaseModel):
         ...,
         min_length=6,
         max_length=100,
-        description="Mật khẩu (tối thiểu 6 ký tự)."
+        description="Mật khẩu (tối thiểu 6 ký tự, phải có chữ + số + ký tự đặc biệt)."
     )
     otp_code: str = Field(
         ...,
@@ -77,6 +90,11 @@ class RegisterRequest(BaseModel):
         max_length=6,
         description="Mã OTP gửi về email."
     )
+
+    @field_validator('password')
+    @classmethod
+    def password_strength(cls, v):
+        return _validate_password_strength(v)
 
 class RequestRegisterRequest(BaseModel):
     """Schema yêu cầu gửi mã OTP để đăng ký."""
@@ -157,10 +175,20 @@ class ResetPasswordRequest(BaseModel):
     otp_code: str = Field(..., min_length=6, max_length=6)
     new_password: str = Field(..., min_length=6, max_length=100)
 
+    @field_validator('new_password')
+    @classmethod
+    def password_strength(cls, v):
+        return _validate_password_strength(v)
+
 
 class ChangePasswordRequest(BaseModel):
     old_password: str = Field(..., description="Mật khẩu cũ")
     new_password: str = Field(..., min_length=6, max_length=100, description="Mật khẩu mới")
+
+    @field_validator('new_password')
+    @classmethod
+    def password_strength(cls, v):
+        return _validate_password_strength(v)
 
 
 def _build_google_username(email: str) -> str:
@@ -280,8 +308,7 @@ def register(request: RegisterRequest):
     description="Trả về trạng thái bật/tắt đăng nhập Google và client ID cho frontend.",
 )
 def google_config():
-    settings = get_settings()
-    client_id = (settings.GOOGLE_CLIENT_ID or "").strip()
+    client_id = (get_site_config().get("google_client_id") or "").strip()
     return GoogleConfigResponse(
         enabled=bool(client_id),
         client_id=client_id,
@@ -312,9 +339,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
     description="Xác thực Google credential, tự động tạo user nếu chưa tồn tại và trả JWT token.",
 )
 def login_google(request: GoogleLoginRequest):
-    settings = get_settings()
-    client_id = (settings.GOOGLE_CLIENT_ID or "").strip()
-
+    client_id = (get_site_config().get("google_client_id") or "").strip()
     if not client_id:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -649,8 +674,9 @@ from fastapi import Request
 @router.get("/google/login/flutter")
 def api_google_login_flutter(session_id: str, request: Request):
     """App WebView sẽ mở link này. Nó sẽ chuyển hướng người dùng sang trang Đăng nhập của Google."""
-    settings = get_settings()
-    client_id = settings.GOOGLE_CLIENT_ID
+    client_id = get_site_config().get("google_client_id")
+    if not client_id:
+        return HTMLResponse("<h2>Hệ thống chưa cấu hình GOOGLE_CLIENT_ID. Hãy báo Admin!</h2>")
     
     # Xác định đường dẫn callback tự động
     base_url = str(request.base_url).rstrip('/')
@@ -682,8 +708,7 @@ def api_google_callback_flutter(state: str, code: Optional[str] = None, request:
     if not code:
         return HTMLResponse("<h2>Đăng nhập thất bại hoặc bị hủy. Hãy đóng tab này.</h2>")
         
-    settings = get_settings()
-    client_secret = getattr(settings, "GOOGLE_CLIENT_SECRET", "")
+    client_secret = get_site_config().get("google_client_secret")
     
     if not client_secret:
         return HTMLResponse("<h2>Hệ thống chưa cấu hình GOOGLE_CLIENT_SECRET. Hãy báo Admin!</h2>")
@@ -693,21 +718,21 @@ def api_google_callback_flutter(state: str, code: Optional[str] = None, request:
     
     # Đổi Code lấy Token
     token_url = "https://oauth2.googleapis.com/token"
-    payload = {
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "client_secret": client_secret,
+    data = {
         "code": code,
+        "client_id": get_site_config().get("google_client_id"),
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri,
         "grant_type": "authorization_code",
-        "redirect_uri": redirect_uri
     }
     
-    res = requests.post(token_url, data=payload)
+    res = requests.post(token_url, data=data)
     if not res.ok:
         return HTMLResponse(f"<h2>Lỗi chứng thực từ Google: {res.text}</h2>")
         
     token_data = res.json()
-    id_token_str = token_data.get("id_token")
-    if not id_token_str:
+    id_token_jwt = token_data.get("id_token")
+    if not id_token_jwt:
         return HTMLResponse("<h2>Không nhận được id_token từ Google.</h2>")
         
     # --- Xác thực ID Token y như login_google() ---
@@ -715,9 +740,9 @@ def api_google_callback_flutter(state: str, code: Optional[str] = None, request:
         from google.oauth2 import id_token as g_id_token
         from google.auth.transport import requests as google_requests
         idinfo = g_id_token.verify_oauth2_token(
-            id_token_str, 
-            google_requests.Request(), 
-            settings.GOOGLE_CLIENT_ID,
+            id_token_jwt,
+            google_requests.Request(),
+            get_site_config().get("google_client_id"),
             clock_skew_in_seconds=60
         )
     except Exception as e:

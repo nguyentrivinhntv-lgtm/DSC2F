@@ -88,8 +88,10 @@ body {
 
 .filter-control input,
 .filter-control select,
-.config-field input[type="text"],
-.config-field textarea {
+.config-field input,
+.config-field select,
+.config-field textarea,
+.admin-input {
     border: 1px solid var(--border-strong);
     border-radius: 12px;
     height: 42px;
@@ -112,7 +114,9 @@ body {
 .filter-control input:focus,
 .filter-control select:focus,
 .config-field input:focus,
-.config-field textarea:focus {
+.config-field select:focus,
+.config-field textarea:focus,
+.admin-input:focus {
     border-color: rgba(14, 165, 164, 0.6);
     box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.14);
 }

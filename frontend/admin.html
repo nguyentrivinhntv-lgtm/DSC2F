@@ -60,6 +60,7 @@
             <button class="tab-btn" data-tab="tab-pages"><i class="fa-solid fa-file-lines"></i> <span data-i18n="tab_pages">Quản lý Trang</span></button>
             <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> <span data-i18n="tab_notifications">Thông báo</span></button>
             <button class="tab-btn" data-tab="tab-ai"><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_config">Cấu hình AI</span></button>
+            <button class="tab-btn" data-tab="tab-payment-config"><i class="fa-solid fa-globe"></i> <span data-i18n="tab_api_config">Cấu hình API</span></button>
         </div>
 
         <!-- TAB: THỐNG KÊ -->
@@ -490,6 +491,96 @@
 
             </section>
         </div>
+
+        <!-- TAB: CỔNG THANH TOÁN (VNPAY) -->
+        <div id="tab-payment-config" class="tab-content">
+            <section class="glass-panel border-frame">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <div>
+                        <h3><i class="fa-solid fa-globe"></i> <span data-i18n="tab_api_config">Cấu hình API bên ngoài</span></h3>
+                        <p class="section-desc" data-i18n="admin_api_desc">Quản lý các kết nối với bên thứ 3 (Google Login, Gửi Mail, Cổng Thanh Toán).</p>
+                    </div>
+                    <div>
+                        <button id="btn-save-payment-config" class="btn-analyze admin-btn">
+                            <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="save_changes">Lưu cấu hình</span>
+                        </button>
+                        <p id="payment-config-save-message" class="topup-message" style="display:inline-block; margin-left: 15px;"></p>
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-section full-width">
+                        <h4><i class="fa-brands fa-google"></i> Google Login API</h4>
+                        <div class="config-row" style="margin-top: 15px;">
+                            <div class="config-field">
+                                <label for="cfg-google-id">Client ID</label>
+                                <input type="text" id="cfg-google-id" class="admin-input" placeholder="xxx.apps.googleusercontent.com">
+                            </div>
+                            <div class="config-field">
+                                <label for="cfg-google-secret">Client Secret</label>
+                                <input type="password" id="cfg-google-secret" class="admin-input" placeholder="GOCSPX-xxx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width" style="margin-top: 30px;">
+                        <h4><i class="fa-solid fa-envelope"></i> SMTP Email API</h4>
+                        <div class="config-row" style="margin-top: 15px;">
+                            <div class="config-field">
+                                <label for="cfg-smtp-server">SMTP Server</label>
+                                <input type="text" id="cfg-smtp-server" class="admin-input" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="config-field">
+                                <label for="cfg-smtp-port">SMTP Port</label>
+                                <input type="number" id="cfg-smtp-port" class="admin-input" placeholder="587">
+                            </div>
+                        </div>
+                        <div class="config-row" style="margin-top: 15px;">
+                            <div class="config-field">
+                                <label for="cfg-smtp-user">SMTP User (Email)</label>
+                                <input type="email" id="cfg-smtp-user" class="admin-input" placeholder="your-email@gmail.com">
+                            </div>
+                            <div class="config-field">
+                                <label for="cfg-smtp-pass">SMTP Password (App Password)</label>
+                                <input type="password" id="cfg-smtp-pass" class="admin-input" placeholder="xxxx xxxx xxxx xxxx">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width" style="margin-top: 30px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 20px;">
+                        <h4><i class="fa-solid fa-money-check-dollar"></i> VNPay API Credentials</h4>
+                        <div class="config-row" style="margin-top: 15px;">
+                            <div class="config-field">
+                                <label for="cfg-vnpay-tmn">Terminal ID (vnp_TmnCode) <span style="color:red">*</span></label>
+                                <input type="text" id="cfg-vnpay-tmn" class="admin-input" placeholder="VD: DH6ABC12">
+                                <small style="color: var(--color-text); opacity: 0.7; margin-top: 5px; display: block;" data-i18n="vnpay_tmn_desc">Mã website của bạn được VNPay cấp.</small>
+                            </div>
+                            <div class="config-field">
+                                <label for="cfg-vnpay-hash">Secret Key (vnp_HashSecret) <span style="color:red">*</span></label>
+                                <input type="password" id="cfg-vnpay-hash" class="admin-input" placeholder="Chuỗi bí mật">
+                                <small style="color: var(--color-text); opacity: 0.7; margin-top: 5px; display: block;" data-i18n="vnpay_hash_desc">Khóa bí mật dùng để tạo chữ ký bảo mật.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section full-width" style="margin-top: 20px;">
+                        <h4><i class="fa-solid fa-link"></i> Endpoint URLs</h4>
+                        <div class="config-row" style="margin-top: 15px;">
+                            <div class="config-field full-width">
+                                <label for="cfg-vnpay-url">Payment URL (vnp_PaymentUrl)</label>
+                                <input type="text" id="cfg-vnpay-url" class="admin-input" placeholder="https://sandbox.vnpayment.vn/paymentv2/vpcpay.html">
+                                <small style="color: var(--color-text); opacity: 0.7; margin-top: 5px; display: block;" data-i18n="vnpay_url_desc">Đường dẫn API khởi tạo giao dịch VNPay (Sandbox hoặc Production).</small>
+                            </div>
+                            <div class="config-field full-width" style="margin-top: 15px;">
+                                <label for="cfg-vnpay-return">Return URL (Frontend / Backend Callback)</label>
+                                <input type="text" id="cfg-vnpay-return" class="admin-input" placeholder="http://localhost:8000/payment/vnpay_return">
+                                <small style="color: var(--color-text); opacity: 0.7; margin-top: 5px; display: block;" data-i18n="vnpay_return_desc">Đường dẫn nhận kết quả trả về sau khi người dùng thanh toán xong.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
         <!-- TAB: QUẢN LÝ TRANG (CMS) -->
         <div id="tab-pages" class="tab-content">
             <section class="glass-panel border-frame admin-table-wrap">
@@ -524,11 +615,17 @@
 
         <!-- TAB: CẤU HÌNH AI -->
         <div id="tab-ai" class="tab-content">
-            <div class="glass-panel border-frame" style="max-width: 800px; margin: 0 auto;">
+            <section class="glass-panel border-frame">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
                     <div>
                         <h3><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_title">Cấu hình AI Dịch Thuật</span></h3>
                         <p class="section-desc" data-i18n="admin_ai_desc">Cài đặt API Key cho các nhà cung cấp AI để tự động dịch trang sang Tiếng Anh.</p>
+                    </div>
+                    <div>
+                        <button class="btn-analyze admin-btn" id="btn-save-ai">
+                            <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btn_save_ai">Lưu cấu hình</span>
+                        </button>
+                        <p id="ai-save-message" class="topup-message" style="display:inline-block; margin-left: 15px;"></p>
                     </div>
                 </div>
 
@@ -569,12 +666,7 @@
                         </div>
                     </div>
                 </div>
-
-                <div style="margin-top: 30px; text-align: right;">
-                    <button class="btn-analyze admin-btn" id="btn-save-ai"><span data-i18n="btn_save_ai">Lưu Cấu Hình AI</span></button>
-                    <p id="ai-save-message" class="topup-message" style="display:inline-block; margin-left: 15px;"></p>
-                </div>
-            </div>
+            </section>
         </div>
 
         <!-- TAB: QUẢN LÝ THÔNG BÁO -->

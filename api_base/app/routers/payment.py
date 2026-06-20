@@ -5,7 +5,7 @@ from datetime import datetime
 
 from app.config import get_settings
 from app.utils.vnpay import vnpay
-from app.models.base_db import _get_connection, save_payment_log
+from app.models.base_db import _get_connection, save_payment_log, get_site_config
 from app.security.security import get_current_user
 
 router = APIRouter(prefix="/payment", tags=["Payment"])
@@ -17,6 +17,13 @@ class PaymentRequest(BaseModel):
 @router.post("/create_payment_url")
 async def create_payment_url(request: Request, body: PaymentRequest, current_user: dict = Depends(get_current_user)):
     settings = get_settings()
+    site_config = get_site_config()
+    
+    tmn_code = site_config.get("vnpay_tmn_code") or ""
+    hash_secret = site_config.get("vnpay_hash_secret") or ""
+    payment_url = site_config.get("vnpay_payment_url") or "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+    return_url = site_config.get("vnpay_return_url") or "http://localhost:8000/payment/vnpay_return"
+
     amount = body.amount
     tokens_to_add = body.tokens
     
@@ -26,7 +33,7 @@ async def create_payment_url(request: Request, body: PaymentRequest, current_use
     vnp = vnpay()
     vnp.requestData['vnp_Version'] = '2.1.0'
     vnp.requestData['vnp_Command'] = 'pay'
-    vnp.requestData['vnp_TmnCode'] = settings.VNPAY_TMN_CODE
+    vnp.requestData['vnp_TmnCode'] = tmn_code
     vnp.requestData['vnp_Amount'] = str(amount * 100) # VNPay nhân 100
     vnp.requestData['vnp_CurrCode'] = 'VND'
     vnp.requestData['vnp_TxnRef'] = order_id
@@ -35,22 +42,25 @@ async def create_payment_url(request: Request, body: PaymentRequest, current_use
     vnp.requestData['vnp_Locale'] = 'vn'
     vnp.requestData['vnp_CreateDate'] = datetime.now().strftime('%Y%m%d%H%M%S')
     vnp.requestData['vnp_IpAddr'] = getattr(request.client, 'host', '127.0.0.1')
-    vnp.requestData['vnp_ReturnUrl'] = settings.VNPAY_RETURN_URL
+    vnp.requestData['vnp_ReturnUrl'] = return_url
     
-    vnpay_payment_url = vnp.get_payment_url(settings.VNPAY_PAYMENT_URL, settings.VNPAY_HASH_SECRET)
+    vnpay_payment_url = vnp.get_payment_url(payment_url, hash_secret)
     return {"payment_url": vnpay_payment_url}
 
 
 @router.get("/vnpay_return")
 async def vnpay_return(request: Request):
     settings = get_settings()
+    site_config = get_site_config()
+    hash_secret = site_config.get("vnpay_hash_secret") or ""
+
     inputData = request.query_params
     vnp = vnpay()
     vnp.responseData = dict(inputData)
     order_id = inputData.get('vnp_TxnRef')
     vnp_ResponseCode = inputData.get('vnp_ResponseCode')
 
-    if vnp.validate_response(settings.VNPAY_HASH_SECRET):
+    if vnp.validate_response(hash_secret):
         if vnp_ResponseCode == "00":
             # 1. Tách thông tin từ order_id (Format: ORDER_{user_id}_{time}_{tokens})
             parts = order_id.split('_')

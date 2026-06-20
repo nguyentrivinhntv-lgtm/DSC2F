@@ -17,6 +17,86 @@ from pymysql.err import MySQLError
 from app.config import get_settings
 
 
+
+import sqlite3
+import re
+import os
+
+USE_SQLITE = False
+_SQLITE_INITIALIZED = False
+
+def sqlite_dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d
+
+class SQLiteCursorWrapper:
+    def __init__(self, cursor):
+        self.cursor = cursor
+
+    def _convert_sql(self, sql):
+        sql = sql.replace('%s', '?')
+        sql = re.sub(r'\bINT AUTO_INCREMENT PRIMARY KEY\b', 'INTEGER PRIMARY KEY AUTOINCREMENT', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bINT PRIMARY KEY AUTOINCREMENT\b', 'INTEGER PRIMARY KEY AUTOINCREMENT', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bINT PRIMARY KEY AUTO_INCREMENT\b', 'INTEGER PRIMARY KEY AUTOINCREMENT', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bAUTO_INCREMENT\b', 'AUTOINCREMENT', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bENGINE=InnoDB\b', '', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bON UPDATE CURRENT_TIMESTAMP\b', '', sql, flags=re.IGNORECASE)
+        sql = re.sub(r'\bINSERT IGNORE INTO\b', 'INSERT OR IGNORE INTO', sql, flags=re.IGNORECASE)
+        sql = sql.replace('DATE_ADD(NOW(), INTERVAL 5 MINUTE)', "datetime('now', '+5 minutes')")
+        sql = re.sub(r'DATE_SUB\(NOW\(\),\s*INTERVAL\s*\?\s*MINUTE\)', "datetime('now', '-' || ? || ' minutes')", sql, flags=re.IGNORECASE)
+        sql = sql.replace('NOW()', "datetime('now')")
+        
+        if 'email_otps' in sql and 'ON DUPLICATE KEY UPDATE' in sql:
+            sql = sql.replace("ON DUPLICATE KEY UPDATE otp_code = VALUES(otp_code), expires_at = datetime('now', '+5 minutes')", 
+                              "ON CONFLICT(email) DO UPDATE SET otp_code = excluded.otp_code, expires_at = datetime('now', '+5 minutes')")
+        elif 'site_config' in sql and 'ON DUPLICATE KEY UPDATE' in sql:
+            sql = sql.replace("ON DUPLICATE KEY UPDATE config_value = VALUES(config_value)", 
+                              "ON CONFLICT(config_key) DO UPDATE SET config_value = excluded.config_value")
+        return sql
+
+    def execute(self, sql, args=None):
+        sql = self._convert_sql(sql)
+        try:
+            return self.cursor.execute(sql, args or ())
+        except Exception:
+            raise
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    @property
+    def lastrowid(self):
+        return self.cursor.lastrowid
+    
+    def __enter__(self):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.cursor.close()
+
+class SQLiteConnectionWrapper:
+    def __init__(self, db_path='database.db'):
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
+        self.conn.row_factory = sqlite_dict_factory
+
+    def cursor(self):
+        return SQLiteCursorWrapper(self.conn.cursor())
+
+    def commit(self):
+        self.conn.commit()
+
+    def rollback(self):
+        self.conn.rollback()
+
+    def close(self):
+        self.conn.close()
+
+
 def _resolve_database_url(db_path: Optional[str] = None) -> str:
     """
     Lấy database URL ưu tiên từ tham số, sau đó từ settings.
@@ -61,29 +141,188 @@ def _parse_mysql_url(database_url: str) -> dict:
     }
 
 
+def _ensure_sqlite_initialized():
+    """Khi fallback sang SQLite giữa chừng, tự động tạo tất cả bảng."""
+    global _SQLITE_INITIALIZED
+    if _SQLITE_INITIALIZED:
+        return
+    _SQLITE_INITIALIZED = True
+    print("Initializing SQLite tables for fallback...")
+    try:
+        _init_sqlite_tables()
+    except Exception as e:
+        print(f"SQLite init error: {e}")
+
+
+def _init_sqlite_tables():
+    """Tạo tất cả bảng cần thiết trong SQLite."""
+    conn = SQLiteConnectionWrapper()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT PRIMARY KEY AUTOINCREMENT,
+                    username VARCHAR(50) NOT NULL UNIQUE,
+                    email VARCHAR(100) UNIQUE NULL,
+                    hashed_password VARCHAR(255) NOT NULL,
+                    role VARCHAR(20) NOT NULL DEFAULT 'user',
+                    prediction_tokens INT NOT NULL DEFAULT 5,
+                    is_active TINYINT(1) NOT NULL DEFAULT 1,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS prediction_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INT NOT NULL,
+                    filename VARCHAR(255) NOT NULL,
+                    model_type VARCHAR(50) NOT NULL,
+                    probability DOUBLE NOT NULL,
+                    label VARCHAR(10) NOT NULL,
+                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS model_config (
+                    model_type VARCHAR(50) PRIMARY KEY,
+                    is_active TINYINT(1) NOT NULL DEFAULT 1,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("SELECT COUNT(*) as cnt FROM model_config")
+            if cur.fetchone()['cnt'] == 0:
+                for m in ["resnet50", "dual_stream_enhanced", "dual_stream_resnet"]:
+                    cur.execute("INSERT OR IGNORE INTO model_config (model_type, is_active) VALUES (?, 1)", (m,))
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS site_config (
+                    config_key VARCHAR(100) PRIMARY KEY,
+                    config_value TEXT,
+                    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("SELECT COUNT(*) as cnt FROM site_config")
+            if cur.fetchone()['cnt'] == 0:
+                _insert_default_site_config(cur)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS email_otps (
+                    email VARCHAR(100) PRIMARY KEY,
+                    otp_code VARCHAR(6) NOT NULL,
+                    expires_at DATETIME NOT NULL
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS payment_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INT NOT NULL,
+                    order_id VARCHAR(100) NOT NULL,
+                    amount INT NOT NULL,
+                    tokens INT NOT NULL,
+                    status VARCHAR(20) NOT NULL DEFAULT 'success',
+                    bank_code VARCHAR(50),
+                    card_type VARCHAR(50),
+                    vnp_transaction_no VARCHAR(100),
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS pages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    slug VARCHAR(100) UNIQUE NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    title_en VARCHAR(255) NULL,
+                    content TEXT,
+                    content_en TEXT NULL,
+                    is_active TINYINT(1) DEFAULT 1,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INT NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    message TEXT NOT NULL,
+                    type VARCHAR(30) DEFAULT 'info',
+                    is_read TINYINT(1) DEFAULT 0,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS scheduled_notifications (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title VARCHAR(255) NOT NULL,
+                    message TEXT NOT NULL,
+                    type VARCHAR(30) DEFAULT 'info',
+                    target VARCHAR(50) DEFAULT 'all',
+                    scheduled_at DATETIME NOT NULL,
+                    is_sent TINYINT(1) DEFAULT 0,
+                    created_by INT NOT NULL,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (created_by) REFERENCES users(id)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS login_sessions (
+                    session_id VARCHAR(100) PRIMARY KEY,
+                    token TEXT,
+                    status VARCHAR(20) DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # Tạo tài khoản admin mặc định
+            cur.execute("SELECT COUNT(*) as cnt FROM users WHERE username = 'admin'")
+            if cur.fetchone()['cnt'] == 0:
+                try:
+                    from app.security.security import hash_password
+                    hashed_pwd = hash_password("admin123")
+                    cur.execute(
+                        "INSERT INTO users (username, hashed_password, role, prediction_tokens) VALUES (?, ?, ?, ?)",
+                        ("admin", hashed_pwd, "admin", 999999)
+                    )
+                except Exception as e:
+                    print(f"Failed to seed admin in SQLite: {e}")
+
+        conn.commit()
+        print("SQLite fallback tables initialized successfully!")
+    finally:
+        conn.close()
+
+
 def _get_connection(db_path: Optional[str] = None, use_database: bool = True):
-    """
-    Tạo kết nối tới MySQL database.
-
-    Args:
-        db_path: Giữ tương thích chữ ký cũ; thực chất là database URL.
-        use_database: Nếu False chỉ kết nối server MySQL, không chọn DB.
-
-    Returns:
-        Connection: Kết nối database.
-    """
+    global USE_SQLITE
     database_url = _resolve_database_url(db_path)
     cfg = _parse_mysql_url(database_url)
-    return pymysql.connect(
-        host=cfg["host"],
-        port=cfg["port"],
-        user=cfg["user"],
-        password=cfg["password"],
-        database=cfg["database"] if use_database else None,
-        cursorclass=pymysql.cursors.DictCursor,
-        charset="utf8mb4",
-        autocommit=False,
-    )
+    
+    if USE_SQLITE:
+        _ensure_sqlite_initialized()
+        return SQLiteConnectionWrapper()
+
+    try:
+        conn = pymysql.connect(
+            host=cfg["host"],
+            port=cfg["port"],
+            user=cfg["user"],
+            password=cfg["password"],
+            database=cfg["database"] if use_database else None,
+            cursorclass=pymysql.cursors.DictCursor,
+            charset="utf8mb4",
+            autocommit=False,
+            connect_timeout=3
+        )
+        return conn
+    except pymysql.err.OperationalError:
+        print("MySQL Connection Failed. Falling back to SQLite...")
+        USE_SQLITE = True
+        _ensure_sqlite_initialized()
+        return SQLiteConnectionWrapper()
+
 
 
 def init_db(db_path: Optional[str] = None) -> None:
@@ -96,25 +335,31 @@ def init_db(db_path: Optional[str] = None) -> None:
     database_url = _resolve_database_url(db_path)
     cfg = _parse_mysql_url(database_url)
 
-    # Tạo database nếu chưa tồn tại
-    server_conn = pymysql.connect(
-        host=cfg["host"],
-        port=cfg["port"],
-        user=cfg["user"],
-        password=cfg["password"],
-        cursorclass=pymysql.cursors.DictCursor,
-        charset="utf8mb4",
-        autocommit=True,
-    )
+    global USE_SQLITE
+    # Check fallback first by trying to connect
     try:
-        with server_conn.cursor() as cur:
-            cur.execute(
-                "CREATE DATABASE IF NOT EXISTS `{}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci".format(
-                    cfg["database"]
+        server_conn = pymysql.connect(
+            host=cfg["host"],
+            port=cfg["port"],
+            user=cfg["user"],
+            password=cfg["password"],
+            cursorclass=pymysql.cursors.DictCursor,
+            charset="utf8mb4",
+            autocommit=True,
+            connect_timeout=3
+        )
+        try:
+            with server_conn.cursor() as cur:
+                cur.execute(
+                    "CREATE DATABASE IF NOT EXISTS `{}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci".format(
+                        cfg["database"]
+                    )
                 )
-            )
-    finally:
-        server_conn.close()
+        finally:
+            server_conn.close()
+    except pymysql.err.OperationalError:
+        print("MySQL Init Failed. Falling back to SQLite...")
+        USE_SQLITE = True
 
     conn = _get_connection(database_url)
     try:
@@ -137,24 +382,34 @@ def init_db(db_path: Optional[str] = None) -> None:
             # Cố gắng thêm cột email nếu table cũ chưa có
             try:
                 cur.execute("ALTER TABLE users ADD COLUMN email VARCHAR(100) UNIQUE NULL")
-            except MySQLError as exc:
-                if getattr(exc, "args", [None])[0] != 1060:
+            except (MySQLError, sqlite3.OperationalError) as exc:
+                if isinstance(exc, sqlite3.OperationalError):
+                    pass  # SQLite: duplicate column or can't add UNIQUE
+                elif isinstance(exc, MySQLError) and getattr(exc, "args", [None])[0] == 1060:
+                    pass
+                else:
                     raise
 
             # Cố gắng thêm cột role nếu table cũ chưa có
             try:
                 cur.execute("ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'user'")
-            except MySQLError as exc:
-                # 1060: Duplicate column name
-                if getattr(exc, "args", [None])[0] != 1060:
+            except (MySQLError, sqlite3.OperationalError) as exc:
+                if isinstance(exc, sqlite3.OperationalError):
+                    pass
+                elif isinstance(exc, MySQLError) and getattr(exc, "args", [None])[0] == 1060:
+                    pass
+                else:
                     raise
 
             # Cố gắng thêm cột prediction_tokens nếu table cũ chưa có
             try:
                 cur.execute("ALTER TABLE users ADD COLUMN prediction_tokens INT NOT NULL DEFAULT 5")
-            except MySQLError as exc:
-                # 1060: Duplicate column name
-                if getattr(exc, "args", [None])[0] != 1060:
+            except (MySQLError, sqlite3.OperationalError) as exc:
+                if isinstance(exc, sqlite3.OperationalError):
+                    pass
+                elif isinstance(exc, MySQLError) and getattr(exc, "args", [None])[0] == 1060:
+                    pass
+                else:
                     raise
 
             cur.execute(
@@ -258,13 +513,21 @@ def init_db(db_path: Optional[str] = None) -> None:
             # Cố gắng thêm cột title_en và content_en nếu table cũ chưa có
             try:
                 cur.execute("ALTER TABLE pages ADD COLUMN title_en VARCHAR(255) NULL")
-            except MySQLError as exc:
-                if getattr(exc, "args", [None])[0] != 1060: # 1060: Duplicate column name
+            except (MySQLError, sqlite3.OperationalError) as exc:
+                if isinstance(exc, sqlite3.OperationalError):
+                    pass
+                elif isinstance(exc, MySQLError) and getattr(exc, "args", [None])[0] == 1060:
+                    pass
+                else:
                     raise
             try:
                 cur.execute("ALTER TABLE pages ADD COLUMN content_en LONGTEXT NULL")
-            except MySQLError as exc:
-                if getattr(exc, "args", [None])[0] != 1060:
+            except (MySQLError, sqlite3.OperationalError) as exc:
+                if isinstance(exc, sqlite3.OperationalError):
+                    pass
+                elif isinstance(exc, MySQLError) and getattr(exc, "args", [None])[0] == 1060:
+                    pass
+                else:
                     raise
 
             
@@ -331,9 +594,27 @@ def init_db(db_path: Optional[str] = None) -> None:
                 cur.execute("ALTER TABLE payment_logs ADD COLUMN bank_code VARCHAR(50)")
                 cur.execute("ALTER TABLE payment_logs ADD COLUMN card_type VARCHAR(50)")
                 cur.execute("ALTER TABLE payment_logs ADD COLUMN vnp_transaction_no VARCHAR(100)")
-            except MySQLError as exc:
-                if getattr(exc, "args", [None])[0] != 1060:
+            except (MySQLError, sqlite3.OperationalError) as exc:
+                if isinstance(exc, sqlite3.OperationalError):
+                    pass
+                elif isinstance(exc, MySQLError) and getattr(exc, "args", [None])[0] == 1060:
+                    pass
+                else:
                     raise
+
+            # Tạo tài khoản admin mặc định nếu chưa có
+            cur.execute("SELECT COUNT(*) as cnt FROM users WHERE username = 'admin'")
+            row = cur.fetchone()
+            if row and row['cnt'] == 0:
+                try:
+                    from app.security.security import hash_password
+                    hashed_pwd = hash_password("admin123")
+                    cur.execute(
+                        "INSERT INTO users (username, hashed_password, role, prediction_tokens) VALUES (%s, %s, %s, %s)",
+                        ("admin", hashed_pwd, "admin", 999999)
+                    )
+                except Exception as e:
+                    print(f"Failed to seed admin: {e}")
 
         conn.commit()
     finally:
@@ -656,6 +937,17 @@ def is_model_active(model_type: str, db_path: Optional[str] = None) -> bool:
 # ====================== SITE CONFIG ======================
 
 DEFAULT_SITE_CONFIG = {
+    # --- API (Google / SMTP / VNPay) ---
+    "google_client_id": "",
+    "google_client_secret": "",
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": "587",
+    "smtp_user": "",
+    "smtp_pass": "",
+    "vnpay_tmn_code": "",
+    "vnpay_hash_secret": "",
+    "vnpay_payment_url": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
+    "vnpay_return_url": "http://localhost:8000/payment/vnpay_return",
     # Màu sắc
     "color_primary": "#0ea5a4",
     "color_accent": "#f59e0b",

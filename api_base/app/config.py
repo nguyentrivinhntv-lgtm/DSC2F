@@ -29,9 +29,6 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "your-super-secret-key-change-this-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 1440  # 24 giờ
-    GOOGLE_CLIENT_ID: str = "467356155966-9tv52397cuqllc6pe02c9fc32j1nfb8j.apps.googleusercontent.com"
-    GOOGLE_CLIENT_SECRET: str = ""
-
     # --- Database ---
     DATABASE_URL: str = "sqlite:///./database.db"
 
@@ -43,18 +40,6 @@ class Settings(BaseSettings):
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8000
     DEBUG: bool = True
-
-    # --- SMTP (Email) ---
-    SMTP_SERVER: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASS: str = ""
-
-    # --- VNPay ---
-    VNPAY_TMN_CODE: str = ""
-    VNPAY_HASH_SECRET: str = ""
-    VNPAY_PAYMENT_URL: str = ""
-    VNPAY_RETURN_URL: str = ""
 
     # --- Frontend ---
     FRONTEND_URL: str = "http://localhost:5500"

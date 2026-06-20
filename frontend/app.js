@@ -146,6 +146,39 @@ function getVerdictByThreshold(probability) {
     return probability >= threshold ? 'fake' : 'real';
 }
 
+function formatApiError(detail, fallback) {
+    if (!detail) return fallback;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) {
+        return detail.map(e => {
+            let msg = e.msg || "Lỗi dữ liệu";
+            let field = (e.loc && e.loc.length > 1) ? e.loc[e.loc.length - 1] : "";
+            
+            if (msg.includes("String should have at least")) {
+                const min = e.ctx?.min_length || 3;
+                msg = `yêu cầu tối thiểu ${min} ký tự`;
+            } else if (msg.includes("String should have at most")) {
+                const max = e.ctx?.max_length || 50;
+                msg = `yêu cầu tối đa ${max} ký tự`;
+            } else if (msg.includes("value is not a valid email address")) {
+                msg = `không hợp lệ`;
+            } else if (msg.includes("Value error,")) {
+                msg = msg.replace("Value error, ", "");
+            }
+
+            if (field === 'username') field = "Tên đăng nhập";
+            else if (field === 'password' || field === 'new_password') field = "Mật khẩu";
+            else if (field === 'old_password') field = "Mật khẩu cũ";
+            else if (field === 'email') field = "Email";
+            else if (field === 'otp_code') field = "Mã OTP";
+
+            return field ? `${field} ${msg}` : msg;
+        }).join('\n');
+    }
+    if (typeof detail === 'object') return JSON.stringify(detail);
+    return String(detail);
+}
+
 // --- Menu Toggle Logic ---
 document.addEventListener('click', (e) => {
     const menuBtn = e.target.closest('#user-menu-btn');
@@ -440,9 +473,7 @@ async function onGoogleCredentialResponse(response) {
         const data = await res.json();
         if (!res.ok) {
             if (googleLoginError) {
-                let errText = data.detail || 'Đăng nhập Google thất bại.';
-                if (typeof errText === 'object') errText = JSON.stringify(errText);
-                googleLoginError.innerText = errText;
+                googleLoginError.innerText = formatApiError(data.detail, 'Đăng nhập Google thất bại.');
             }
             return;
         }
@@ -607,7 +638,7 @@ async function sendOtp() {
             document.getElementById('forgot-step-1').classList.add('hidden');
             document.getElementById('forgot-step-2').classList.remove('hidden');
         } else {
-            err.innerText = data.detail || "Gửi OTP thất bại!";
+            err.innerText = formatApiError(data.detail, "Gửi OTP thất bại!");
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
@@ -659,7 +690,7 @@ async function resetPassword() {
                 document.getElementById('login-username').value = emailInput;
             }, 2000);
         } else {
-            err.innerText = data.detail || "Đặt lại thất bại!";
+            err.innerText = formatApiError(data.detail, "Đặt lại thất bại!");
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
@@ -712,9 +743,7 @@ loginForm.addEventListener('submit', async (e) => {
 
             showDashboard();
         } else {
-            let errText = data.detail || "Đăng nhập thất bại!";
-            if (typeof errText === 'object') errText = JSON.stringify(errText);
-            err.innerText = errText;
+            err.innerText = formatApiError(data.detail, "Đăng nhập thất bại!");
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
@@ -738,6 +767,19 @@ async function requestRegisterOtp() {
         return;
     }
 
+    if (!/[A-Za-z]/.test(passwordInput)) {
+        err.innerText = "Mật khẩu phải chứa ít nhất 1 chữ cái (a-z, A-Z)";
+        return;
+    }
+    if (!/[0-9]/.test(passwordInput)) {
+        err.innerText = "Mật khẩu phải chứa ít nhất 1 chữ số (0-9)";
+        return;
+    }
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(passwordInput)) {
+        err.innerText = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt (!@#$%^&*...)";
+        return;
+    }
+
     btnText.classList.add('hidden');
     ldr.classList.remove('hidden');
     err.innerText = "";
@@ -756,9 +798,7 @@ async function requestRegisterOtp() {
             document.getElementById('reg-step-1').classList.add('hidden');
             document.getElementById('reg-step-2').classList.remove('hidden');
         } else {
-            let errText = data.detail || "Gửi OTP thất bại!";
-            if (typeof errText === 'object') errText = JSON.stringify(errText);
-            err.innerText = errText;
+            err.innerText = formatApiError(data.detail, "Gửi OTP thất bại!");
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
@@ -823,9 +863,7 @@ async function confirmRegister() {
                 }
             }, 1500);
         } else {
-            let errText = data.detail || "Đăng ký thất bại!";
-            if (typeof errText === 'object') errText = JSON.stringify(errText);
-            err.innerText = errText;
+            err.innerText = formatApiError(data.detail, "Đăng ký thất bại!");
         }
     } catch (e) { err.innerText = "Lỗi kết nối server!"; }
 
@@ -1754,7 +1792,7 @@ if (btnChangePassword) {
                 document.getElementById('profile-old-password').value = '';
                 document.getElementById('profile-new-password').value = '';
             } else {
-                errEl.innerText = data.detail || "Lỗi khi đổi mật khẩu.";
+                errEl.innerText = formatApiError(data.detail, "Lỗi khi đổi mật khẩu.");
                 errEl.classList.remove('hidden');
             }
         } catch (e) {

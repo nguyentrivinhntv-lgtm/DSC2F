@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.message import EmailMessage
 from app.config import get_settings
+from app.models.base_db import get_site_config
 
 def send_otp_email(to_email: str, otp_code: str, purpose: str = 'reset') -> bool:
     """
@@ -13,11 +14,11 @@ def send_otp_email(to_email: str, otp_code: str, purpose: str = 'reset') -> bool
     - SMTP_USER (email gửi)
     - SMTP_PASS (App Password)
     """
-    settings = get_settings()
-    smtp_server = settings.SMTP_SERVER
-    smtp_port = settings.SMTP_PORT
-    smtp_user = settings.SMTP_USER
-    smtp_pass = settings.SMTP_PASS
+    site_config = get_site_config()
+    smtp_server = site_config.get("smtp_server") or "smtp.gmail.com"
+    smtp_port = int(site_config.get("smtp_port") or 587)
+    smtp_user = site_config.get("smtp_user") or ""
+    smtp_pass = site_config.get("smtp_pass") or ""
 
     if not smtp_user or not smtp_pass:
         print(f"[DUMMY EMAIL] Gửi mã OTP {otp_code} tới {to_email} (Chưa cấu hình SMTP)")
@@ -69,11 +70,11 @@ Trân trọng,
 
 def send_payment_success_email(to_email: str, username: str, tokens: int, amount: int, order_id: str) -> bool:
     """Gửi email xác nhận thanh toán thành công."""
-    settings = get_settings()
-    smtp_server = settings.SMTP_SERVER
-    smtp_port = settings.SMTP_PORT
-    smtp_user = settings.SMTP_USER
-    smtp_pass = settings.SMTP_PASS
+    site_config = get_site_config()
+    smtp_server = site_config.get("smtp_server") or "smtp.gmail.com"
+    smtp_port = int(site_config.get("smtp_port") or 587)
+    smtp_user = site_config.get("smtp_user") or ""
+    smtp_pass = site_config.get("smtp_pass") or ""
 
     if not smtp_user or not smtp_pass:
         print(f"[DUMMY EMAIL] Payment confirmation to {to_email}: +{tokens} tokens, {amount} VND")
