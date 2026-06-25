@@ -1582,7 +1582,25 @@ async function payVNPay(amount, tokens) {
         buttons.forEach(b => { b.innerText = b.dataset.original; b.disabled = false; });
 
         if (response.ok && data.payment_url) {
-            window.location.href = data.payment_url;
+            // Kiểm tra nếu đang chạy trong App Mobile
+            const isInApp = document.cookie.includes('viewappmobie=true');
+            if (isInApp) {
+                // Mở trình duyệt ngoài qua FlutterBridge
+                if (window.FlutterBridge) {
+                    window.FlutterBridge.postMessage('OPEN_URL:' + data.payment_url);
+                } else {
+                    window.open(data.payment_url, '_blank');
+                }
+                
+                // Đóng modal mua token
+                if (paymentModal) paymentModal.classList.add('hidden');
+
+                // Bắt đầu polling kiểm tra kết quả thanh toán
+                _startPaymentPolling(tokens);
+            } else {
+                // Trên trình duyệt thường: redirect bình thường
+                window.location.href = data.payment_url;
+            }
         } else {
             alert(`Lỗi khi tạo liên kết thanh toán: ${data.detail || 'Không có dữ liệu'}`);
         }
@@ -1592,6 +1610,46 @@ async function payVNPay(amount, tokens) {
         const buttons = document.querySelectorAll('#payment-modal .primary-btn');
         buttons.forEach(b => { if(b.dataset.original) b.innerText = b.dataset.original; b.disabled = false; });
     }
+}
+
+// Polling kiểm tra kết quả thanh toán (cho Mobile App)
+let _paymentPollTimer = null;
+function _startPaymentPolling(expectedTokens) {
+    // Lấy số token hiện tại để so sánh
+    const currentTokens = authPredictionTokens;
+    let pollCount = 0;
+    const MAX_POLLS = 60; // Tối đa 5 phút (60 x 5s)
+
+    if (_paymentPollTimer) clearInterval(_paymentPollTimer);
+
+    _paymentPollTimer = setInterval(async () => {
+        pollCount++;
+        if (pollCount > MAX_POLLS) {
+            clearInterval(_paymentPollTimer);
+            _paymentPollTimer = null;
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.prediction_tokens > currentTokens) {
+                    // Thanh toán thành công!
+                    clearInterval(_paymentPollTimer);
+                    _paymentPollTimer = null;
+                    setAuthPredictionTokens(data.prediction_tokens);
+                    const tokenCountEl = document.getElementById('token-count');
+                    if (tokenCountEl) tokenCountEl.innerText = data.prediction_tokens;
+                    alert(`Thanh toán thành công! Tài khoản đã được cộng thêm ${data.prediction_tokens - currentTokens} tokens.`);
+                }
+            }
+        } catch (e) {
+            console.error('Payment poll error', e);
+        }
+    }, 5000); // Mỗi 5 giây
 }
 
 // ----------------- TOKEN SYNC & DYNAMIC PRICING -----------------

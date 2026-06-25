@@ -229,6 +229,11 @@ class _WebViewScreenState extends State<WebViewScreen> {
         debugPrint('==> 🎉 Login thành công, lưu token');
         await _saveToken(token);
       }
+    } else if (data.startsWith('OPEN_URL:')) {
+      // Mở URL bên ngoài (VNPay payment, etc.)
+      final url = data.substring('OPEN_URL:'.length);
+      debugPrint('==> Mở URL bên ngoài: $url');
+      _launchExternalUrl(url);
     } else if (data.startsWith('DOWNLOAD_CSV:')) {
       // Xử lý tải file CSV từ WebView
       final csvData = data.substring('DOWNLOAD_CSV:'.length);
