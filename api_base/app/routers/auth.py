@@ -611,6 +611,25 @@ def change_password(request: ChangePasswordRequest, current_user: dict = Depends
     
     return {"message": "Đổi mật khẩu thành công!"}
 
+
+@router.delete(
+    "/me",
+    summary="Xóa tài khoản hiện tại",
+    description="Xóa mềm (vô hiệu hóa) tài khoản người dùng đang đăng nhập.",
+)
+def soft_delete_my_account(current_user: dict = Depends(get_current_user)):
+    from app.models.base_db import _get_connection
+    conn = _get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE users SET is_active = 0 WHERE id = %s", (current_user["id"],))
+        conn.commit()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lỗi khi xóa tài khoản: {str(e)}")
+    finally:
+        conn.close()
+    return {"message": "Tài khoản của bạn đã được xóa thành công."}
+
 # =============================================================================
 # HYBRID APP CLOUD-SYNC LOGIN (FLUTTER WEBVIEW)
 # =============================================================================
@@ -815,3 +834,56 @@ def api_google_callback_flutter(state: str, code: Optional[str] = None, request:
     </body>
     </html>
     """)
+
+# =============================================================================
+# DELETION REQUESTS
+# =============================================================================
+
+from pydantic import BaseModel
+
+class DeletionRequestModel(BaseModel):
+    contact_info: str
+    reason: str = ""
+    note: str = ""
+
+class UpdateDeletionRequestModel(BaseModel):
+    status: str
+
+@router.post("/deletion-requests")
+def submit_deletion_request(req: DeletionRequestModel):
+    from app.models.base_db import create_deletion_request
+    success = create_deletion_request(req.contact_info, req.reason, req.note)
+    if not success:
+        raise HTTPException(status_code=500, detail="Không thể gửi yêu cầu.")
+    return {"message": "Gửi yêu cầu xóa tài khoản thành công."}
+
+@router.get("/deletion-requests")
+def get_deletion_requests(current_user: dict = Depends(require_admin)):
+    from app.models.base_db import get_all_deletion_requests
+    return get_all_deletion_requests()
+
+@router.put("/deletion-requests/{req_id}")
+def update_deletion_request(req_id: int, payload: UpdateDeletionRequestModel, current_user: dict = Depends(require_admin)):
+    from app.models.base_db import update_deletion_request_status, get_all_deletion_requests, _get_connection
+    reqs = get_all_deletion_requests()
+    req = next((r for r in reqs if r["id"] == req_id), None)
+    if not req:
+        raise HTTPException(status_code=404, detail="Không tìm thấy yêu cầu.")
+        
+    update_deletion_request_status(req_id, payload.status)
+    
+    # Nếu được duyệt (completed), tìm và vô hiệu hóa tài khoản
+    if payload.status == "completed":
+        contact = req["contact_info"]
+        conn = _get_connection()
+        try:
+            with conn.cursor() as cur:
+                # Cố gắng tìm user theo email hoặc username
+                cur.execute("UPDATE users SET is_active = 0 WHERE email = %s OR username = %s OR email = %s", (contact, contact, contact))
+            conn.commit()
+        except Exception as e:
+            pass
+        finally:
+            conn.close()
+            
+    return {"message": "Cập nhật thành công."}

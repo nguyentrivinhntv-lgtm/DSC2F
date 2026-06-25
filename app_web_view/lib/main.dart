@@ -1,12 +1,17 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'config.dart';
 
 void main() async {
@@ -92,7 +97,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
     _initWebView();
   }
 
-  void _initWebView() {
+  void _initWebView() async {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setUserAgent("Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Mobile Safari/537.36")
@@ -120,8 +125,37 @@ class _WebViewScreenState extends State<WebViewScreen> {
       )
       ..addJavaScriptChannel('FlutterBridge', onMessageReceived: _handleWebMessage);
 
+    // ✅ Bật hỗ trợ chọn file (ảnh) trên Android WebView
+    if (Platform.isAndroid) {
+      final androidController = _controller.platform as AndroidWebViewController;
+      await androidController.setOnShowFileSelector(_androidFilePicker);
+    }
+
     _setupAppCookie();
     _loadAppUrl(_activeToken);
+  }
+
+  /// Xử lý chọn file trên Android khi WebView gọi <input type="file">
+  Future<List<String>> _androidFilePicker(FileSelectorParams params) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: params.mode == FileSelectorMode.openMultiple,
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final filePaths = result.files
+            .where((file) => file.path != null)
+            .map((file) => Uri.file(file.path!).toString())
+            .toList();
+        debugPrint('==> File picked: $filePaths');
+        return filePaths;
+      }
+      return [];
+    } catch (e) {
+      debugPrint('==> File picker error: $e');
+      return [];
+    }
   }
 
   Future<void> _setupAppCookie() async {
@@ -195,6 +229,52 @@ class _WebViewScreenState extends State<WebViewScreen> {
         debugPrint('==> 🎉 Login thành công, lưu token');
         await _saveToken(token);
       }
+    } else if (data.startsWith('DOWNLOAD_CSV:')) {
+      // Xử lý tải file CSV từ WebView
+      final csvData = data.substring('DOWNLOAD_CSV:'.length);
+      await _saveCSVFile(csvData);
+    }
+  }
+
+  /// Lưu file CSV xuống bộ nhớ thiết bị
+  Future<void> _saveCSVFile(String csvData) async {
+    try {
+      // Parse JSON: {"filename": "...", "content": "..."}
+      final parsed = jsonDecode(csvData);
+      final filename = parsed['filename'] ?? 'export.csv';
+      final content = parsed['content'] ?? '';
+
+      // Lấy thư mục Downloads
+      Directory? dir;
+      if (Platform.isAndroid) {
+        dir = Directory('/storage/emulated/0/Download');
+        if (!await dir.exists()) {
+          dir = await getExternalStorageDirectory();
+        }
+      } else {
+        dir = await getApplicationDocumentsDirectory();
+      }
+
+      if (dir == null) {
+        debugPrint('==> Không tìm được thư mục lưu file');
+        return;
+      }
+
+      final file = File('${dir.path}/$filename');
+      await file.writeAsString(content);
+      debugPrint('==> ✅ CSV saved: ${file.path}');
+
+      // Thông báo cho WebView biết đã lưu thành công
+      _controller.runJavaScript('''
+        if (typeof window.__onCSVSaved === 'function') {
+          window.__onCSVSaved('${file.path}');
+        } else {
+          alert('Đã lưu file: ${file.path}');
+        }
+      ''');
+    } catch (e) {
+      debugPrint('==> Lỗi lưu CSV: $e');
+      _controller.runJavaScript("alert('Lỗi lưu file CSV: $e');");
     }
   }
 

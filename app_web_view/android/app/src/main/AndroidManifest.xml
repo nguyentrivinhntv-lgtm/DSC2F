@@ -3,6 +3,11 @@
     <!-- ✅ Quyền truy cập Internet -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- ✅ Quyền đọc/ghi bộ nhớ (cho file picker & xuất CSV) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
     <application
         android:label="CNN Detection"
         android:name="${applicationName}"

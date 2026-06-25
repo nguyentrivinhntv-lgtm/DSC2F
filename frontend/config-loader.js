@@ -74,6 +74,24 @@
                 const descVal = (isEn && c.hero_desc_en) ? c.hero_desc_en : c.hero_desc;
                 if (descVal) heroDescEl.textContent = descVal;
             }
+
+            const footerDescEl = document.getElementById('footer-desc');
+            if (footerDescEl) {
+                const fDescVal = (isEn && c.footer_desc_en) ? c.footer_desc_en : c.footer_desc;
+                if (fDescVal) footerDescEl.textContent = fDescVal;
+            }
+
+            const footerEmailEl = document.getElementById('footer-email');
+            if (footerEmailEl && c.contact_email) {
+                footerEmailEl.href = 'mailto:' + c.contact_email;
+                footerEmailEl.textContent = c.contact_email;
+            }
+
+            const footerPhoneEl = document.getElementById('footer-phone');
+            if (footerPhoneEl && c.contact_phone) {
+                footerPhoneEl.href = 'tel:' + c.contact_phone.replace(/[\s-]/g, '');
+                footerPhoneEl.textContent = c.contact_phone;
+            }
         };
         applyTextConfig();
         window.addEventListener('languageChanged', applyTextConfig);

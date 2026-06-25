@@ -42,7 +42,7 @@
                 <button id="refresh-btn" class="btn-analyze admin-btn">
                     <i class="fa-solid fa-rotate"></i> <span data-i18n="refresh">Làm mới</span>
                 </button>
-                <button id="export-btn" class="nav-btn export-btn">
+                <button id="export-btn" class="export-btn-beautiful">
                     <i class="fa-solid fa-file-arrow-down"></i> <span data-i18n="export_csv">Xuất CSV</span>
                 </button>
             </div>
@@ -61,6 +61,7 @@
             <button class="tab-btn" data-tab="tab-notifications"><i class="fa-solid fa-bullhorn"></i> <span data-i18n="tab_notifications">Thông báo</span></button>
             <button class="tab-btn" data-tab="tab-ai"><i class="fa-solid fa-robot"></i> <span data-i18n="tab_ai_config">Cấu hình AI</span></button>
             <button class="tab-btn" data-tab="tab-payment-config"><i class="fa-solid fa-globe"></i> <span data-i18n="tab_api_config">Cấu hình API</span></button>
+            <button class="tab-btn" data-tab="tab-deletion-requests" style="color: #ef4444;"><i class="fa-solid fa-user-slash"></i> <span data-i18n="tab_deletion_requests">Yêu cầu Xóa TK</span></button>
         </div>
 
         <!-- TAB: THỐNG KÊ -->
@@ -96,6 +97,33 @@
                 <div class="glass-panel border-frame chart-container chart-full-width">
                     <h3 data-i18n="chart_timeline">Lượt dùng theo thời gian</h3>
                     <canvas id="chart-line-time"></canvas>
+                </div>
+            </section>
+        </div>
+
+        <!-- TAB: YÊU CẦU XÓA TÀI KHOẢN -->
+        <div id="tab-deletion-requests" class="tab-content">
+            <section class="glass-panel border-frame">
+                <h3><i class="fa-solid fa-user-slash" style="color: #ef4444;"></i> <span data-i18n="tab_deletion_requests">Yêu cầu Xóa Tài khoản</span></h3>
+                <p class="section-desc" data-i18n="desc_deletion_requests">Quản lý các yêu cầu vô hiệu hóa tài khoản từ người dùng.</p>
+                <div class="table-responsive">
+                    <table class="history-table admin-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="col_req_id">ID</th>
+                                <th data-i18n="col_req_contact">Tài khoản / SĐT</th>
+                                <th data-i18n="col_req_reason">Lý do</th>
+                                <th data-i18n="col_req_date">Ngày yêu cầu</th>
+                                <th data-i18n="col_req_status">Trạng thái</th>
+                                <th data-i18n="col_req_action">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-deletion-requests-body">
+                            <tr>
+                                <td colspan="6" class="loading-cell" data-i18n="loading_requests">Đang tải danh sách yêu cầu...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </div>
@@ -359,6 +387,18 @@
                         <div class="config-field">
                             <label for="cfg-site-slogan" data-i18n="ui_slogan">Slogan / Mô tả ngắn</label>
                             <input type="text" id="cfg-site-slogan" placeholder="AI Forensics Platform">
+                        </div>
+                        <div class="config-field">
+                            <label for="cfg-contact-email" data-i18n="ui_contact_email">Email liên hệ</label>
+                            <input type="text" id="cfg-contact-email" placeholder="support@cnndetection.com">
+                        </div>
+                        <div class="config-field">
+                            <label for="cfg-contact-phone" data-i18n="ui_contact_phone">Số điện thoại</label>
+                            <input type="text" id="cfg-contact-phone" placeholder="+1 800 123 4567">
+                        </div>
+                        <div class="config-field full-width">
+                            <label for="cfg-footer-desc" data-i18n="ui_footer_desc">Mô tả chân trang</label>
+                            <textarea id="cfg-footer-desc" rows="2" placeholder="Ứng dụng nhận diện..."></textarea>
                         </div>
                         <div class="config-field full-width">
                             <label for="cfg-footer-text" data-i18n="ui_footer">Nội dung chân trang</label>

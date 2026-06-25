@@ -51,6 +51,12 @@ dependencies:
   # Mở URL bên ngoài
   url_launcher: ^6.3.2
 
+  # Chọn file/ảnh trên mobile (hỗ trợ WebView file upload)
+  file_picker: ^8.0.0
+
+  # Truy cập thư mục lưu trữ thiết bị (Downloads, Documents...)
+  path_provider: ^2.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

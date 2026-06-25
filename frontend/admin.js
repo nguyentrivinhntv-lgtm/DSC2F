@@ -79,6 +79,8 @@ function initTabs() {
                 fetchScheduledNotifications();
             } else if (tabId === 'tab-pages') {
                 loadPagesList();
+            } else if (tabId === 'tab-deletion-requests') {
+                fetchDeletionRequests();
             }
         });
     });
@@ -167,6 +169,93 @@ async function fetchPaymentHistory() {
         historyBody.innerHTML = '<tr><td colspan="6" class="loading-cell">Lỗi kết nối tới API.</td></tr>';
     }
 }
+
+async function fetchDeletionRequests() {
+    const tbody = document.getElementById('admin-deletion-requests-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Đang tải dữ liệu...</td></tr>';
+
+    try {
+        const res = await fetch(`${API_URL}/auth/deletion-requests`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+            tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Lỗi: ${res.statusText}</td></tr>`;
+            return;
+        }
+
+        const items = await res.json();
+        
+        if (items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="empty-cell" data-i18n="empty_requests">Chưa có yêu cầu nào.</td></tr>`;
+            if (typeof applyTranslations === "function") applyTranslations();
+            return;
+        }
+
+        tbody.innerHTML = '';
+        items.forEach(item => {
+            const tr = document.createElement('tr');
+            let statusBadge = '';
+            if (item.status === 'pending') statusBadge = '<span class="status-badge" style="background:#fef3c7; color:#d97706;">Chờ xử lý</span>';
+            else if (item.status === 'completed') statusBadge = '<span class="status-badge status-success">Đã duyệt</span>';
+            else statusBadge = '<span class="status-badge status-failed">Từ chối</span>';
+            
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '-';
+
+            tr.innerHTML = `
+                <td>#${item.id}</td>
+                <td><strong>${item.contact_info}</strong></td>
+                <td>${item.reason || '-'} <br><small style="color:#94a3b8;">${item.note || ''}</small></td>
+                <td>${dateStr}</td>
+                <td>${statusBadge}</td>
+                <td>
+                    ${item.status === 'pending' ? `
+                        <button class="action-btn" onclick="updateDeletionRequest(${item.id}, 'completed')" style="background:#10b981; color:white; border:none; padding:5px 10px; border-radius:4px; margin-right:5px; cursor:pointer;" title="Duyệt xóa">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button class="action-btn" onclick="updateDeletionRequest(${item.id}, 'rejected')" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;" title="Từ chối">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    ` : ''}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+        if (typeof applyTranslations === "function") applyTranslations();
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="loading-cell">Lỗi kết nối API.</td></tr>';
+    }
+}
+
+window.updateDeletionRequest = async function(reqId, status) {
+    if (status === 'completed') {
+        const confirmOk = confirm("Bạn có chắc muốn duyệt yêu cầu này? Tài khoản tương ứng sẽ bị vô hiệu hóa ngay lập tức.");
+        if (!confirmOk) return;
+    }
+    
+    try {
+        const res = await fetch(`${API_URL}/auth/deletion-requests/${reqId}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ status })
+        });
+        
+        if (res.ok) {
+            alert("Cập nhật thành công!");
+            fetchDeletionRequests();
+        } else {
+            const data = await res.json().catch(() => ({}));
+            alert("Lỗi: " + (data.detail || "Không thể cập nhật."));
+        }
+    } catch (err) {
+        alert("Lỗi kết nối máy chủ.");
+    }
+};
 
 function modelLabel(modelType) {
     const names = {
@@ -650,11 +739,28 @@ function exportCsv() {
         .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
         .join('\n');
 
+    const filename = `admin-history-${new Date().toISOString().slice(0, 10)}.csv`;
+
+    // Kiểm tra nếu đang chạy trong App Mobile (WebView) thì gửi qua FlutterBridge
+    const isInApp = document.cookie.includes('viewappmobie=true');
+    if (isInApp && window.FlutterBridge) {
+        try {
+            window.FlutterBridge.postMessage('DOWNLOAD_CSV:' + JSON.stringify({
+                filename: filename,
+                content: csvContent
+            }));
+            return;
+        } catch (e) {
+            console.warn('FlutterBridge CSV failed, fallback to blob', e);
+        }
+    }
+
+    // Fallback: Tải bằng Blob (trình duyệt thường)
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `admin-history-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -667,7 +773,7 @@ let currentConfigLang = 'vi';
 let cachedSiteConfig = {};
 
 const MULTILANG_CONFIG_KEYS = [
-    'site_slogan', 'footer_text', 'hero_title_line1', 'hero_title_line2', 
+    'site_slogan', 'footer_text', 'footer_desc', 'hero_title_line1', 'hero_title_line2', 
     'hero_desc', 'hero_cta_text', 'feature1_title', 'feature1_desc',
     'feature2_title', 'feature2_desc', 'feature3_title', 'feature3_desc',
     'step1_title', 'step1_desc', 'step2_title', 'step2_desc', 'step3_title', 'step3_desc'
@@ -683,6 +789,9 @@ const CONFIG_FIELDS = {
     'cfg-color-text': 'color_text',
     'cfg-site-name': 'site_name',
     'cfg-site-slogan': 'site_slogan',
+    'cfg-contact-email': 'contact_email',
+    'cfg-contact-phone': 'contact_phone',
+    'cfg-footer-desc': 'footer_desc',
     'cfg-footer-text': 'footer_text',
     'cfg-hero-title1': 'hero_title_line1',
     'cfg-hero-title2': 'hero_title_line2',
@@ -1001,12 +1110,12 @@ function initCustomizeTab() {
     if (btnAiTranslate) {
         btnAiTranslate.addEventListener('click', async () => {
             if (currentConfigLang !== 'en') {
-                alert('Vui lòng chuyển sang "Tiếng Anh" để dịch tự động!');
+                alert(window.translations[window.currentLang]['alert_switch_en'] || 'Vui lòng chuyển sang "Tiếng Anh" để dịch tự động!');
                 return;
             }
-            if (!confirm('Bạn có chắc muốn dùng AI tự động dịch các trường nội dung sang Tiếng Anh không?')) return;
+            if (!confirm(window.translations[window.currentLang]['confirm_ai_translate'] || 'Bạn có chắc muốn dùng AI tự động dịch các trường nội dung sang Tiếng Anh không?')) return;
             
-            btnAiTranslate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang dịch...';
+            btnAiTranslate.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span data-i18n="translating">' + (window.translations[window.currentLang]['translating'] || 'Đang dịch...') + '</span>';
             btnAiTranslate.disabled = true;
 
             const token = localStorage.getItem('token');
@@ -1040,7 +1149,7 @@ function initCustomizeTab() {
                     }
                 }
             }
-            btnAiTranslate.innerHTML = '<i class="fa-solid fa-language"></i> Dịch tất cả (AI)';
+            btnAiTranslate.innerHTML = '<i class="fa-solid fa-language"></i> <span data-i18n="btn_ai_translate_all">' + (window.translations[window.currentLang]['btn_ai_translate_all'] || 'Dịch tất cả (AI)') + '</span>';
             btnAiTranslate.disabled = false;
         });
     }
@@ -1445,26 +1554,28 @@ function addPackageDOM(pkg = {}) {
     
     const div = document.createElement('div');
     div.className = 'config-field admin-package-item';
-    div.style = 'background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); position: relative; display: grid; gap: 10px;';
+    div.style = 'background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); position: relative; display: flex; flex-direction: column;';
     
     div.innerHTML = `
-        <button type="button" class="btn-remove-pkg" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px;"><i class="fa-solid fa-trash"></i></button>
-        
-        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
-            <input type="text" class="pkg-name" placeholder="Tên gói (VD: Gói Cơ Bản)" value="${pkg.name || ''}">
-            <label style="display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer;">
-                <input type="checkbox" class="pkg-popular" ${pkg.popular ? 'checked' : ''}>
-                Nổi bật
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; font-weight: 600; color: var(--primary);">
+                <input type="checkbox" class="pkg-popular" style="width: 18px; height: 18px; margin: 0; cursor: pointer;" ${pkg.popular ? 'checked' : ''}>
+                Gói Nổi bật
             </label>
+            <button type="button" class="btn-remove-pkg" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--danger); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 13px; transition: all 0.2s;">
+                <i class="fa-solid fa-trash"></i> Xóa
+            </button>
         </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <input type="number" class="pkg-price" placeholder="Giá (VND)" value="${pkg.price || ''}">
-            <input type="number" class="pkg-tokens" placeholder="Số Token" value="${pkg.tokens || ''}">
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <input type="text" class="pkg-name" placeholder="Tên gói (VD: Gói Cơ Bản)" value="${pkg.name || ''}" title="Tên gói">
+            <input type="number" class="pkg-price" placeholder="Giá (VND)" value="${pkg.price || ''}" title="Giá tiền">
+            <input type="number" class="pkg-tokens" placeholder="Số Token" value="${pkg.tokens || ''}" title="Số token">
         </div>
         
-        <input type="text" class="pkg-features" placeholder="Các tính năng, phân cách bằng dấu phẩy (,)" value="${(pkg.features || []).join(', ')}">
+        <input type="text" class="pkg-features" placeholder="Các tính năng, phân cách bằng dấu phẩy (,)" value="${(pkg.features || []).join(', ')}" style="margin-bottom: 0;">
     `;
+
     
     div.querySelector('.btn-remove-pkg').addEventListener('click', () => {
         div.remove();

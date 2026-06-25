@@ -183,11 +183,11 @@
         
         <nav class="desktop-nav">
             <ul class="nav-links">
-                <li><a href="index.html"><i class="fa-solid fa-house"></i> Quay về trang chủ</a></li>
+                <li><a href="index.html"><i class="fa-solid fa-house"></i> <span data-i18n="nav_home">Quay về trang chủ</span></a></li>
             </ul>
         </nav>
 
-        <a href="app.html" class="header-cta"><i class="fa-solid fa-arrow-right-to-bracket"></i> Đi tới Dashboard</a>
+        <a href="app.html" class="header-cta"><i class="fa-solid fa-arrow-right-to-bracket"></i> <span data-i18n="lp_goto_dashboard">Đi tới Dashboard</span></a>
     </header>
 
     <main class="app-container" style="padding-top: 0;">
@@ -223,9 +223,9 @@
         <!-- Error State -->
         <div id="error-state" class="error-container" style="display: none; margin-top: 120px;">
             <i class="fa-regular fa-circle-xmark"></i>
-            <h2 id="error-title" class="page-title">Không tìm thấy trang</h2>
-            <p id="error-desc" style="color: var(--text-muted); font-size: 1.1rem;">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị gỡ bỏ.</p>
-            <a href="index.html" class="btn-login" style="margin-top: 30px; display: inline-flex;"><i class="fa-solid fa-arrow-left"></i> Quay lại Trang chủ</a>
+            <h2 id="error-title" class="page-title" data-i18n="page_not_found">Không tìm thấy trang</h2>
+            <p id="error-desc" style="color: var(--text-muted); font-size: 1.1rem;" data-i18n="page_not_found_desc">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị gỡ bỏ.</p>
+            <a href="index.html" class="btn-login" style="margin-top: 30px; display: inline-flex;"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="btn_back_home">Quay lại Trang chủ</span></a>
         </div>
     </main>
 
@@ -239,10 +239,10 @@
                     </div>
                     CNN Detection Hub
                 </h3>
-                <p>Ứng dụng nhận diện ảnh AI tiên tiến, sử dụng Deep Learning để phát hiện Deepfake. Hỗ trợ đa nền tảng Web, Android & iOS.</p>
+                <p id="footer-desc" data-i18n="footer_desc">Ứng dụng nhận diện ảnh AI tiên tiến, sử dụng Deep Learning để phát hiện Deepfake. Hỗ trợ đa nền tảng Web, Android & iOS.</p>
             </div>
             <div class="footer-col">
-                <h4>Pháp lý</h4>
+                <h4 data-i18n="footer_col1">Pháp lý</h4>
                 <ul class="footer-links-list">
                     <li><a href="page.html?id=chinh-sach-quyen-rieng-tu">Privacy Policy</a></li>
                     <li><a href="page.html?id=dieu-khoan-su-dung">Terms of Service</a></li>
@@ -251,7 +251,7 @@
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Sản phẩm</h4>
+                <h4 data-i18n="footer_col2">Sản phẩm</h4>
                 <ul class="footer-links-list">
                     <li><a href="app.html">User Dashboard</a></li>
                     <li><a href="admin.html">Admin Panel</a></li>
@@ -259,10 +259,11 @@
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Hỗ trợ</h4>
+                <h4 data-i18n="footer_col3">Hỗ trợ</h4>
                 <ul class="footer-links-list" id="footer-support-links">
                     <li><a href="page.html?id=ho-tro-lien-he">FAQ & Trợ giúp</a></li>
-                    <li><a href="mailto:support@cnndetection.com">support@cnndetection.com</a></li>
+                    <li><a href="mailto:support@cnndetection.com" id="footer-email">support@cnndetection.com</a></li>
+                    <li><a href="tel:+18001234567" id="footer-phone">+1 800 123 4567</a></li>
                 </ul>
             </div>
         </div>

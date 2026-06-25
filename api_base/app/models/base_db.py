@@ -168,7 +168,17 @@ def _init_sqlite_tables():
                     role VARCHAR(20) NOT NULL DEFAULT 'user',
                     prediction_tokens INT NOT NULL DEFAULT 5,
                     is_active TINYINT(1) NOT NULL DEFAULT 1,
-                    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS deletion_requests (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    contact_info VARCHAR(150) NOT NULL,
+                    reason VARCHAR(255),
+                    note TEXT,
+                    status VARCHAR(20) DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             """)
             cur.execute("""
@@ -535,11 +545,11 @@ def init_db(db_path: Optional[str] = None) -> None:
             cur.execute("SELECT COUNT(*) as cnt FROM pages")
             if cur.fetchone()['cnt'] == 0:
                 default_pages = [
-                    ("chinh-sach-quyen-rieng-tu", "Chính sách Quyền riêng tư", "<h2>Chính sách Quyền riêng tư</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
-                    ("dieu-khoan-su-dung", "Điều khoản Sử dụng", "<h2>Điều khoản Sử dụng</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
-                    ("xoa-du-lieu", "Xóa Dữ liệu", "<h2>Xóa Dữ liệu</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
-                    ("chinh-sach-ai", "Chính sách AI", "<h2>Chính sách AI</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
-                    ("ho-tro-lien-he", "Hỗ trợ & Liên hệ", "<h2>Hỗ trợ & Liên hệ</h2><p>Nội dung đang được cập nhật. Vui lòng vào trang Admin để chỉnh sửa bài viết bằng trình soạn thảo.</p>"),
+                    ("chinh-sach-quyen-rieng-tu", "Chính sách Quyền riêng tư", "<h2>1. Thu thập thông tin</h2><p>Hệ thống thu thập các thông tin cơ bản bao gồm email, tên đăng nhập, và hình ảnh bạn tải lên để phân tích. Chúng tôi cam kết không chia sẻ dữ liệu nhận diện cá nhân của bạn cho bất kỳ bên thứ ba nào.</p><h2>2. Sử dụng thông tin</h2><p>Hình ảnh được tải lên chỉ được sử dụng cho mục đích phân tích Deepfake/AI. Chúng tôi không lưu trữ hình ảnh của bạn sau khi quá trình phân tích hoàn tất nhằm đảm bảo quyền riêng tư tối đa.</p><h2>3. Bảo mật dữ liệu</h2><p>Dữ liệu truyền tải giữa thiết bị của bạn và máy chủ được mã hóa bằng giao thức SSL/TLS. Mật khẩu của bạn được mã hóa an toàn (hashed) trước khi lưu vào cơ sở dữ liệu.</p>"),
+                    ("dieu-khoan-su-dung", "Điều khoản Sử dụng", "<h2>1. Chấp nhận điều khoản</h2><p>Bằng việc truy cập và sử dụng dịch vụ nhận diện ảnh giả mạo của chúng tôi, bạn đồng ý tuân thủ các điều khoản sử dụng này.</p><h2>2. Trách nhiệm người dùng</h2><p>Bạn không được sử dụng hệ thống để phân tích các hình ảnh vi phạm pháp luật, đồi trụy hoặc xâm phạm quyền riêng tư của người khác. Bạn chịu hoàn toàn trách nhiệm về nguồn gốc của hình ảnh tải lên.</p><h2>3. Từ chối bảo đảm</h2><p>Hệ thống AI của chúng tôi cung cấp kết quả mang tính chất tham khảo. Mặc dù độ chính xác cao (>99%), chúng tôi không chịu trách nhiệm pháp lý cho bất kỳ quyết định nào của bạn dựa trên kết quả phân tích này.</p>"),
+                    ("xoa-du-lieu", "Xóa Dữ liệu", "<h2>1. Quyền xóa tài khoản và dữ liệu</h2><p>Bạn có toàn quyền yêu cầu xóa tài khoản và tất cả dữ liệu liên quan khỏi hệ thống của chúng tôi bất kỳ lúc nào.</p><h2>2. Cách thức yêu cầu</h2><p>Để xóa dữ liệu, bạn có thể gửi yêu cầu trực tiếp đến bộ phận hỗ trợ của chúng tôi hoặc sử dụng chức năng tự động trong Cài đặt nếu có.</p><h2>3. Thời gian xử lý</h2><p>Sau khi xác nhận yêu cầu, toàn bộ thông tin cá nhân, lịch sử phân tích và tài khoản của bạn sẽ được xóa vĩnh viễn khỏi máy chủ trong vòng 7 ngày làm việc.</p>"),
+                    ("chinh-sach-ai", "Chính sách AI", "<h2>1. Tính minh bạch của AI</h2><p>Hệ thống của chúng tôi sử dụng Mạng nơ-ron tích chập (CNN) và kiến trúc Dual-Stream để phát hiện ảnh giả mạo. Chúng tôi cam kết minh bạch về phương pháp tiếp cận và không sử dụng AI cho các mục đích theo dõi hoặc giám sát người dùng.</p><h2>2. Giới hạn của mô hình</h2><p>AI được huấn luyện trên các tập dữ liệu giả mạo phổ biến nhưng không thể phát hiện 100% tất cả các loại deepfake mới nhất. Kết quả trả về là xác suất (probability) và nên được kết hợp với đánh giá của con người.</p><h2>3. Cải thiện mô hình</h2><p>Chúng tôi liên tục cập nhật và huấn luyện lại AI để chống lại các kỹ thuật giả mạo mới. Quá trình huấn luyện không sử dụng hình ảnh thực tế mà người dùng tải lên trừ khi có sự cho phép rõ ràng.</p>"),
+                    ("ho-tro-lien-he", "Hỗ trợ & Liên hệ", "<h2>1. Kênh hỗ trợ</h2><p>Nếu bạn gặp sự cố kỹ thuật, nạp token không thành công, hoặc có thắc mắc về kết quả phân tích, vui lòng liên hệ với chúng tôi qua các kênh sau:</p><ul><li><strong>Email:</strong> support@cnndetection.com</li><li><strong>Hotline:</strong> 1900 xxxx (Hoạt động 24/7)</li></ul><h2>2. Thời gian phản hồi</h2><p>Đội ngũ kỹ thuật của chúng tôi sẽ cố gắng phản hồi các yêu cầu hỗ trợ qua email trong vòng 24 giờ làm việc.</p><h2>3. Hợp tác & Doanh nghiệp</h2><p>Đối với các yêu cầu tích hợp API cho doanh nghiệp, vui lòng gửi email kèm tiêu đề [BUSINESS] để được ưu tiên tư vấn giải pháp.</p>"),
                 ]
                 for p in default_pages:
                     cur.execute("INSERT IGNORE INTO pages (slug, title, content, is_active) VALUES (%s, %s, %s, 1)", p)
@@ -958,6 +968,10 @@ DEFAULT_SITE_CONFIG = {
     # Thông tin chung
     "site_name": "CNN Detection Hub",
     "site_slogan": "AI Forensics Platform",
+    "contact_email": "support@cnndetection.com",
+    "contact_phone": "+1 800 123 4567",
+    "footer_desc": "Ứng dụng nhận diện ảnh AI tiên tiến, sử dụng Deep Learning để phát hiện Deepfake. Hỗ trợ đa nền tảng Web, Android & iOS.",
+    "footer_desc_en": "Advanced AI image recognition application, using Deep Learning to detect Deepfakes. Supports cross-platform Web, Android & iOS.",
     "footer_text": "© 2026 CNN Detection Hub — AI Deepfake Detection Platform",
     "footer_text_en": "© 2026 CNN Detection Hub — AI Deepfake Detection Platform",
     # Hero Section
@@ -1560,5 +1574,41 @@ def cleanup_old_login_sessions(minutes: int = 10, db_path: Optional[str] = None)
         conn.commit()
     except Exception as e:
         print(f"Error cleanup_old_login_sessions: {e}")
+    finally:
+        conn.close()
+
+def create_deletion_request(contact_info: str, reason: str, note: str, db_path: Optional[str] = None):
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO deletion_requests (contact_info, reason, note, status) VALUES (%s, %s, %s, 'pending')",
+                (contact_info, reason, note)
+            )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+def get_all_deletion_requests(db_path: Optional[str] = None):
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT * FROM deletion_requests ORDER BY id DESC")
+            rows = cur.fetchall()
+            for row in rows:
+                if row.get("created_at") and hasattr(row["created_at"], "isoformat"):
+                    row["created_at"] = row["created_at"].isoformat()
+            return rows
+    finally:
+        conn.close()
+
+def update_deletion_request_status(req_id: int, status: str, db_path: Optional[str] = None):
+    conn = _get_connection(db_path)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE deletion_requests SET status = %s WHERE id = %s", (status, req_id))
+        conn.commit()
+        return True
     finally:
         conn.close()

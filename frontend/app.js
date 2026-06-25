@@ -1805,6 +1805,14 @@ if (btnChangePassword) {
     });
 }
 
+const btnDeleteAccount = document.getElementById('btn-delete-account');
+if (btnDeleteAccount) {
+    btnDeleteAccount.addEventListener('click', async () => {
+        // Chuyển hướng người dùng sang trang Yêu cầu xóa tài khoản
+        window.location.href = 'delete-account.html';
+    });
+}
+
 async function fetchPaymentHistory() {
     const tbody = document.getElementById('payment-history-tbody');
     const badge = document.getElementById('payment-history-badge');

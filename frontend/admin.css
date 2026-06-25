@@ -41,11 +41,31 @@ body {
     font-size: 0.92rem;
 }
 
-.export-btn {
-    background: rgba(14, 165, 164, 0.08);
-    color: var(--text-main);
+.export-btn-beautiful {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white !important;
+    border-radius: 20px;
+    padding: 8px 18px;
+    border: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
 }
 
+.export-btn-beautiful:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    filter: brightness(1.05);
+}
+
+.export-btn-beautiful:active {
+    transform: translateY(0);
+}
 .preview-btn-beautiful {
     background: linear-gradient(135deg, var(--primary), #0a7373);
     color: white !important;
