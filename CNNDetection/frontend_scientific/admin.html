@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Dashboard | CNNDetection Research</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="academic.css">
+    <!-- Quill Rich Text Editor cho CMS Pages -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <style>
+        body { background-color: var(--bg-surface); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background-color: var(--bg-main); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
+        .sidebar-brand { padding: 1.5rem; border-bottom: 2px solid var(--border-dark); font-family: var(--font-serif); font-weight: 700; }
+        .sidebar-brand p { font-family: var(--font-sans); font-weight: 400; font-size: 0.8rem; color: var(--danger); margin-top: 5px; }
+        .sidebar-nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+        .nav-item { padding: 0.75rem 1.5rem; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-secondary); font-weight: 500; border-left: 3px solid transparent; font-size: 0.9rem; }
+        .nav-item:hover { background-color: rgba(0,0,0,0.03); color: var(--text-primary); }
+        .nav-item.active { border-left-color: var(--danger); color: var(--danger); background-color: rgba(220, 53, 69, 0.05); }
+        .main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .topbar { height: 60px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: flex-end; padding: 0 2rem; gap: 1.5rem; background: var(--bg-surface); }
+        .user-info { font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .content-area { flex: 1; overflow-y: auto; padding: 2rem; background-color: #f4f6f8; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .figure-panel { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .figure-title { font-family: var(--font-serif); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+
+        /* Responsive / Mobile Optimization */
+        @media (max-width: 768px) {
+            .dashboard-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .sidebar-nav { display: flex; flex-direction: row; overflow-x: auto; white-space: nowrap; padding: 0; }
+            .nav-item { border-left: none; border-bottom: 3px solid transparent; padding: 1rem; }
+            .nav-item.active { border-left-color: transparent; border-bottom-color: var(--danger); }
+            .main-content { height: auto; overflow: visible; }
+            .content-area { padding: 1rem; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 1rem; }
+            .topbar { padding: 0 1rem; flex-wrap: wrap; justify-content: center; gap: 0.5rem; height: auto; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            .sidebar-footer { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem !important; }
+            .sidebar-footer > div { margin-bottom: 0 !important; }
+            .sidebar-footer .btn { width: 100% !important; margin: 0 !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                CNNDetection
+                <p><i class="fa-solid fa-shield"></i> Control Center</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-tab="admin-dashboard"><i class="fa-solid fa-chart-pie"></i> <span data-i18n="admin_nav_dashboard">Thống kê</span></div>
+                <div class="nav-item" data-tab="admin-users"><i class="fa-solid fa-users-gear"></i> <span data-i18n="admin_nav_users">Quản lý User</span></div>
+                <div class="nav-item" data-tab="admin-deletion" style="color:var(--danger);"><i class="fa-solid fa-user-slash"></i> <span data-i18n="admin_nav_deletion">Yêu cầu Xoá TK</span></div>
+                <div class="nav-item" data-tab="admin-models"><i class="fa-solid fa-microchip"></i> <span data-i18n="admin_nav_models">Quản lý Model</span></div>
+                <div class="nav-item" data-tab="admin-tokens"><i class="fa-solid fa-coins"></i> <span data-i18n="admin_nav_tokens">Nạp Token</span></div>
+                <div class="nav-item" data-tab="admin-history"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="admin_nav_history">Lịch sử Quét</span></div>
+                <div class="nav-item" data-tab="admin-payments"><i class="fa-solid fa-money-bill-transfer"></i> <span data-i18n="admin_nav_payments">Lịch sử Mua hàng</span></div>
+                <div class="nav-item" data-tab="admin-customize"><i class="fa-solid fa-palette"></i> <span data-i18n="admin_nav_ui">Tuỳ chỉnh Giao diện</span></div>
+                <div class="nav-item" data-tab="admin-pages"><i class="fa-solid fa-file-lines"></i> <span data-i18n="admin_nav_cms">Quản lý Trang (CMS)</span></div>
+                <div class="nav-item" data-tab="admin-notifications"><i class="fa-solid fa-bullhorn"></i> <span data-i18n="admin_nav_notifs">Thông báo</span></div>
+                <div class="nav-item" data-tab="admin-ai"><i class="fa-solid fa-robot"></i> <span data-i18n="admin_nav_ai">Cấu hình AI</span></div>
+                <div class="nav-item" data-tab="admin-api"><i class="fa-solid fa-globe"></i> <span data-i18n="admin_nav_api">Cấu hình API</span></div>
+            </nav>
+            <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color);">
+                <a href="dashboard.html" class="btn btn-outline mb-2" style="width: 100%;"><i class="fa-solid fa-arrow-left"></i> <span data-i18n="admin_back_workspace">Về Workspace</span></a>
+                <a href="#" id="logout-btn" class="btn btn-outline" style="width: 100%; border-color: var(--danger); color: var(--danger);"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span data-i18n="btn_logout">Thoát phiên</span></a>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="topbar">
+                <div class="user-info">
+                    <i class="fa-solid fa-user-shield text-danger"></i>
+                    <span id="display-admin-username">Admin</span>
+                </div>
+            </header>
+            
+            <div class="content-area">
+                
+                <!-- DASHBOARD (STATS) -->
+                <div id="tab-admin-dashboard" class="tab-pane active">
+                    <div style="display:flex; justify-content:space-between; align-items:center;" class="mb-3">
+                        <h2 data-i18n="admin_nav_dashboard">Thống kê Toàn cục</h2>
+                        <button id="btn-export-dashboard-excel" class="btn btn-primary btn-sm" style="background-color: #107c41; border-color: #107c41;"><i class="fa-solid fa-file-excel"></i> Xuất Báo cáo Tổng hợp</button>
+                    </div>
+                    <div class="grid-4 mb-3">
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Tổng số mẫu quét</p>
+                            <h3 id="admin-stat-total" style="font-size: 1.8rem; color: var(--primary);">0</h3>
+                        </div>
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Tổng số Users</p>
+                            <h3 id="admin-stat-users" style="font-size: 1.8rem; color: var(--success);">0</h3>
+                        </div>
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Tỷ lệ Fake</p>
+                            <h3 id="admin-stat-fake-rate" style="font-size: 1.8rem; color: var(--danger);">0%</h3>
+                        </div>
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Mô hình phổ biến</p>
+                            <h3 id="admin-stat-top-model" style="font-size: 1.1rem; color: var(--info); margin-top:10px;">-</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="grid-2 mt-4">
+                        <div class="figure-panel">
+                            <h3 class="figure-title text-center">Tỷ lệ sử dụng Mô hình</h3>
+                            <canvas id="chart-models"></canvas>
+                        </div>
+                        <div class="figure-panel">
+                            <h3 class="figure-title text-center">Tỷ lệ Kết quả (Real vs Fake)</h3>
+                            <canvas id="chart-verdicts"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid-2 mt-4 mb-3">
+                        <div class="figure-panel">
+                            <h3 class="figure-title text-center">Lượt quét theo thời gian (7 ngày qua)</h3>
+                            <canvas id="chart-timeline"></canvas>
+                        </div>
+                        <div class="figure-panel">
+                            <h3 class="figure-title text-center">Top 5 Người dùng tích cực</h3>
+                            <canvas id="chart-top-users"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USERS -->
+                <div id="tab-admin-users" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_users">Quản lý User</h2>
+                    <div class="figure-panel">
+                        <div class="form-group" style="max-width: 400px;">
+                            <input type="text" id="admin-search-users" class="form-control" placeholder="Tìm kiếm tài khoản / email...">
+                        </div>
+                        <div id="admin-user-msg" class="msg-box hidden"></div>
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Tokens</th>
+                                    <th>Quyền hạn</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-users-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- DELETION REQUESTS -->
+                <div id="tab-admin-deletion" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_deletion">Yêu cầu Xóa Tài khoản</h2>
+                    <div class="figure-panel">
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tài khoản</th>
+                                    <th>Lý do</th>
+                                    <th>Ngày yêu cầu</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-deletion-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- MODELS -->
+                <div id="tab-admin-models" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_models">Quản lý Mô hình</h2>
+                    <div class="figure-panel">
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>Model ID</th>
+                                    <th>Tên gọi</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-models-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TOKENS -->
+                <div id="tab-admin-tokens" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_tokens">Cấp phát Token</h2>
+                    <div class="figure-panel" style="max-width: 500px;">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" id="topup-username" class="form-control" placeholder="Nhập username...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số lượng (Tokens)</label>
+                            <input type="number" id="topup-amount" class="form-control" value="50" min="1">
+                        </div>
+                        <button id="admin-topup-btn" class="btn btn-primary"><i class="fa-solid fa-bolt"></i> Cấp phát</button>
+                        <div id="topup-msg" class="msg-box hidden mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- HISTORY -->
+                <div id="tab-admin-history" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_history">Lịch sử Phân tích Toàn cục</h2>
+                    <div class="figure-panel">
+                        <div class="grid-3 mb-2">
+                            <input type="text" id="admin-hist-search" class="form-control" placeholder="Tìm tệp / user...">
+                            <select id="admin-hist-model" class="form-control"><option value="all">Tất cả mô hình</option></select>
+                            <select id="admin-hist-verdict" class="form-control">
+                                <option value="all">Tất cả kết luận</option>
+                                <option value="fake">Fake</option>
+                                <option value="real">Real</option>
+                            </select>
+                        </div>
+                        <div class="text-right mb-2">
+                            <button id="btn-export-history-excel" class="btn btn-outline btn-sm" style="color: #107c41; border-color: #107c41;"><i class="fa-solid fa-file-excel"></i> Xuất dữ liệu Lịch sử</button>
+                        </div>
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>User</th>
+                                    <th>Tên ảnh</th>
+                                    <th>Mô hình</th>
+                                    <th>P_fake</th>
+                                    <th>Kết luận</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-history-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PAYMENT HISTORY -->
+                <div id="tab-admin-payments" class="tab-pane">
+                    <div style="display:flex; justify-content:space-between; align-items:center;" class="mb-3">
+                        <h2 data-i18n="admin_nav_payments">Lịch sử Mua Hàng</h2>
+                        <button id="btn-export-payments-excel" class="btn btn-outline btn-sm" style="color: #107c41; border-color: #107c41;"><i class="fa-solid fa-file-excel"></i> Xuất dữ liệu Giao dịch</button>
+                    </div>
+                    <div class="grid-3 mb-3">
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Tổng doanh thu</p>
+                            <h3 id="admin-total-revenue" style="font-size: 1.5rem; color: var(--success);">0 đ</h3>
+                        </div>
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Tổng Token đã cấp</p>
+                            <h3 id="admin-total-tokens-granted" style="font-size: 1.5rem;">0</h3>
+                        </div>
+                        <div class="figure-panel text-center">
+                            <p class="text-muted">Số lượt giao dịch</p>
+                            <h3 id="admin-total-transactions" style="font-size: 1.5rem;">0</h3>
+                        </div>
+                    </div>
+                    <div class="figure-panel">
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>User</th>
+                                    <th>Mã giao dịch</th>
+                                    <th>Số Tiền (VND)</th>
+                                    <th>Tokens</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-payment-history-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CUSTOMIZE UI -->
+                <div id="tab-admin-customize" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_ui">Tùy chỉnh Giao diện (UI Config)</h2>
+                    <div class="figure-panel">
+                        <div class="mb-3" style="display:flex; justify-content:space-between;">
+                            <div>
+                                <button id="btn-cfg-lang-vi" class="btn btn-primary btn-sm">Tiếng Việt</button>
+                                <button id="btn-cfg-lang-en" class="btn btn-outline btn-sm">Tiếng Anh</button>
+                                <button id="btn-ai-translate-config" class="btn btn-outline btn-sm ml-2"><i class="fa-solid fa-language"></i> Dịch tự động</button>
+                            </div>
+                            <div>
+                                <button id="btn-reset-config" class="btn btn-outline btn-sm">Reset</button>
+                                <button id="btn-save-config" class="btn btn-primary btn-sm">Lưu thay đổi</button>
+                            </div>
+                        </div>
+                        <div id="config-save-message" class="msg-box hidden mb-3"></div>
+
+                        <h3 class="figure-title">Màu sắc (Colors)</h3>
+                        <div class="grid-4 mb-3">
+                            <div><label class="form-label">Màu chủ đạo</label><input type="color" id="cfg-color-primary" class="form-control" style="padding:0; height:35px;"></div>
+                            <div><label class="form-label">Màu phụ</label><input type="color" id="cfg-color-accent" class="form-control" style="padding:0; height:35px;"></div>
+                            <div><label class="form-label">Màu nền 1</label><input type="color" id="cfg-color-bg" class="form-control" style="padding:0; height:35px;"></div>
+                            <div><label class="form-label">Màu chữ</label><input type="color" id="cfg-color-text" class="form-control" style="padding:0; height:35px;"></div>
+                        </div>
+
+                        <h3 class="figure-title">Thông tin chung (General)</h3>
+                        <div class="grid-2 mb-3">
+                            <div><label class="form-label">Tên trang web</label><input type="text" id="cfg-site-name" class="form-control"></div>
+                            <div><label class="form-label">Slogan</label><input type="text" id="cfg-site-slogan" class="form-control"></div>
+                            <div><label class="form-label">Email liên hệ</label><input type="text" id="cfg-contact-email" class="form-control"></div>
+                            <div><label class="form-label">Số điện thoại</label><input type="text" id="cfg-contact-phone" class="form-control"></div>
+                            <div style="grid-column: span 2;"><label class="form-label">Mô tả chân trang (Footer Desc)</label><textarea id="cfg-footer-desc" class="form-control" rows="2"></textarea></div>
+                            <div style="grid-column: span 2;"><label class="form-label">Nội dung bản quyền (Footer Text)</label><input type="text" id="cfg-footer-text" class="form-control"></div>
+                        </div>
+
+                        <h3 class="figure-title">Hero Banner</h3>
+                        <div class="grid-2 mb-3">
+                            <div><label class="form-label">Tiêu đề dòng 1</label><input type="text" id="cfg-hero-title1" class="form-control"></div>
+                            <div><label class="form-label">Tiêu đề dòng 2</label><input type="text" id="cfg-hero-title2" class="form-control"></div>
+                            <div style="grid-column: span 2;"><label class="form-label">Mô tả Hero</label><textarea id="cfg-hero-desc" class="form-control" rows="2"></textarea></div>
+                            <div><label class="form-label">Nút CTA</label><input type="text" id="cfg-hero-cta" class="form-control"></div>
+                        </div>
+
+                        <h3 class="figure-title">3 Tính năng (Features)</h3>
+                        <div class="grid-3 mb-3">
+                            <div>
+                                <label class="form-label">Tính năng 1</label>
+                                <input type="text" id="cfg-f1-title" class="form-control mb-1" placeholder="Tiêu đề">
+                                <textarea id="cfg-f1-desc" class="form-control" rows="2" placeholder="Mô tả"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Tính năng 2</label>
+                                <input type="text" id="cfg-f2-title" class="form-control mb-1" placeholder="Tiêu đề">
+                                <textarea id="cfg-f2-desc" class="form-control" rows="2" placeholder="Mô tả"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Tính năng 3</label>
+                                <input type="text" id="cfg-f3-title" class="form-control mb-1" placeholder="Tiêu đề">
+                                <textarea id="cfg-f3-desc" class="form-control" rows="2" placeholder="Mô tả"></textarea>
+                            </div>
+                        </div>
+
+                        <h3 class="figure-title">3 Bước (How it works)</h3>
+                        <div class="grid-3 mb-3">
+                            <div>
+                                <label class="form-label">Bước 1</label>
+                                <input type="text" id="cfg-s1-title" class="form-control mb-1" placeholder="Tiêu đề">
+                                <textarea id="cfg-s1-desc" class="form-control" rows="2" placeholder="Mô tả"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Bước 2</label>
+                                <input type="text" id="cfg-s2-title" class="form-control mb-1" placeholder="Tiêu đề">
+                                <textarea id="cfg-s2-desc" class="form-control" rows="2" placeholder="Mô tả"></textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Bước 3</label>
+                                <input type="text" id="cfg-s3-title" class="form-control mb-1" placeholder="Tiêu đề">
+                                <textarea id="cfg-s3-desc" class="form-control" rows="2" placeholder="Mô tả"></textarea>
+                            </div>
+                        </div>
+
+                        <h3 class="figure-title">Bảng giá Nạp Token (Pricing)</h3>
+                        <div id="pricing-packages-list" class="mb-2"></div>
+                        <button id="btn-add-package" class="btn btn-outline btn-sm"><i class="fa-solid fa-plus"></i> Thêm gói mới</button>
+
+                        <h3 class="figure-title mt-3">Tùy chọn hiển thị (Toggles)</h3>
+                        <div class="mb-3">
+                            <label><input type="checkbox" id="cfg-show-stats"> Hiện Thống kê</label> | 
+                            <label><input type="checkbox" id="cfg-show-marquee"> Hiện Marquee</label> | 
+                            <label><input type="checkbox" id="cfg-show-features"> Hiện Tính năng</label> | 
+                            <label><input type="checkbox" id="cfg-show-howitworks"> Hiện Các bước</label> | 
+                            <label><input type="checkbox" id="cfg-show-cta"> Hiện CTA</label>
+                        </div>
+                        
+                        <h3 class="figure-title">Logo</h3>
+                        <div>
+                            <input type="file" id="logo-file-input" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PAGES CMS -->
+                <div id="tab-admin-pages" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_cms">Quản lý Trang (CMS)</h2>
+                    <div class="figure-panel">
+                        <div class="mb-2 text-right">
+                            <button id="btn-add-page" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Tạo Trang Mới</button>
+                        </div>
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>Tiêu đề</th>
+                                    <th>Slug</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-pages-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- NOTIFICATIONS -->
+                <div id="tab-admin-notifications" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_notifs">Thông báo Toàn hệ thống</h2>
+                    <div class="figure-panel">
+                        <h3 class="figure-title">Gửi thông báo mới</h3>
+                        <div class="form-group"><input type="text" id="notif-title" class="form-control" placeholder="Tiêu đề"></div>
+                        <div class="form-group"><textarea id="notif-message" class="form-control" rows="3" placeholder="Nội dung"></textarea></div>
+                        <div class="form-group">
+                            <label>Loại:</label>
+                            <select id="notif-type" class="form-control" style="display:inline-block; width:auto;"><option value="info">Info</option><option value="warning">Warning</option><option value="success">Success</option><option value="error">Error</option></select>
+                        </div>
+                        <button id="btn-send-notif" class="btn btn-primary">Gửi ngay</button>
+                        <div id="notif-msg" class="msg-box hidden mt-2"></div>
+
+                        <h3 class="figure-title mt-4">Thông báo đã lập lịch (Scheduled)</h3>
+                        <table class="academic-table">
+                            <thead><tr><th>ID</th><th>Tiêu đề</th><th>Loại</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                            <tbody id="admin-scheduled-notifs-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- AI CONFIG -->
+                <div id="tab-admin-ai" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_ai">Cấu hình AI Dịch thuật</h2>
+                    <div class="figure-panel">
+                        <div class="form-group">
+                            <label class="form-label">Nhà cung cấp</label>
+                            <select id="cfg-ai-provider" class="form-control">
+                                <option value="groq">Groq</option>
+                                <option value="gemini">Gemini</option>
+                                <option value="openai">OpenAI</option>
+                            </select>
+                        </div>
+                        <div class="grid-3 mb-3">
+                            <div><label class="form-label">Groq Key</label><input type="password" id="cfg-ai-groq" class="form-control"></div>
+                            <div><label class="form-label">Gemini Key</label><input type="password" id="cfg-ai-gemini" class="form-control"></div>
+                            <div><label class="form-label">OpenAI Key</label><input type="password" id="cfg-ai-openai" class="form-control"></div>
+                        </div>
+                        <button id="btn-save-ai" class="btn btn-primary">Lưu cấu hình AI</button>
+                        <div id="ai-save-message" class="msg-box hidden mt-2"></div>
+                    </div>
+                </div>
+
+                <!-- API CONFIG -->
+                <div id="tab-admin-api" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="admin_nav_api">Cấu hình API & Dịch vụ</h2>
+                    <div class="figure-panel">
+                        <h3 class="figure-title">Google Login</h3>
+                        <div class="grid-2 mb-3">
+                            <div><label class="form-label">Client ID</label><input type="text" id="cfg-google-id" class="form-control"></div>
+                            <div><label class="form-label">Client Secret</label><input type="password" id="cfg-google-secret" class="form-control"></div>
+                        </div>
+                        
+                        <h3 class="figure-title">Giao thức thư tín (SMTP)</h3>
+                        <div class="grid-2 mb-3">
+                            <div><label class="form-label">Server</label><input type="text" id="cfg-smtp-server" class="form-control"></div>
+                            <div><label class="form-label">Port</label><input type="number" id="cfg-smtp-port" class="form-control"></div>
+                            <div><label class="form-label">User</label><input type="text" id="cfg-smtp-user" class="form-control"></div>
+                            <div><label class="form-label">Password</label><input type="password" id="cfg-smtp-pass" class="form-control"></div>
+                        </div>
+
+                        <h3 class="figure-title">Cổng thanh toán (VNPay)</h3>
+                        <div class="grid-2 mb-3">
+                            <div><label class="form-label">Terminal ID (vnp_TmnCode)</label><input type="text" id="cfg-vnpay-tmn" class="form-control"></div>
+                            <div><label class="form-label">Secret Key (vnp_HashSecret)</label><input type="password" id="cfg-vnpay-hash" class="form-control"></div>
+                            <div><label class="form-label">Payment URL</label><input type="text" id="cfg-vnpay-url" class="form-control"></div>
+                            <div><label class="form-label">Return URL</label><input type="text" id="cfg-vnpay-return" class="form-control"></div>
+                        </div>
+                        
+                        <button id="btn-save-payment-config" class="btn btn-primary mt-2">Lưu cấu hình hệ thống</button>
+                        <div id="payment-config-save-message" class="msg-box hidden mt-2"></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <div id="page-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000;">
+        <div style="background:var(--bg-surface); max-width:800px; margin:50px auto; padding:2rem; border-radius:4px; max-height:80vh; overflow-y:auto;">
+            <h3 class="figure-title" id="page-modal-title">Tạo/Sửa Trang</h3>
+            <div class="form-group"><label>Tiêu đề</label><input type="text" id="page-title" class="form-control"></div>
+            <div class="form-group"><label>Slug</label><input type="text" id="page-slug" class="form-control"></div>
+            <div class="form-group"><label>Nội dung HTML</label><textarea id="page-content" class="form-control" rows="8"></textarea></div>
+            <div class="form-group"><label><input type="checkbox" id="page-status"> Kích hoạt (Published)</label></div>
+            <div class="text-right">
+                <button class="btn btn-outline" onclick="document.getElementById('page-modal').style.display='none'">Hủy</button>
+                <button class="btn btn-primary ml-2" id="btn-save-page">Lưu Trang</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="academic_i18n.js"></script>
+    <script src="../frontend/config-loader.js"></script>
+    <script src="academic.js"></script>
+    <script src="admin-extended.js"></script>
+</body>
+</html>

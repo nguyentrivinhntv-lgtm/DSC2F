@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNNDetection Research</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="academic.css">
+    <style>
+        body { background-color: var(--bg-surface); }
+        .landing-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; border-bottom: 2px solid var(--border-dark); background: var(--bg-surface); }
+        .landing-title { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .page-header { padding: 3rem; text-align: center; background-color: var(--bg-main); border-bottom: 1px solid var(--border-color); }
+        .page-header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+        .page-content { max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem; }
+        .page-content h2 { font-family: var(--font-serif); font-size: 1.3rem; color: var(--primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+        .page-content p { line-height: 1.8; margin-bottom: 1.2rem; color: var(--text-primary); }
+        .page-content ul, .page-content ol { margin-bottom: 1.2rem; padding-left: 1.5rem; }
+        .page-content li { line-height: 1.8; margin-bottom: 0.5rem; }
+        .deletion-form { max-width: 600px; margin: 2rem auto; padding: 2rem; border: 1px solid var(--border-color); background: var(--bg-main); border-radius: 4px; }
+        .deletion-form h3 { font-family: var(--font-serif); margin-bottom: 1rem; color: var(--danger); }
+        .footer-links { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; }
+        .footer-links a:hover { color: var(--primary); text-decoration: underline; }
+        .error-container { text-align: center; padding: 4rem 2rem; }
+        .error-container i { font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem; }
+        @media (max-width: 768px) {
+            .landing-header { padding: 1rem; flex-direction: column; gap: 1rem; }
+            .page-content { padding: 1.5rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="landing-header">
+        <div class="landing-title">
+            <span data-i18n="site_title">CNNDetection Research</span>
+        </div>
+        <nav>
+            <a href="index.html" class="btn btn-outline" style="margin-right: 10px;" data-i18n="nav_home">Quay về Trang chủ</a>
+            <a href="login.html" class="btn btn-primary" data-i18n="btn_access_portal">Truy cập Cổng Phân Tích</a>
+        </nav>
+    </header>
+
+    <section class="page-header">
+        <h1 id="page-title">Đang tải...</h1>
+    </section>
+
+    <div class="page-content" id="page-body">
+        <p class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải nội dung trang...</p>
+    </div>
+
+    <!-- Form xóa tài khoản (chỉ hiện trên trang xoa-du-lieu) -->
+    <div id="deletion-form-container" style="display:none;">
+        <div class="deletion-form">
+            <h3><i class="fa-solid fa-user-slash"></i> Gửi yêu cầu xóa tài khoản</h3>
+            <p class="text-muted" style="font-size: 0.9rem;">Điền thông tin liên hệ của bạn (email hoặc username) để chúng tôi xác minh và xử lý yêu cầu.</p>
+            <div class="form-group">
+                <label class="form-label">Email hoặc Username *</label>
+                <input type="text" id="del-contact" class="form-control" placeholder="Nhập email hoặc username của bạn..." required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Lý do xóa tài khoản</label>
+                <select id="del-reason" class="form-control">
+                    <option value="Không còn sử dụng">Không còn sử dụng dịch vụ</option>
+                    <option value="Lo ngại quyền riêng tư">Lo ngại về quyền riêng tư</option>
+                    <option value="Tạo tài khoản mới">Muốn tạo tài khoản mới</option>
+                    <option value="Khác">Lý do khác</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ghi chú thêm (tùy chọn)</label>
+                <textarea id="del-note" class="form-control" rows="3" placeholder="Nhập ghi chú nếu cần..."></textarea>
+            </div>
+            <button id="btn-submit-deletion" class="btn btn-primary" style="width: 100%; background: var(--danger); border-color: var(--danger);">
+                <i class="fa-solid fa-paper-plane"></i> Gửi yêu cầu xóa tài khoản
+            </button>
+            <div id="del-msg" class="msg-box hidden mt-2"></div>
+        </div>
+    </div>
+
+    <footer class="landing-header" style="border-top: 1px solid var(--border-color); border-bottom: none; text-align: center; padding: 2rem; flex-direction: column;">
+        <p style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="footer_copyright">&copy; 2026 CNNDetection Research Project. All rights reserved.</p>
+        <div class="footer-links">
+            <a href="page.html?slug=chinh-sach-quyen-rieng-tu">Chính sách Quyền riêng tư</a>
+            <a href="page.html?slug=dieu-khoan-su-dung">Điều khoản Sử dụng</a>
+            <a href="page.html?slug=xoa-du-lieu">Xóa Dữ liệu</a>
+            <a href="page.html?slug=chinh-sach-ai">Chính sách AI</a>
+            <a href="page.html?slug=ho-tro-lien-he">Hỗ trợ & Liên hệ</a>
+        </div>
+    </footer>
+
+    <script src="academic_i18n.js"></script>
+    <script>
+        const API_URL = ["localhost", "127.0.0.1", ""].includes(window.location.hostname) ? "http://localhost:8000" : "https://cnn-detection-api.onrender.com";
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const slug = params.get('slug');
+            
+            if (!slug) {
+                document.getElementById('page-title').innerText = 'Lỗi';
+                document.getElementById('page-body').innerHTML = `
+                    <div class="error-container">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <h2>Không tìm thấy trang</h2>
+                        <p class="text-muted">Trang bạn tìm không tồn tại. Vui lòng quay về <a href="index.html">Trang chủ</a>.</p>
+                    </div>`;
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/pages/${slug}`);
+                if (res.ok) {
+                    const page = await res.json();
+                    document.getElementById('page-title').innerText = page.title;
+                    document.title = `${page.title} | CNNDetection Research`;
+                    document.getElementById('page-body').innerHTML = page.content || '<p class="text-muted">Nội dung đang được cập nhật.</p>';
+                    
+                    // Show deletion form on xoa-du-lieu page
+                    if (slug === 'xoa-du-lieu') {
+                        document.getElementById('deletion-form-container').style.display = 'block';
+                    }
+                } else {
+                    document.getElementById('page-title').innerText = 'Không tìm thấy';
+                    document.getElementById('page-body').innerHTML = `
+                        <div class="error-container">
+                            <i class="fa-solid fa-file-circle-xmark"></i>
+                            <h2>Trang không tồn tại</h2>
+                            <p class="text-muted">Trang "${slug}" không tồn tại hoặc chưa được kích hoạt. Vui lòng quay về <a href="index.html">Trang chủ</a>.</p>
+                        </div>`;
+                }
+            } catch(e) {
+                document.getElementById('page-title').innerText = 'Lỗi kết nối';
+                document.getElementById('page-body').innerHTML = `
+                    <div class="error-container">
+                        <i class="fa-solid fa-wifi"></i>
+                        <h2>Lỗi kết nối máy chủ</h2>
+                        <p class="text-muted">Không thể tải nội dung trang. Vui lòng thử lại sau.</p>
+                    </div>`;
+            }
+        });
+
+        // Deletion form submission
+        document.getElementById('btn-submit-deletion')?.addEventListener('click', async () => {
+            const contact = document.getElementById('del-contact').value.trim();
+            const reason = document.getElementById('del-reason').value;
+            const note = document.getElementById('del-note').value.trim();
+            const msgEl = document.getElementById('del-msg');
+
+            if (!contact) {
+                msgEl.className = 'msg-box mt-2';
+                msgEl.style.background = '#fff3cd';
+                msgEl.style.color = '#856404';
+                msgEl.style.border = '1px solid #ffc107';
+                msgEl.style.padding = '0.75rem';
+                msgEl.innerText = 'Vui lòng nhập email hoặc username.';
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/deletion-requests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contact_info: contact, reason, note })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msgEl.className = 'msg-box mt-2';
+                    msgEl.style.background = '#d1e7dd';
+                    msgEl.style.color = '#0f5132';
+                    msgEl.style.border = '1px solid #198754';
+                    msgEl.style.padding = '0.75rem';
+                    msgEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + (data.message || 'Yêu cầu đã được gửi thành công. Chúng tôi sẽ xử lý trong 7 ngày làm việc.');
+                    document.getElementById('del-contact').value = '';
+                    document.getElementById('del-note').value = '';
+                } else {
+                    msgEl.className = 'msg-box mt-2';
+                    msgEl.style.background = '#f8d7da';
+                    msgEl.style.color = '#842029';
+                    msgEl.style.border = '1px solid #dc3545';
+                    msgEl.style.padding = '0.75rem';
+                    msgEl.innerText = data.detail || 'Lỗi gửi yêu cầu. Vui lòng thử lại.';
+                }
+            } catch(e) {
+                msgEl.className = 'msg-box mt-2';
+                msgEl.style.background = '#f8d7da';
+                msgEl.style.color = '#842029';
+                msgEl.style.border = '1px solid #dc3545';
+                msgEl.style.padding = '0.75rem';
+                msgEl.innerText = 'Lỗi kết nối máy chủ.';
+            }
+        });
+    </script>
+</body>
+</html>

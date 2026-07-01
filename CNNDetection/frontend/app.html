@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Deepfake Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css?v=3.4">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <div class="bg-mesh"></div>
+
+    <header class="site-header border-frame">
+        <div class="site-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div>
+                <h1>CNN Detection Hub</h1>
+                <p>Deepfake Forensics Workspace</p>
+            </div>
+        </div>
+        <nav class="site-nav">
+            <a id="nav-user-dashboard" href="app.html" class="active" data-i18n="nav_dashboard">User Dashboard</a>
+            <a id="nav-admin-dashboard" href="admin.html" class="hidden" data-i18n="nav_admin">Admin Dashboard</a>
+            <a id="nav-download-app" href="./CNN_Detection.apk" style="background: var(--gradient); color: white; padding: 7px 11px; border-radius: 9px; font-weight: 600; text-decoration: none;">
+                <i class="fa-brands fa-android"></i> <span data-i18n="lp_nav_download">Tải App Android</span>
+            </a>
+        </nav>
+    </header>
+
+    <main class="app-container">
+
+        <div id="auth-section" class="glass-panel active">
+            <div class="auth-header">
+                <h2><i class="fa-solid fa-shield-halved text-gradient"></i> AI Detection</h2>
+                <p data-i18n="auth_sys_title">Hệ thống nhận diện ảnh giả mạo</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="switchAuthTab('login')" data-i18n="auth_login_tab">Đăng nhập</button>
+                <button class="tab-btn" onclick="switchAuthTab('register')" data-i18n="auth_register_tab">Đăng ký</button>
+                <button class="tab-btn" id="tab-forgot" onclick="switchAuthTab('forgot')" style="display:none;" data-i18n="auth_forgot_tab">Quên mật khẩu</button>
+            </div>
+
+            <!-- Form: Đăng nhập -->
+            <form id="login-form" class="auth-form active">
+                <div class="input-group">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="login-username" data-i18n-placeholder="ph_username" placeholder="Tên đăng nhập" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" data-i18n-placeholder="ph_password" placeholder="Mật khẩu" required>
+                </div>
+                <div style="text-align: right; margin-top: -8px; margin-bottom: 12px;">
+                    <a href="#" onclick="switchAuthTab('forgot')" style="color: var(--primary); font-size: 0.9rem; text-decoration: none;" data-i18n="forgot_password">Quên mật khẩu?</a>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <span class="btn-text" data-i18n="auth_login_tab">Đăng nhập</span>
+                    <div class="loader hidden"></div>
+                </button>
+                <div class="auth-divider"><span data-i18n="auth_or">hoặc</span></div>
+                <div id="google-login-container" class="google-login-container hidden">
+                    <div id="google-signin-btn"></div>
+                </div>
+                <div class="err-msg" id="google-login-error"></div>
+                <div class="info-msg" id="login-info"></div>
+                <div class="err-msg" id="login-error"></div>
+            </form>
+
+            <!-- Form: Đăng ký -->
+            <form id="register-form" class="auth-form">
+                <div id="reg-step-1">
+                    <div class="input-group">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="reg-email" data-i18n-placeholder="ph_new_email" placeholder="Địa chỉ Email" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="reg-username" data-i18n-placeholder="ph_new_username" placeholder="Tên đăng nhập mới" required minlength="3">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="reg-password" data-i18n-placeholder="ph_new_password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required
+                            minlength="6">
+                    </div>
+                    <button type="button" id="btn-request-register" class="btn-primary" onclick="requestRegisterOtp()">
+                        <span class="btn-text" data-i18n="auth_register_tab">Tiếp tục</span>
+                        <div class="loader hidden" id="reg-req-loader"></div>
+                    </button>
+                </div>
+
+                <div id="reg-step-2" class="hidden">
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;">Vui lòng nhập mã OTP 6 số đã được gửi đến email của bạn để hoàn tất đăng ký.</p>
+                    <div class="input-group">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="text" id="reg-otp" placeholder="Mã OTP 6 số" required maxlength="6">
+                    </div>
+                    <button type="button" id="btn-confirm-register" class="btn-primary" onclick="confirmRegister()">
+                        <span class="btn-text">Xác nhận & Đăng ký</span>
+                        <div class="loader hidden" id="reg-conf-loader"></div>
+                    </button>
+                </div>
+
+                <div class="err-msg" id="register-error"></div>
+                <div class="success-msg" id="register-success"></div>
+            </form>
+
+            <!-- Form: Quên mật khẩu -->
+            <form id="forgot-form" class="auth-form">
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px;" data-i18n="forgot_desc">Nhập email của bạn để nhận mã khôi phục mật khẩu (OTP).</p>
+                
+                <div id="forgot-step-1">
+                    <div class="input-group">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="forgot-email" data-i18n-placeholder="ph_email" placeholder="Địa chỉ Email" required>
+                    </div>
+                    <button type="button" id="btn-send-otp" class="btn-primary" onclick="sendOtp()">
+                        <span class="btn-text" data-i18n="btn_send_otp">Gửi mã OTP</span>
+                        <div class="loader hidden" id="otp-loader"></div>
+                    </button>
+                </div>
+
+                <div id="forgot-step-2" class="hidden">
+                    <div class="input-group">
+                        <i class="fa-solid fa-key"></i>
+                        <input type="text" id="forgot-otp" data-i18n-placeholder="ph_otp" placeholder="Mã OTP 6 số" required maxlength="6">
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="forgot-new-password" data-i18n-placeholder="ph_new_password" placeholder="Mật khẩu mới" required minlength="6">
+                    </div>
+                    <button type="button" id="btn-reset-password" class="btn-primary" onclick="resetPassword()">
+                        <span class="btn-text" data-i18n="btn_reset_pwd">Đặt lại mật khẩu</span>
+                        <div class="loader hidden" id="reset-loader"></div>
+                    </button>
+                </div>
+
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="#" onclick="switchAuthTab('login')" style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none;" data-i18n="back_to_login"><i class="fa-solid fa-arrow-left"></i> Quay lại Đăng nhập</a>
+                </div>
+
+                <div class="err-msg" id="forgot-error"></div>
+                <div class="success-msg" id="forgot-success"></div>
+            </form>
+        </div>
+
+        <div id="dashboard-section" class="hidden">
+            <div class="saas-layout">
+                <aside class="sidebar border-frame">
+                    <div class="sidebar-brand">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <div>
+                            <h2 data-i18n="app_title">Detection Suite</h2>
+                            <p>AI Forensics</p>
+                        </div>
+                    </div>
+
+                    <nav class="sidebar-menu">
+                        <button class="sidebar-item active" data-tab="single-scan">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span data-i18n="tab_single_scan">Quét Đơn Lẻ</span>
+                        </button>
+                        <button class="sidebar-item" data-tab="batch-scan">
+                            <i class="fa-solid fa-layer-group"></i>
+                            <span data-i18n="tab_batch_scan">Quét Hàng Loạt</span>
+                        </button>
+                        <button class="sidebar-item" data-tab="analytics">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span data-i18n="tab_analytics">Báo Cáo & Phân Tích</span>
+                        </button>
+                        <button class="sidebar-item" data-tab="history">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span data-i18n="tab_history">Lịch Sử Chi Tiết</span>
+                        </button>
+                        <button class="sidebar-item" data-tab="payment-history">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                            <span data-i18n="tab_payment_history">Lịch Sử Mua Hàng</span>
+                        </button>
+
+                        <button class="sidebar-item" data-tab="settings">
+                            <i class="fa-solid fa-sliders"></i>
+                            <span data-i18n="tab_settings">Cài Đặt</span>
+                        </button>
+                    </nav>
+
+                    <div class="sidebar-footer">
+                        <div id="token-card" class="token-card border-frame hidden" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 15px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-bolt-lightning" style="color: var(--color-accent);"></i>
+                                <span style="font-weight: 600; color: var(--color-text);">Tokens:</span>
+                                <strong id="token-count" style="font-size: 1.1rem; color: var(--color-primary);">0</strong>
+                            </div>
+                            <button id="open-payment-modal-btn" class="btn primary-btn btn-icon" style="padding: 5px 8px; border-radius: 6px; font-size: 0.9rem;" title="Mua thêm Tokens">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                        <button id="admin-panel-btn" class="sidebar-item hidden" title="Mở trang quản trị">
+                            <i class="fa-solid fa-user-gear"></i>
+                            <span>Admin Dashboard</span>
+                        </button>
+                    </div>
+                </aside>
+
+                <section class="workspace">
+                    <div class="workspace-header border-frame">
+                        <div class="workspace-search">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" data-i18n-placeholder="ph_search" placeholder="Tìm chức năng, mô hình, lịch sử..." />
+                        </div>
+                        <div class="workspace-actions">
+                            <div class="notification-container">
+                                <button class="btn-icon" id="btn-notifications" title="Thông báo">
+                                    <i class="fa-regular fa-bell"></i>
+                                    <span id="notification-badge" class="badge">0</span>
+                                </button>
+                                <div id="notification-dropdown" class="notification-dropdown border-frame glass-panel hidden">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 5px;">
+                                        <h4 style="margin: 0; font-size: 14px;">Thông báo</h4>
+                                        <button id="btn-mark-all-read" style="background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer;">Đánh dấu đã đọc tất cả</button>
+                                    </div>
+                                    <div id="notification-list" style="display: flex; flex-direction: column; gap: 8px;">
+                                        <!-- Danh sách thông báo sẽ hiển thị ở đây -->
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn-icon" title="Hỗ trợ"><i class="fa-regular fa-circle-question"></i></button>
+                            
+                            <div class="user-menu-container">
+                                <button id="user-menu-btn" class="btn-icon user-menu-trigger">
+                                    <i class="fa-solid fa-bars"></i>
+                                </button>
+                                <div id="user-dropdown" class="user-dropdown border-frame glass-panel hidden">
+                                    <div class="dropdown-user-header">
+                                        <div class="user-avatar">
+                                            <i class="fa-solid fa-user"></i>
+                                        </div>
+                                        <div class="user-meta">
+                                            <span id="display-username" class="user-name-text">User</span>
+                                            <span id="display-role" class="badge admin-badge">Role</span>
+                                        </div>
+                                    </div>
+                                    <div class="dropdown-divider"></div>
+                                    <button id="profile-btn" class="dropdown-item">
+                                        <i class="fa-solid fa-user-gear"></i>
+                                        <span>Hồ sơ cá nhân</span>
+                                    </button>
+                                    <button id="logout-btn" class="dropdown-item logout-item">
+                                        <i class="fa-solid fa-right-from-bracket"></i>
+                                        <span data-i18n="logout">Đăng xuất</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="workspace-content">
+                        <div class="tab-content active" id="single-scan-tab">
+                            <div class="workspace-title">
+                                <h3 data-i18n="tab_single_scan">Single Scan</h3>
+                                <p data-i18n="desc_single_scan">Phân tích nhanh 1 ảnh với visual forensic nâng cao.</p>
+                            </div>
+
+                            <div class="main-content">
+                                <div class="control-panel white-card border-frame">
+                                    <div class="setting-group">
+                                        <label><i class="fa-solid fa-microchip"></i> <span data-i18n="lbl_select_model">Chọn Mô Hình (AI Model)</span></label>
+                                        <select id="model-select" class="glass-select">
+                                            <option value="dual_stream_enhanced" selected data-i18n="model_ds_enh">Dual-Stream Enhanced (Tốt nhất)</option>
+                                            <option value="dual_stream_resnet" data-i18n="model_ds_res">Dual-Stream ResNet18</option>
+                                            <option value="resnet50" data-i18n="model_rn50">ResNet-50 Single</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="upload-area" id="drop-zone">
+                                        <input type="file" id="file-input" accept="image/jpeg, image/png, image/webp" hidden>
+                                        <div class="upload-content" id="upload-content">
+                                            <div class="upload-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                            <h3 data-i18n="upload_drag">Kéo thả ảnh vào đây</h3>
+                                            <p data-i18n="upload_or">hoặc <span class="text-gradient">nhấn để chọn file</span></p>
+                                            <span class="file-hint" data-i18n="upload_hint">Hỗ trợ JPG, PNG, WEBP</span>
+                                        </div>
+                                        <img id="image-preview" class="hidden" alt="Preview">
+                                        <button id="remove-img-btn" class="hidden btn-icon absolute-btn"><i
+                                                class="fa-solid fa-xmark"></i></button>
+                                    </div>
+
+                                    <button id="analyze-btn" class="btn-analyze" disabled>
+                                        <i class="fa-solid fa-magnifying-glass"></i> <span data-i18n="btn_analyze">Phân Tích Ảnh</span>
+                                        <div class="loader hidden"></div>
+                                    </button>
+                                </div>
+
+                                <div class="result-panel white-card border-frame">
+                                    <div class="result-placeholder" id="result-placeholder">
+                                        <i class="fa-solid fa-image"></i>
+                                        <p data-i18n="res_placeholder">Upload ảnh để xem phân tích</p>
+                                    </div>
+
+                                    <div class="result-content hidden" id="result-content">
+                                        <h3 data-i18n="res_title">Kết Quả Nhận Diện</h3>
+
+                                        <div class="verdict-box" id="verdict-box">
+                                            <div class="verdict-icon" id="verdict-icon"></div>
+                                            <h2 id="verdict-text">FAKE</h2>
+                                        </div>
+
+                                        <div class="metrics">
+                                            <div class="metric-item">
+                                                <span class="label" data-i18n="lbl_confidence">Độ tin cậy</span>
+                                                <span class="val" id="res-confidence">98.5%</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="label" data-i18n="lbl_prob">Xác suất ảnh giả</span>
+                                                <span class="val" id="res-probability">0.985</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="label" data-i18n="lbl_model">Mô hình</span>
+                                                <span class="val highlight" id="res-model">Dual Stream Enhanced</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="prob-bar-container">
+                                            <div class="prob-bar-labels">
+                                                <span data-i18n="lbl_real">Real</span>
+                                                <span data-i18n="lbl_fake">Fake</span>
+                                            </div>
+                                            <div class="prob-bar-bg">
+                                                <div class="prob-bar-fill" id="prob-bar-fill"></div>
+                                                <div class="prob-marker" id="prob-marker"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="insight-grid">
+                                            <div class="insight-card border-frame">
+                                                <h4 data-i18n="lbl_heatmap">Heatmap / Grad-CAM</h4>
+                                                <div class="heatmap-box" id="heatmap-box" data-i18n="heatmap_placeholder">Vùng nghi ngờ sẽ hiển thị tại đây</div>
+                                            </div>
+                                            <div class="insight-card border-frame">
+                                                <h4 data-i18n="lbl_metadata">Metadata / Noise Analysis</h4>
+                                                <ul class="meta-list">
+                                                    <li><span data-i18n="lbl_noise_bg">Nhiễu nền:</span> <strong id="meta-noise" data-i18n="val_analyzing">Đang phân tích</strong></li>
+                                                    <li><span data-i18n="lbl_noise_edge">Viền khuôn mặt:</span> <strong id="meta-edge" data-i18n="val_analyzing">Đang phân tích</strong></li>
+                                                    <li><span data-i18n="lbl_noise_comp">Dấu vết nén ảnh:</span> <strong id="meta-compression" data-i18n="val_analyzing">Đang phân tích</strong></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div class="fft-container hidden" id="fft-container">
+                                            <span class="label"
+                                                style="display:block;margin-top:1.5rem;margin-bottom:0.8rem;text-align:center" data-i18n="lbl_fft_img">Ảnh
+                                                Phổ Cấu Trúc Không Gian (FFT)</span>
+                                            <div style="display:flex; justify-content:center;">
+                                                <img id="fft-image" src="" alt="FFT Spectrum"
+                                                    style="max-width: 15rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="batch-scan-tab">
+                            <div class="white-card border-frame feature-card">
+                                <h3 data-i18n="title_batch_scan">Batch Scan</h3>
+                                <p data-i18n="desc_batch_scan">Tải nhiều ảnh để quét hàng loạt bằng cùng 1 model.</p>
+                                <div class="batch-controls">
+                                    <select id="batch-model-select" class="glass-select">
+                                        <option value="dual_stream_enhanced" selected data-i18n="model_ds_enh">Dual-Stream Enhanced (Tốt nhất)</option>
+                                        <option value="dual_stream_resnet" data-i18n="model_ds_res">Dual-Stream ResNet18</option>
+                                        <option value="resnet50" data-i18n="model_rn50">ResNet-50 Single</option>
+                                    </select>
+                                    <input type="file" id="batch-file-input" accept="image/jpeg, image/png, image/webp" multiple>
+                                    <button id="batch-run-btn" class="btn-analyze"><i class="fa-solid fa-layer-group"></i> <span data-i18n="btn_batch_scan">Quét Hàng Loạt</span></button>
+                                </div>
+                                <div class="batch-drop" id="batch-drop" data-i18n="lbl_batch_drop">Kéo thả nhiều ảnh vào đây (tối đa 20 ảnh/lần)</div>
+                                <p id="batch-summary" class="muted-line" data-i18n="lbl_batch_summary">Chưa có dữ liệu batch.</p>
+                                <div class="table-responsive">
+                                    <table class="history-table batch-result-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="col_filename">Tên File</th>
+                                                <th data-i18n="col_model">Model</th>
+                                                <th data-i18n="col_fake_pct">Fake (%)</th>
+                                                <th data-i18n="col_pred">Kết Luận</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="batch-result-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="analytics-tab">
+                            <div class="white-card border-frame feature-card">
+                                <h3>Analytics Dashboard</h3>
+                                <p>Thống kê realtime từ lịch sử phân tích của tài khoản hiện tại.</p>
+                                <div class="analytics-grid">
+                                    <div class="mini-stat border-frame">
+                                        <span data-i18n="stat_total_scans">Tổng lượt quét</span>
+                                        <strong id="stat-total-scans">0</strong>
+                                    </div>
+                                    <div class="mini-stat border-frame">
+                                        <span data-i18n="stat_fake_rate">Tỷ lệ Fake</span>
+                                        <strong id="stat-fake-rate">0%</strong>
+                                    </div>
+                                    <div class="mini-stat border-frame">
+                                        <span data-i18n="stat_real_rate">Tỷ lệ Real</span>
+                                        <strong id="stat-real-rate">0%</strong>
+                                    </div>
+                                    <div class="mini-stat border-frame">
+                                        <span data-i18n="stat_top_model">Model phổ biến</span>
+                                        <strong id="stat-top-model">-</strong>
+                                    </div>
+                                    <div class="mini-stat border-frame">
+                                        <span data-i18n="stat_avg_fake">Độ fake trung bình</span>
+                                        <strong id="stat-avg-fake">0%</strong>
+                                    </div>
+                                </div>
+                                <div class="table-responsive analytics-table-wrap">
+                                    <table class="history-table analytics-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="col_model">Model</th>
+                                                <th data-i18n="col_count">Số lượt</th>
+                                                <th data-i18n="col_ratio">Tỷ trọng</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="analytics-model-tbody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="history-tab">
+                            <div class="history-container white-card border-frame">
+                                <h3><i class="fa-solid fa-clock-rotate-left text-gradient"></i> <span data-i18n="history_title">Lịch sử nhận diện</span> <span
+                                        id="history-badge" class="badge"></span></h3>
+                                <div class="action-row">
+                                    <button id="history-refresh-btn" class="btn-icon" title="Làm mới lịch sử"><i class="fa-solid fa-rotate-right"></i></button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="col_time">Cập Nhật</th>
+                                                <th data-i18n="col_user">Người Dùng</th>
+                                                <th data-i18n="col_filename">Tên Ảnh</th>
+                                                <th data-i18n="col_model">Mô Hình</th>
+                                                <th data-i18n="col_prob">Độ Fake (%)</th>
+                                                <th data-i18n="col_verdict">Kết Luận</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="history-tbody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="payment-history-tab">
+                            <div class="history-container white-card border-frame">
+                                <h3><i class="fa-solid fa-money-bill-transfer text-gradient"></i> <span data-i18n="tab_payment_history">Lịch Sử Mua Hàng</span> <span id="payment-history-badge" class="badge"></span></h3>
+                                <div class="action-row">
+                                    <button id="payment-history-refresh-btn" class="btn-icon" title="Làm mới lịch sử"><i class="fa-solid fa-rotate-right"></i></button>
+                                </div>
+                                <div class="admin-stats-grid" style="margin-bottom: 20px;">
+                                    <article class="glass-panel border-frame stat-card" style="padding: 15px;">
+                                        <p data-i18n="stat_user_spent">Tổng tiền đã nạp</p>
+                                        <h3 id="user-total-spent">0 đ</h3>
+                                    </article>
+                                    <article class="glass-panel border-frame stat-card" style="padding: 15px;">
+                                        <p data-i18n="stat_user_tokens">Tổng token nhận được</p>
+                                        <h3 id="user-total-tokens-bought">0</h3>
+                                    </article>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="history-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="col_time">Thời Gian</th>
+                                                <th data-i18n="col_order_id">Mã Giao Dịch</th>
+                                                <th data-i18n="col_amount">Số Tiền (VND)</th>
+                                                <th data-i18n="col_tokens">Tokens Nhận</th>
+                                                <th data-i18n="col_status">Trạng Thái</th>
+                                                <th data-i18n="col_action">Thao Tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="payment-history-tbody">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-content hidden" id="settings-tab">
+                            <div class="white-card border-frame feature-card">
+                                <h3 data-i18n="tab_settings">Settings</h3>
+                                <p data-i18n="settings_desc">Tinh chỉnh ngưỡng hiển thị và trải nghiệm dashboard.</p>
+                                <label class="setting-inline"><span data-i18n="settings_threshold">Ngưỡng kết luận Fake:</span> <strong id="settings-threshold-value">85%</strong>
+                                    <input type="range" id="settings-threshold" min="50" max="99" value="85" />
+                                </label>
+                                <label class="setting-inline checkbox-inline">
+                                    <input type="checkbox" id="settings-auto-history" checked />
+                                    <span data-i18n="settings_auto_history">Tự động tải lịch sử khi mở tab Analytics</span>
+                                </label>
+                                <button id="save-settings-btn" class="btn-analyze"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="save_changes">Lưu Cài Đặt</span></button>
+                                <p id="settings-save-msg" class="muted-line"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="app-footer">
+        <p><span data-i18n="app_footer">&copy; 2026 CNN Detection AI - Chuyên Cung Cấp Giải Pháp Phát Hiện Ảnh Deepfake</span></p>
+    </div>
+
+    <!-- VNPay Payment Modal -->
+    <div id="payment-modal" class="modal hidden">
+        <div class="modal-content white-card border-frame" style="max-width: 800px; text-align: center; padding: 40px 20px;">
+            <button class="close-modal" id="close-payment-modal" style="top: 15px; right: 20px;"><i class="fa-solid fa-xmark"></i></button>
+            
+            <h2 style="font-size: 28px; margin-bottom: 10px; color: var(--color-primary);"><i class="fa-solid fa-gem"></i> <span data-i18n="pricing_title">Nạp thêm Token</span></h2>
+            <p data-i18n="pricing_subtitle" style="color: var(--color-text); margin-bottom: 30px; font-size: 16px; opacity: 0.8;">Lựa chọn gói Token phù hợp để tiếp tục sử dụng hệ thống AI phân tích Deepfake.</p>
+            
+            <div class="pricing-grid" id="pricing-grid-container">
+                <!-- Javascript sẽ render động các gói giá vào đây dựa trên cấu hình admin -->
+                <div style="grid-column: 1 / -1; padding: 20px;">
+                    <div class="loader" style="margin: 0 auto; position: static;"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 35px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 20px;">
+                <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Thanh toán an toàn & bảo mật qua VNPay</p>
+                <img src="https://sandbox.vnpayment.vn/apis/assets/images/logo.svg" alt="vnpay logo" height="35" style="opacity: 0.9;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal hidden">
+        <div class="modal-content white-card border-frame" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-gear"></i> <span data-i18n="title_profile">Hồ sơ cá nhân</span></h3>
+                <span class="close-modal" id="close-profile-modal">&times;</span>
+            </div>
+            <div class="modal-body" style="padding-top:10px;">
+                <p><span data-i18n="lbl_account">Tài khoản:</span> <strong id="profile-username">...</strong></p>
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;" />
+                <h4 style="margin-bottom: 10px;" data-i18n="title_change_pwd">Đổi mật khẩu</h4>
+                <div class="input-group">
+                    <label data-i18n="lbl_old_pwd">Mật khẩu cũ</label>
+                    <input type="password" id="profile-old-password" data-i18n-placeholder="ph_old_pwd" placeholder="Nhập mật khẩu hiện tại" class="glass-input" />
+                </div>
+                <div class="input-group">
+                    <label data-i18n="lbl_new_pwd">Mật khẩu mới</label>
+                    <input type="password" id="profile-new-password" data-i18n-placeholder="ph_new_pwd" placeholder="Nhập mật khẩu mới" class="glass-input" />
+                </div>
+                <div id="profile-error" class="error-msg hidden" style="margin-top:10px;"></div>
+                <div id="profile-success" class="success-msg hidden" style="color:var(--primary);margin-top:10px;font-size:0.9rem;"></div>
+                
+                <hr style="border:0; border-top:1px solid rgba(0,0,0,0.05); margin: 20px 0;">
+                <div style="text-align: right;">
+                    <button id="btn-delete-account" class="btn-cancel" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); width: 100%;" data-i18n="btn_delete_account">Xóa tài khoản</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-change-password" class="btn-primary" style="width:100%" data-i18n="btn_change_pwd">Đổi mật khẩu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js?v=4.0"></script>
+    <script src="config-loader.js?v=2.1"></script>
+    
+    <!-- Order Details Modal -->
+    <div id="order-details-modal" class="modal hidden">
+        <div class="modal-content glass-panel border-frame">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-file-invoice"></i> Chi Tiết Hoá Đơn</h3>
+                <button class="btn-close" id="btn-close-order-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="line-height: 1.6;">
+                <p><strong>Mã Giao Dịch:</strong> <span id="modal-order-id"></span></p>
+                <p><strong>Thời Gian:</strong> <span id="modal-order-time"></span></p>
+                <p><strong>Số Tiền Nạp:</strong> <span id="modal-order-amount"></span> đ</p>
+                <p><strong>Token Nhận Được:</strong> <span id="modal-order-tokens"></span></p>
+                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin: 15px 0;">
+                <p><strong>Ngân Hàng / Ví:</strong> <span id="modal-order-bank"></span></p>
+                <p><strong>Loại Thẻ:</strong> <span id="modal-order-card"></span></p>
+                <p><strong>Mã ĐS VNPay:</strong> <span id="modal-order-vnpay-no"></span></p>
+                <p><strong>Trạng Thái:</strong> <span class="badge" style="background:#ecfdf5;color:#065f46;border-color:#86efac;">Thành công</span></p>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" id="btn-close-order-modal-2">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Details Modal -->
+    <div id="notif-detail-modal" class="modal hidden">
+        <div class="modal-content white-card border-frame" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-bell" style="color: var(--primary);"></i> Chi Tiết Thông Báo</h3>
+                <span class="close-modal" id="btn-close-notif-modal">&times;</span>
+            </div>
+            <div class="modal-body" style="line-height: 1.6; padding-top: 15px;">
+                <h4 id="modal-notif-title" style="margin-top: 0; color: var(--primary); font-size: 18px;"></h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;"><i class="fa-regular fa-clock"></i> <span id="modal-notif-time"></span></p>
+                <div id="modal-notif-message" style="background: var(--bg-color); padding: 15px; border-radius: 8px; border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word; font-size: 15px; color: var(--color-text); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);"></div>
+            </div>
+            <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button class="btn-primary" id="btn-close-notif-modal-2" style="min-width: 120px;">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN JS -->
+    <script src="app.js?v=4.7"></script>
+</body>
+
+</html>

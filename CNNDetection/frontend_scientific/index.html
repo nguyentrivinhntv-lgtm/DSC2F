@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="site-title">CNNDetection Research - Phân Tích Hình Ảnh</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="academic.css">
+    <style>
+        body { background-color: var(--bg-surface); }
+        .marquee-container { background-color: var(--primary); color: white; padding: 8px 0; overflow: hidden; white-space: nowrap; font-size: 0.9rem; font-weight: 500; }
+        .marquee-content { display: inline-block; animation: marquee 25s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .landing-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; border-bottom: 2px solid var(--border-dark); background: var(--bg-surface); }
+        .landing-title { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .hero-section { padding: 4rem 3rem; text-align: center; background-color: var(--bg-main); border-bottom: 1px solid var(--border-color); }
+        .hero-section h1 { font-size: 2.5rem; margin-bottom: 1rem; max-width: 900px; margin-left: auto; margin-right: auto; }
+        .hero-section p { font-size: 1.1rem; color: var(--text-secondary); max-width: 800px; margin: 0 auto 2rem; line-height: 1.8; }
+        .section-container { max-width: 1200px; margin: 0 auto; padding: 3rem 1.5rem; }
+        .feature-grid, .steps-grid, .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 2rem; }
+        .feature-card, .step-card, .pricing-card { border: 1px solid var(--border-color); padding: 2rem; background: var(--bg-surface); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .feature-card h3, .step-card h3, .pricing-card h3 { font-size: 1.2rem; margin-bottom: 1rem; text-align: center; }
+        .feature-icon, .step-number { font-size: 2rem; color: var(--primary); margin-bottom: 1rem; text-align: center; }
+        .step-number { width: 50px; height: 50px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-weight: bold; }
+        .pricing-card { text-align: center; }
+        .pricing-price { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 1rem 0; }
+        .pricing-tokens { font-family: monospace; font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .cta-section { background-color: var(--primary); color: white; text-align: center; padding: 4rem 2rem; }
+        .cta-section h2 { color: white; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+    
+    <div class="marquee-container" id="marquee-section">
+        <div class="marquee-content" id="marquee-text" data-i18n="marquee_text">
+            * CẬP NHẬT: Mô hình Dual-Stream Enhanced đã đạt độ chính xác 98.5% trên tập test * | * Hỗ trợ API cho các nhóm nghiên cứu * | * Liên hệ Admin để cấp phát Token *
+        </div>
+    </div>
+
+    <header class="landing-header">
+        <div class="landing-title">
+            <img id="site-logo" src="" alt="Logo" style="display:none; max-height:40px;">
+            <span id="display-site-name" data-i18n="site_title">CNNDetection Research - Phân Tích Hình Ảnh</span>
+        </div>
+        <nav style="display: flex; align-items: center; gap: 1rem;">
+            <style>
+                .nav-dropdown { position: relative; display: inline-block; }
+                .nav-dropdown-content { display: none; position: absolute; background-color: var(--bg-surface); min-width: 220px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1); z-index: 1; border: 1px solid var(--border-color); border-radius: 4px; top: 100%; right: 0; }
+                .nav-dropdown-content a { color: var(--text-primary); padding: 12px 16px; text-decoration: none; display: block; font-size: 0.9rem; }
+                .nav-dropdown-content a:hover { background-color: var(--bg-main); color: var(--primary); }
+                .nav-dropdown:hover .nav-dropdown-content { display: block; }
+                .nav-link { color: var(--text-primary); text-decoration: none; font-weight: 500; font-size: 0.95rem; cursor: pointer; }
+                .nav-link:hover { color: var(--primary); }
+            </style>
+            
+            <a href="about.html" class="nav-link">Giới thiệu</a>
+            
+            <div class="nav-dropdown">
+                <span class="nav-link">Chính sách & Hỗ trợ <i class="fa-solid fa-caret-down"></i></span>
+                <div class="nav-dropdown-content">
+                    <a href="page.html?slug=chinh-sach-quyen-rieng-tu"><i class="fa-solid fa-shield-halved"></i> Quyền riêng tư</a>
+                    <a href="page.html?slug=dieu-khoan-su-dung"><i class="fa-solid fa-file-contract"></i> Điều khoản Sử dụng</a>
+                    <a href="page.html?slug=chinh-sach-ai"><i class="fa-solid fa-microchip"></i> Chính sách AI</a>
+                    <a href="page.html?slug=ho-tro-lien-he"><i class="fa-solid fa-headset"></i> Hỗ trợ & Liên hệ</a>
+                    <a href="page.html?slug=xoa-du-lieu" class="text-danger"><i class="fa-solid fa-user-slash"></i> Xóa Dữ liệu</a>
+                </div>
+            </div>
+            
+            <a href="login.html" class="btn btn-outline" style="margin-left: 10px;" data-i18n="btn_login">Đăng nhập</a>
+            <a href="login.html" class="btn btn-primary" id="btn-header-cta" data-i18n="btn_access_portal">Truy cập Cổng Phân Tích</a>
+        </nav>
+    </header>
+
+    <section class="hero-section">
+        <h1 id="hero-title" data-i18n="hero_title">Hệ Thống Nhận Diện Ảnh Giả Mạo Dựa Trên Kiến Trúc Dual-Stream CNN</h1>
+        <p id="hero-desc" data-i18n="hero_desc"><strong>Tóm tắt (Abstract):</strong> Công cụ đánh giá pháp y kỹ thuật số ứng dụng mô hình Học sâu (Deep Learning) kết hợp thông tin Không gian (RGB) và Phổ tần số (FFT) để nhận diện hình ảnh được tạo ra hoặc chỉnh sửa bởi AI (Deepfake).</p>
+        <div>
+            <a href="login.html" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;" id="hero-cta-btn" data-i18n="btn_run_inference">Bắt đầu Phân tích (Run Inference)</a>
+        </div>
+    </section>
+
+    <div class="section-container" id="stats-section" style="background-color: var(--bg-main); max-width: 100%; border-bottom: 1px solid var(--border-color);">
+        <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+            <h2 class="mb-3" data-i18n="stats_title">Thống Kê Khảo Sát Kỹ Thuật (System Metrics)</h2>
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+                <div>
+                    <h3 style="font-size: 2.5rem; color: var(--primary);">98.5%</h3>
+                    <p class="text-muted" data-i18n="stat_acc_lbl">Độ chính xác (Accuracy)</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 2.5rem; color: var(--primary);">20ms</h3>
+                    <p class="text-muted" data-i18n="stat_lat_lbl">Độ trễ TB (Latency)</p>
+                </div>
+                <div>
+                    <h3 style="font-size: 2.5rem; color: var(--primary);">20,000+</h3>
+                    <p class="text-muted" data-i18n="stat_sample_lbl">Mẫu đã kiểm thử</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-container" id="features-section">
+        <h2 class="text-center mb-2" data-i18n="features_title">Đặc tả Kỹ thuật (Methodology & Features)</h2>
+        <p class="text-center text-muted mb-3" data-i18n="features_subtitle">Hệ thống được thiết kế tối ưu cho quá trình nghiên cứu và xác minh hình ảnh trực tuyến.</p>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-code-branch"></i></div>
+                <h3 id="f1-title" data-i18n="f1_title">Mạng nơ-ron Đa Luồng (Dual-Stream)</h3>
+                <p id="f1-desc" data-i18n="f1_desc">Khai thác đồng thời đặc trưng không gian (Spatial Features) qua ResNet và đặc trưng tần số (Frequency Features) để phát hiện nhiễu giả tạo từ GAN/Diffusion models.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-layer-group"></i></div>
+                <h3 id="f2-title" data-i18n="f2_title">Đánh giá Lô (Batch Evaluation)</h3>
+                <p id="f2-desc" data-i18n="f2_desc">Hỗ trợ phân tích hàng loạt tập dữ liệu lớn với độ trễ thấp. Kết xuất kết quả trực tiếp ra bảng biểu phục vụ tính toán độ đo (Accuracy, F1-Score).</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <h3 id="f3-title" data-i18n="f3_title">Phân tích Siêu dữ liệu (Metadata)</h3>
+                <p id="f3-desc" data-i18n="f3_desc">Kết hợp phân tích nhiễu nền (Background Noise), viền cạnh (Edge Artifacts), và các dấu vết nén JPEG để tăng cường độ tin cậy.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-container" id="howitworks-section" style="background-color: var(--bg-main); max-width: 100%; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <h2 class="text-center mb-3" data-i18n="workflow_title">Quy trình Vận hành (Workflow)</h2>
+            <div class="steps-grid">
+                <div class="step-card text-center">
+                    <div class="step-number">1</div>
+                    <h3 id="s1-title" data-i18n="s1_title">Chuẩn bị Dữ liệu (Data Input)</h3>
+                    <p id="s1-desc" data-i18n="s1_desc">Người dùng tải lên một hoặc nhiều hình ảnh (Batch) cần kiểm định tính xác thực thông qua giao diện Web.</p>
+                </div>
+                <div class="step-card text-center">
+                    <div class="step-number">2</div>
+                    <h3 id="s2-title" data-i18n="s2_title">Trích xuất Đặc trưng (Feature Extraction)</h3>
+                    <p id="s2-desc" data-i18n="s2_desc">Hệ thống thực hiện biến đổi Fourier (FFT) và đưa dữ liệu qua mạng CNN đa luồng để tính toán phân bố nhiễu.</p>
+                </div>
+                <div class="step-card text-center">
+                    <div class="step-number">3</div>
+                    <h3 id="s3-title" data-i18n="s3_title">Kết xuất Đánh giá (Evaluation Output)</h3>
+                    <p id="s3-desc" data-i18n="s3_desc">Hệ thống trả về xác suất Fake, độ tin cậy, hình ảnh phổ tần số và siêu dữ liệu cho người nghiên cứu phân tích.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-container" id="pricing-section">
+        <h2 class="text-center mb-2" data-i18n="pricing_title">Tài nguyên Tính toán (Compute Resources)</h2>
+        <p class="text-center text-muted mb-3" data-i18n="pricing_subtitle">Các gói tài trợ chi phí tính toán đám mây cho nghiên cứu viên.</p>
+        
+        <div class="pricing-grid" id="pricing-grid">
+            <div class="pricing-card">
+                <h3>Gói Khảo Sát</h3>
+                <div class="pricing-price">50.000 đ</div>
+                <div class="pricing-tokens">100 Tokens</div>
+                <a href="login.html" class="btn btn-outline" style="width: 100%;" data-i18n="btn_topup">Tiến hành Nạp</a>
+            </div>
+            <div class="pricing-card" style="border-color: var(--primary); box-shadow: 0 4px 12px rgba(13,110,253,0.15);">
+                <h3 style="color: var(--primary);">Gói Nghiên Cứu</h3>
+                <div class="pricing-price">200.000 đ</div>
+                <div class="pricing-tokens">500 Tokens</div>
+                <a href="login.html" class="btn btn-primary" style="width: 100%;" data-i18n="btn_topup">Tiến hành Nạp</a>
+            </div>
+            <div class="pricing-card">
+                <h3>Gói Doanh Nghiệp</h3>
+                <div class="pricing-price">500.000 đ</div>
+                <div class="pricing-tokens">1500 Tokens</div>
+                <a href="login.html" class="btn btn-outline" style="width: 100%;" data-i18n="btn_topup">Tiến hành Nạp</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="cta-section" id="cta-section">
+        <h2 data-i18n="cta_title">Sẵn sàng bắt đầu quá trình nghiên cứu?</h2>
+        <p style="margin-bottom: 2rem;" data-i18n="cta_desc">Khởi tạo tài khoản miễn phí để nhận ngay 10 tokens trải nghiệm khả năng nhận diện Deepfake.</p>
+        <a href="login.html" class="btn btn-outline" style="background: white; color: var(--primary); font-size: 1.1rem; padding: 0.8rem 2rem;" data-i18n="btn_register_research">Đăng ký Tài khoản Nghiên cứu</a>
+    </div>
+
+    <footer class="landing-header" style="border-top: 1px solid var(--border-color); border-bottom: none; text-align: center; padding: 2rem; flex-direction: column;">
+        <p id="footer-text" style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="footer_copyright">&copy; 2026 CNNDetection Research Project. All rights reserved.</p>
+        <p id="footer-contact" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;" data-i18n="footer_contact">Contact: support@cnndetection.com | Phone: +1 800 123 4567</p>
+        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem;">
+            <a href="about.html" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Giới thiệu</a>
+            <a href="page.html?slug=chinh-sach-quyen-rieng-tu" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Chính sách Quyền riêng tư</a>
+            <a href="page.html?slug=dieu-khoan-su-dung" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Điều khoản Sử dụng</a>
+            <a href="page.html?slug=xoa-du-lieu" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Xóa Dữ liệu</a>
+            <a href="page.html?slug=chinh-sach-ai" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Chính sách AI</a>
+            <a href="page.html?slug=ho-tro-lien-he" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Hỗ trợ & Liên hệ</a>
+        </div>
+    </footer>
+
+    <script src="academic_i18n.js"></script>
+    <script src="../frontend/config-loader.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const API_URL = ["localhost", "127.0.0.1", ""].includes(window.location.hostname) ? "http://localhost:8000" : "https://cnn-detection-api.onrender.com";
+                const res = await fetch(`${API_URL}/config`);
+                if(res.ok) {
+                    const cfg = await res.json();
+                    
+                    if(cfg.colors) {
+                        document.documentElement.style.setProperty('--primary', cfg.colors.primary || '#0d6efd');
+                        document.documentElement.style.setProperty('--primary-hover', cfg.colors.accent || '#0b5ed7');
+                    }
+                    if(cfg.site_name) {
+                        document.getElementById('site-title').innerText = cfg.site_name;
+                        document.getElementById('display-site-name').innerText = cfg.site_name;
+                    }
+                    if(cfg.hero_title) document.getElementById('hero-title').innerText = cfg.hero_title;
+                    if(cfg.hero_desc) document.getElementById('hero-desc').innerHTML = cfg.hero_desc;
+                    if(cfg.hero_cta) {
+                        document.getElementById('hero-cta-btn').innerText = cfg.hero_cta;
+                        document.getElementById('btn-header-cta').innerText = cfg.hero_cta;
+                    }
+                    
+                    if(cfg.features) {
+                        if(cfg.features.show_stats === false) document.getElementById('stats-section').style.display = 'none';
+                        if(cfg.features.show_marquee === false) document.getElementById('marquee-section').style.display = 'none';
+                        if(cfg.features.show_features === false) document.getElementById('features-section').style.display = 'none';
+                        if(cfg.features.show_howitworks === false) document.getElementById('howitworks-section').style.display = 'none';
+                        if(cfg.features.show_cta === false) document.getElementById('cta-section').style.display = 'none';
+                    }
+                    
+                    if(cfg.pricing && cfg.pricing.length > 0) {
+                        const grid = document.getElementById('pricing-grid');
+                        grid.innerHTML = '';
+                        cfg.pricing.forEach((p, idx) => {
+                            const isMiddle = idx === 1; 
+                            const border = isMiddle ? 'border-color: var(--primary); box-shadow: 0 4px 12px rgba(13,110,253,0.15);' : '';
+                            const titleColor = isMiddle ? 'color: var(--primary);' : '';
+                            const btnClass = isMiddle ? 'btn-primary' : 'btn-outline';
+                            
+                            grid.innerHTML += `
+                                <div class="pricing-card" style="${border}">
+                                    <h3 style="${titleColor}">${p.name}</h3>
+                                    <div class="pricing-price">${p.price.toLocaleString()} đ</div>
+                                    <div class="pricing-tokens">${p.tokens} Tokens</div>
+                                    <a href="login.html" class="btn ${btnClass}" style="width: 100%;" data-i18n="btn_topup">${t('btn_topup')}</a>
+                                </div>
+                            `;
+                        });
+                    }
+                }
+            } catch(e) {}
+        });
+        window.addEventListener('languageChanged', () => {
+            // Re-render pricing buttons with correct text since they might be dynamically generated
+            document.querySelectorAll('#pricing-grid .btn').forEach(btn => {
+                btn.innerText = t('btn_topup');
+            });
+        });
+    </script>
+</body>
+</html>

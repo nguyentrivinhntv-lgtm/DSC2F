@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title id="site-title">Workspace | CNNDetection Research</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="academic.css">
+    <style>
+        body { background-color: var(--bg-surface); }
+        .dashboard-wrapper { display: flex; min-height: 100vh; }
+        
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-main);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 2px solid var(--border-dark);
+            font-family: var(--font-serif);
+            font-weight: 700;
+        }
+        .sidebar-brand p {
+            font-family: var(--font-sans);
+            font-weight: 400;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0;
+            overflow-y: auto;
+        }
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-left: 3px solid transparent;
+        }
+        .nav-item:hover {
+            background-color: rgba(0,0,0,0.03);
+            color: var(--text-primary);
+        }
+        .nav-item.active {
+            border-left-color: var(--primary);
+            color: var(--primary);
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .topbar {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 2rem;
+            gap: 1.5rem;
+        }
+        .user-info {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        
+        .figure-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        .figure-title {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+        
+        .upload-zone {
+            border: 2px dashed var(--border-dark);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: var(--bg-main);
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            background-color: rgba(13, 110, 253, 0.05);
+            border-color: var(--primary);
+        }
+        
+        /* Result visualization */
+        .vis-container {
+            position: relative;
+            width: 100%;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            aspect-ratio: 1/1;
+        }
+        .vis-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* Responsive / Mobile Optimization */
+        @media (max-width: 768px) {
+            .dashboard-wrapper { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .sidebar-nav { display: flex; flex-direction: row; overflow-x: auto; white-space: nowrap; padding: 0; }
+            .nav-item { border-left: none; border-bottom: 3px solid transparent; padding: 1rem; }
+            .nav-item.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+            .main-content { height: auto; overflow: visible; }
+            .content-area { padding: 1rem; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; gap: 1rem; }
+            .topbar { padding: 0 1rem; flex-wrap: wrap; justify-content: center; gap: 0.5rem; height: auto; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+            .user-tokens { margin: 0 auto !important; text-align: center; width: 100%; }
+            .sidebar-footer { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem !important; }
+            .sidebar-footer > div { margin-bottom: 0 !important; }
+            .sidebar-footer .btn { width: 100% !important; margin: 0 !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                CNNDetection
+                <p data-i18n="nav_workspace"><i class="fa-solid fa-flask"></i> Workspace Analysis</p>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-tab="single"><i class="fa-solid fa-microscope"></i> <span data-i18n="nav_single">Quét Đơn Lẻ</span></div>
+                <div class="nav-item" data-tab="batch"><i class="fa-solid fa-layer-group"></i> <span data-i18n="nav_batch">Quét Lô (Batch)</span></div>
+                <div class="nav-item" data-tab="analytics"><i class="fa-solid fa-receipt"></i> <span data-i18n="nav_purchase_history">Lịch sử Mua hàng</span></div>
+                <div class="nav-item" data-tab="history"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="nav_history">Dữ liệu Lịch sử</span></div>
+                <div class="nav-item" data-tab="settings"><i class="fa-solid fa-sliders"></i> <span data-i18n="nav_settings">Cấu hình Thông số</span></div>
+            </nav>
+            <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color);">
+                <div class="mb-2" id="admin-btn-container"></div>
+                <a href="#" id="logout-btn" class="btn btn-outline" style="width: 100%;"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span data-i18n="btn_logout">Thoát phiên</span></a>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="topbar">
+                <div class="user-tokens" style="margin-right: auto; font-family: monospace; font-size: 1.1rem; display: flex; align-items: center; gap: 15px;">
+                    <div><i class="fa-solid fa-coins text-warning"></i> Quota: <span id="display-tokens">0</span></div>
+                    <button class="btn btn-primary" id="open-payment-modal-btn" style="padding: 4px 10px; font-size: 0.85rem;"><i class="fa-solid fa-plus"></i> <span data-i18n="btn_add_token">Nạp Token</span></button>
+                </div>
+
+                <!-- Notification Bell -->
+                <div class="notif-wrapper" style="position: relative; margin-right: 10px;">
+                    <button id="notif-bell-btn" style="background: none; border: none; cursor: pointer; font-size: 1.3rem; color: var(--text-secondary); position: relative; padding: 6px;">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notif-badge" class="hidden" style="position: absolute; top: 0; right: 0; background: var(--danger); color: #fff; font-size: 0.65rem; font-weight: 700; border-radius: 50%; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-family: system-ui;">0</span>
+                    </button>
+                    <div id="notif-dropdown" class="hidden" style="position: absolute; top: 110%; right: 0; width: 380px; max-height: 450px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 999; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-color);">
+                            <h4 style="margin: 0; font-size: 0.95rem;" data-i18n="notif_title">Thông báo</h4>
+                            <button id="notif-mark-all-btn" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.8rem; font-weight: 600;" data-i18n="notif_mark_all">Đánh dấu tất cả đã đọc</button>
+                        </div>
+                        <div id="notif-list" style="overflow-y: auto; max-height: 380px; padding: 0;">
+                            <div class="text-center text-muted" style="padding: 30px;"><i class="fa-solid fa-bell-slash" style="font-size: 2rem; opacity: 0.4; margin-bottom: 8px;"></i><p data-i18n="notif_empty">Không có thông báo nào.</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="user-info">
+                    <i class="fa-solid fa-circle-user text-primary"></i>
+                    <span id="display-username">Researcher</span>
+                    <span class="badge text-muted" id="display-role">User</span>
+                </div>
+            </header>
+            
+            <div class="content-area">
+                
+                <!-- SINGLE SCAN -->
+                <div id="tab-single" class="tab-pane active">
+                    <div class="grid-2">
+                        <!-- Input panel -->
+                        <div class="figure-panel">
+                            <h3 class="figure-title">Figure 1. Data Input</h3>
+                            
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_model_select">Kiến trúc Mô hình:</label>
+                                <select id="model-select" class="form-control">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            
+                            <div class="upload-zone" id="upload-zone">
+                                <i class="fa-solid fa-cloud-arrow-up" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+                                <h4 data-i18n="upload_drag">Kéo thả hình ảnh vào vùng này</h4>
+                                <p class="text-muted mb-2" data-i18n="upload_or">hoặc nhấn để duyệt tệp</p>
+                                <p class="text-muted" style="font-size: 0.8rem;" data-i18n="upload_formats">Hỗ trợ: JPEG, PNG, WEBP (Max 5MB)</p>
+                            </div>
+                            <input type="file" id="file-input" hidden accept="image/*">
+                            
+                            <div id="preview-container" class="mt-3 hidden" style="text-align: center; cursor: pointer;" title="Click to change image">
+                                <img id="img-preview" style="max-width: 100%; max-height: 300px; border: 1px solid var(--border-color);" src="">
+                                <p class="mt-2 text-muted" id="file-name" style="font-family: monospace;"></p>
+                            </div>
+                            
+                            <button id="btn-analyze" class="btn btn-primary mt-3" style="width: 100%;" disabled>
+                                <span class="btn-text" data-i18n="btn_analyze">Tiến hành Phân Tích</span>
+                                <div class="loader hidden"></div>
+                            </button>
+                            <div id="single-msg" class="msg-box hidden mt-2"></div>
+                        </div>
+                        
+                        <!-- Output panel -->
+                        <div class="figure-panel">
+                            <h3 class="figure-title" data-i18n="res_title">Kết xuất Phân tích (Analysis Output)</h3>
+                            
+                            <div id="result-placeholder" class="text-center text-muted" style="padding: 3rem 0;">
+                                <i class="fa-solid fa-microscope" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                                <p data-i18n="res_placeholder">Hệ thống đang chờ dữ liệu đầu vào...</p>
+                            </div>
+                            
+                            <div id="result-content" class="hidden">
+                                <div class="grid-2 mb-3">
+                                    <div style="border: 1px solid var(--border-color); padding: 1rem; text-align: center;">
+                                        <p class="text-muted mb-1" style="font-size: 0.9rem;" data-i18n="res_lbl_verdict">Kết luận (Verdict)</p>
+                                        <h2 id="res-verdict" style="font-family: var(--font-serif); font-size: 2rem;">-</h2>
+                                    </div>
+                                    <div style="border: 1px solid var(--border-color); padding: 1rem; text-align: center;">
+                                        <p class="text-muted mb-1" style="font-size: 0.9rem;" data-i18n="res_lbl_prob">Xác suất Fake (P_fake)</p>
+                                        <h2 id="res-prob" style="font-family: monospace; font-size: 2rem;">0.0000</h2>
+                                    </div>
+                                </div>
+                                
+                                <p style="font-size: 0.9rem;"><strong data-i18n="res_lbl_model">Kiến trúc:</strong> <span id="res-model"></span></p>
+                                <p style="font-size: 0.9rem; margin-bottom: 1rem;"><strong data-i18n="res_lbl_latency">Độ trễ hệ thống (Latency):</strong> <span id="res-latency"></span>ms</p>
+                                
+                                <!-- Heatmap & FFT -->
+                                <h4 class="figure-title mt-3" style="font-size: 1rem; border-bottom: none;" data-i18n="res_title_heatmap">Figure 2. Bản đồ Nhiệt (Grad-CAM)</h4>
+                                <div class="vis-container mb-3">
+                                    <img id="res-heatmap" src="" alt="Heatmap">
+                                </div>
+                                
+                                <h4 class="figure-title mt-3" style="font-size: 1rem; border-bottom: none;" data-i18n="res_title_meta">Table 1. Phân tích Siêu dữ liệu (Metadata & Noise)</h4>
+                                <table class="academic-table" style="font-size: 0.9rem;">
+                                    <tbody>
+                                        <tr><td data-i18n="lbl_noise_bg">Nhiễu nền (Background):</td><td id="res-meta-bg"></td></tr>
+                                        <tr><td data-i18n="lbl_noise_edge">Viền cạnh (Edges):</td><td id="res-meta-edge"></td></tr>
+                                        <tr><td data-i18n="lbl_noise_comp">Nén JPEG (Compression):</td><td id="res-meta-comp"></td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BATCH SCAN -->
+                <div id="tab-batch" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="nav_batch">Phân tích Lô (Batch Evaluation)</h2>
+                    <div class="figure-panel">
+                        <div class="form-group" style="max-width: 400px;">
+                            <label class="form-label" data-i18n="lbl_model_select">Kiến trúc Mô hình:</label>
+                            <select id="batch-model-select" class="form-control"></select>
+                        </div>
+                        
+                        <div class="upload-zone mb-3" id="batch-upload-zone" style="padding: 1.5rem;">
+                            <i class="fa-solid fa-images" style="font-size: 2rem; color: var(--text-muted); margin-bottom: 0.5rem;"></i>
+                            <p class="mb-0" data-i18n="upload_batch_hint">Nhấp hoặc kéo thả thư mục/nhiều tệp vào đây (Tối đa 20 tệp)</p>
+                        </div>
+                        <input type="file" id="batch-file-input" hidden multiple accept="image/*">
+                        
+                        <div id="batch-preview-list" class="mb-3" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;"></div>
+                        
+                        <button id="btn-batch-analyze" class="btn btn-primary" disabled>
+                            <span class="btn-text" data-i18n="btn_batch_analyze">Tiến hành Phân tích Lô</span>
+                            <div class="loader hidden"></div>
+                        </button>
+                        <div id="batch-msg" class="msg-box hidden mt-2"></div>
+                        
+                        <h3 class="figure-title mt-4" data-i18n="res_title">Table 2. Kết xuất Lô (Batch Results)</h3>
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Model</th>
+                                    <th>P_fake</th>
+                                    <th>Verdict</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batch-result-tbody">
+                                <tr><td colspan="4" class="text-center text-muted" data-i18n="no_data">Chưa có dữ liệu.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PURCHASE HISTORY -->
+                <div id="tab-analytics" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="nav_purchase_history">Lịch sử Mua hàng (Purchase History)</h2>
+                    <div class="figure-panel">
+                        <h3 class="figure-title" data-i18n="table_payment_title">Lịch sử Giao dịch Mua Token (Token Purchase History)</h3>
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_order_id">Mã đơn hàng</th>
+                                    <th data-i18n="th_amount">Số tiền (VNĐ)</th>
+                                    <th data-i18n="th_tokens">Tokens</th>
+                                    <th data-i18n="th_status">Trạng thái</th>
+                                    <th data-i18n="th_bank">Ngân hàng</th>
+                                    <th data-i18n="th_date">Ngày giao dịch</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payment-history-tbody">
+                                <tr><td colspan="6" class="text-center text-muted" data-i18n="no_data">Chưa có dữ liệu.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- HISTORY -->
+                <div id="tab-history" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="nav_history">Dữ liệu Lịch sử (Historical Records)</h2>
+                    <div class="figure-panel">
+                        <div class="mb-2 text-right">
+                            <button id="history-refresh-btn" class="btn btn-outline btn-sm"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+                        </div>
+                        <table class="academic-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Filename</th>
+                                    <th>Model</th>
+                                    <th>P_fake</th>
+                                    <th>Verdict</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <tr><td colspan="5" class="text-center text-muted">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div id="tab-settings" class="tab-pane">
+                    <h2 class="mb-3" data-i18n="nav_settings">Cấu hình Hệ thống (System Parameters)</h2>
+                    <div class="figure-panel" style="max-width: 600px;">
+                        <div class="form-group">
+                            <label class="form-label"><span data-i18n="config_threshold_lbl">Ngưỡng Quyết định (Decision Threshold, &tau;) =</span> <span id="settings-threshold-value">0.50</span></label>
+                            <input type="range" id="settings-threshold" min="0.1" max="0.9" step="0.05" value="0.5" style="width: 100%;">
+                            <p class="text-muted mt-1" style="font-size: 0.85rem;" data-i18n="config_threshold_desc">Nếu P_fake &ge; &tau;, hệ thống kết luận FAKE.</p>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="settings-auto-history" checked>
+                                <span data-i18n="config_auto_load">Tự động tải dữ liệu Analytics khi chuyển tab</span>
+                            </label>
+                        </div>
+                        <button id="save-settings-btn" class="btn btn-primary mt-3" data-i18n="btn_save_params">Lưu Tham số (Save Parameters)</button>
+                        <div id="settings-msg" class="msg-box hidden mt-2"></div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    
+    <script src="academic_i18n.js"></script>
+    <script src="../frontend/config-loader.js"></script>
+    <script src="academic.js"></script>
+    
+    <!-- VNPay Payment Modal -->
+    <div id="payment-modal" class="modal hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: var(--bg-surface); max-width: 800px; width: 90%; border-radius: 8px; text-align: center; padding: 40px 20px; position: relative;">
+            <button class="close-modal" id="close-payment-modal" style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);"><i class="fa-solid fa-xmark"></i></button>
+            
+            <h2 style="font-size: 28px; margin-bottom: 10px; color: var(--primary);"><i class="fa-solid fa-gem"></i> <span data-i18n="pricing_title">Nạp thêm Token</span></h2>
+            <p data-i18n="pricing_subtitle" style="color: var(--text-secondary); margin-bottom: 30px; font-size: 16px;">Lựa chọn gói Token phù hợp để tiếp tục sử dụng hệ thống AI phân tích Deepfake.</p>
+            
+            <div id="pricing-grid-container" style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <div style="padding: 20px;">
+                    <i class="fa-solid fa-circle-notch fa-spin text-primary" style="font-size: 2rem;"></i>
+                </div>
+            </div>
+            
+            <div style="margin-top: 35px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Thanh toán an toàn & bảo mật qua VNPay</p>
+                <img src="https://sandbox.vnpayment.vn/apis/assets/images/logo.svg" alt="vnpay logo" height="35" style="opacity: 0.9;" />
+            </div>
+        </div>
+    </div>
+</body>
+</html>

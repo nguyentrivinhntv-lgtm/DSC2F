@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ Thống Phân Tích Ảnh Giả Mạo | CNNDetection Research Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="academic.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <div class="portal-wrapper">
+        <header class="portal-header">
+            <h1 data-i18n="sys_title">Hệ thống nhận diện ảnh giả mạo dựa trên Dual-Stream CNN</h1>
+            <p data-i18n="sys_desc">Phòng thí nghiệm Thị giác Máy tính | Hệ thống đánh giá học thuật</p>
+        </header>
+        
+        <main class="portal-body">
+            <div class="auth-panel">
+                <h2 data-i18n="auth_title">Cổng Đăng Nhập Hệ Thống</h2>
+                
+                <div class="auth-tabs">
+                    <div class="auth-tab active" data-target="login" data-i18n="tab_login">Đăng nhập</div>
+                    <div class="auth-tab" data-target="register" data-i18n="tab_register">Đăng ký</div>
+                    <div class="auth-tab" data-target="forgot" style="display:none;" data-i18n="tab_forgot">Khôi phục mật khẩu</div>
+                </div>
+
+                <!-- Đăng nhập -->
+                <div id="section-login" class="auth-section active">
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lbl_username">Tên đăng nhập / Mã học viên</label>
+                            <input type="text" id="login-username" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="lbl_password">Mật khẩu</label>
+                            <input type="password" id="login-password" class="form-control" required>
+                        </div>
+                        <div class="text-right mb-3">
+                            <a href="#" class="switch-tab" data-target="forgot" style="font-size: 0.85rem;" data-i18n="link_forgot">Quên mật khẩu?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            <span class="btn-text" data-i18n="btn_login">Truy cập hệ thống</span>
+                            <div class="loader hidden"></div>
+                        </button>
+                    </form>
+                    
+                    <div class="google-auth" id="google-login-container">
+                        <div id="google-signin-btn"></div>
+                    </div>
+                    <div id="login-msg" class="msg-box hidden"></div>
+                </div>
+
+                <!-- Đăng ký -->
+                <div id="section-register" class="auth-section">
+                    <form id="register-form">
+                        <div id="reg-step-1">
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_email">Email cơ quan / cá nhân</label>
+                                <input type="email" id="reg-email" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_username">Tên định danh (Username)</label>
+                                <input type="text" id="reg-username" class="form-control" required minlength="3">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_password">Mật khẩu (Tối thiểu 6 ký tự)</label>
+                                <input type="password" id="reg-password" class="form-control" required minlength="6">
+                            </div>
+                            <button type="button" id="btn-req-reg" class="btn btn-primary" style="width: 100%;">
+                                <span class="btn-text" data-i18n="btn_req_reg">Gửi yêu cầu đăng ký</span>
+                                <div class="loader hidden"></div>
+                            </button>
+                        </div>
+                        <div id="reg-step-2" class="hidden">
+                            <p class="text-muted mb-2" data-i18n="msg_otp_instr">Vui lòng nhập mã OTP đã được gửi về email của bạn để xác thực.</p>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_otp">Mã OTP (6 chữ số)</label>
+                                <input type="text" id="reg-otp" class="form-control" required maxlength="6">
+                            </div>
+                            <button type="button" id="btn-conf-reg" class="btn btn-primary" style="width: 100%;">
+                                <span class="btn-text" data-i18n="btn_conf_reg">Hoàn tất đăng ký</span>
+                                <div class="loader hidden"></div>
+                            </button>
+                        </div>
+                    </form>
+                    <div id="reg-msg" class="msg-box hidden"></div>
+                </div>
+
+                <!-- Quên mật khẩu -->
+                <div id="section-forgot" class="auth-section">
+                    <form id="forgot-form">
+                        <div id="forgot-step-1">
+                            <p class="text-muted mb-2" data-i18n="msg_forgot_instr">Hệ thống sẽ gửi mã xác nhận (OTP) để thiết lập lại mật khẩu.</p>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_email">Email đã đăng ký</label>
+                                <input type="email" id="forgot-email" class="form-control" required>
+                            </div>
+                            <button type="button" id="btn-send-otp" class="btn btn-primary" style="width: 100%;">
+                                <span class="btn-text" data-i18n="btn_send_otp">Gửi mã xác nhận</span>
+                                <div class="loader hidden"></div>
+                            </button>
+                        </div>
+                        <div id="forgot-step-2" class="hidden">
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_otp">Mã OTP</label>
+                                <input type="text" id="forgot-otp" class="form-control" required maxlength="6">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" data-i18n="lbl_new_password">Mật khẩu mới</label>
+                                <input type="password" id="forgot-new-password" class="form-control" required minlength="6">
+                            </div>
+                            <button type="button" id="btn-reset-password" class="btn btn-primary" style="width: 100%;">
+                                <span class="btn-text" data-i18n="btn_reset_password">Khôi phục mật khẩu</span>
+                                <div class="loader hidden"></div>
+                            </button>
+                        </div>
+                        <div class="text-center mt-2">
+                            <a href="#" class="switch-tab" data-target="login" style="font-size: 0.85rem;" data-i18n="link_back_login"><i class="fa-solid fa-arrow-left"></i> Trở về Đăng nhập</a>
+                        </div>
+                    </form>
+                    <div id="forgot-msg" class="msg-box hidden"></div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="portal-header" style="border-top: 1px solid var(--border-color); border-bottom: none; text-align: center; padding: 1rem;">
+            <p style="font-size: 0.85rem;">&copy; 2026 CNNDetection Research Project. Powered by Deep Learning.</p>
+        </footer>
+    </div>
+    
+    <script src="academic_i18n.js"></script>
+    <script src="../frontend/config-loader.js"></script>
+    <script src="academic.js"></script>
+</body>
+</html>

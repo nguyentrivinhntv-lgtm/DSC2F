@@ -1,0 +1,204 @@
+"""
+=============================================================================
+FastAPI Application Entry Point - CNN Detection API
+=============================================================================
+Khởi tạo FastAPI app, include routers, cấu hình middleware.
+
+Ứng dụng phát hiện ảnh giả mạo (deepfake detection) sử dụng
+các model CNN: ResNet50, DualStreamCNN, DualStreamCNNEnhanced,
+DualStreamResNet.
+
+Endpoints chính:
+  - GET  /           : Health check
+  - GET  /models     : Danh sách model
+  - POST /auth/*     : Đăng ký, đăng nhập
+  - POST /predict    : Upload ảnh → prediction
+  - POST /predict/batch : Batch prediction
+"""
+
+import logging
+import os
+
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import Response as StarletteResponse
+
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from app.download_weights import download_weights_if_needed
+from fastapi.staticfiles import StaticFiles
+
+from app.config import get_settings
+from app.models.base_db import init_db
+from app.routers import auth, base, file_upload, history, payment, payment_history, pages, notification
+
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
+
+# Frontend directory (relative to api_base/)
+FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# FastAPI App
+# ---------------------------------------------------------------------------
+
+def create_app() -> FastAPI:
+    """
+    Factory function tạo FastAPI application.
+
+    Returns:
+        FastAPI: Application instance đã cấu hình.
+    """
+    settings = get_settings()
+
+    # Tắt Swagger UI / ReDoc khi production (DEBUG=False)
+    _docs_url = "/docs" if settings.DEBUG else None
+    _redoc_url = "/redoc" if settings.DEBUG else None
+
+    app = FastAPI(
+        title="CNN Detection API",
+        description=(
+            "API phát hiện ảnh giả mạo (Deepfake Detection) sử dụng mạng CNN.\n\n"
+            "## Tính năng\n"
+            "- 🔐 Authentication (JWT)\n"
+            "- 🖼️ Upload ảnh → Predict real/fake\n"
+            "- 📊 Batch prediction\n"
+            "- 🤖 Hỗ trợ 4 model: ResNet50, DualStreamCNN, "
+            "DualStreamCNNEnhanced, DualStreamResNet\n\n"
+            "## Sử dụng\n"
+            "1. Đăng ký tài khoản: `POST /auth/register`\n"
+            "2. Đăng nhập: `POST /auth/login` → lấy JWT token\n"
+            "3. Predict: `POST /predict` + Bearer token"
+        ),
+        version="1.0.0",
+        docs_url=_docs_url,
+        redoc_url=_redoc_url,
+    )
+
+    # --- Security Headers Middleware ---
+    class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: StarletteRequest, call_next):
+            response: StarletteResponse = await call_next(request)
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["X-XSS-Protection"] = "1; mode=block"
+            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+            if not settings.DEBUG:
+                response.headers["Strict-Transport-Security"] = (
+                    "max-age=31536000; includeSubDomains"
+                )
+            return response
+
+    app.add_middleware(SecurityHeadersMiddleware)
+
+    # --- CORS Middleware ---
+    _allowed_origins = [
+        "http://localhost:8080",
+        "http://localhost:5500",
+        "http://127.0.0.1:8080",
+        "http://127.0.0.1:5500",
+    ]
+    if settings.FRONTEND_URL:
+        _allowed_origins.append(settings.FRONTEND_URL.rstrip("/"))
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # --- Rate Limiting ---
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+    # --- Include Routers ---
+    app.include_router(base.router)
+    app.include_router(auth.router)
+    app.include_router(file_upload.router)
+    app.include_router(history.router)
+    app.include_router(payment.router)
+    app.include_router(payment_history.router)
+    app.include_router(pages.router)
+    app.include_router(notification.router)
+
+    # --- Mount Frontend Static Files ---
+    # Đã tắt để giải phóng RAM cho Render, frontend được host trên Vercel
+    # if FRONTEND_DIR.exists():
+    #     app.mount("/frontend", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+
+    # --- Mount Uploads Directory ---
+    UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
+
+    # --- Startup Event ---
+    @app.on_event("startup")
+    async def startup_event():
+        """
+        Khởi tạo khi server start:
+        1. Tạo database tables
+        2. Tạo thư mục cần thiết
+        3. Preload model mặc định (optional)
+        """
+        logger.info("=" * 60)
+        logger.info("  CNN Detection API - Starting up...")
+        logger.info("=" * 60)
+
+        # 1. Init database
+        init_db()
+        
+        # Tải weights từ Google Drive nếu thiếu
+        download_weights_if_needed()
+        
+        logger.info("Database initialized.")
+
+        # Start notification scheduler
+        from app.services.scheduler import start_scheduler
+        start_scheduler()
+
+        # 2. Tạo thư mục tạm
+        from app.config import UPLOAD_TEMP_DIR, DOWNLOAD_DIR
+        os.makedirs(UPLOAD_TEMP_DIR, exist_ok=True)
+        os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+        logger.info("Temp directories created.")
+
+        # 3. Preload model mặc định
+        try:
+            from chatbot.services.model_service import get_model_service
+            service = get_model_service()
+            service.load_model(settings.DEFAULT_MODEL_TYPE)
+            logger.info(
+                "Default model '%s' loaded on %s.",
+                settings.DEFAULT_MODEL_TYPE,
+                service.device,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Could not preload default model: %s. "
+                "Model will be loaded on first request.",
+                exc,
+            )
+
+        logger.info("CNN Detection API ready!")
+
+    return app
+
+
+# Tạo app instance
+app = create_app()

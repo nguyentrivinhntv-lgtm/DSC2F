@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | CNNDetection Research</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="academic.css">
+    <style>
+        body { background-color: var(--bg-surface); }
+        .landing-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; border-bottom: 2px solid var(--border-dark); background: var(--bg-surface); }
+        .landing-title { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .page-header { padding: 4rem 3rem; text-align: center; background-color: var(--bg-main); border-bottom: 1px solid var(--border-color); }
+        .page-header h1 { font-size: 2.5rem; margin-bottom: 1rem; }
+        .page-header p { font-size: 1.1rem; color: var(--text-secondary); max-width: 800px; margin: 0 auto; line-height: 1.8; }
+        .section-container { max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem; }
+        .figure-panel { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: 4px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+        .figure-title { font-family: var(--font-serif); font-size: 1.3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; color: var(--primary); }
+        .text-content p { line-height: 1.8; margin-bottom: 1.2rem; color: var(--text-primary); }
+        .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; margin-top: 2rem; }
+        .team-card { text-align: center; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); }
+        .team-avatar { width: 100px; height: 100px; border-radius: 50%; background: var(--border-dark); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    
+    <header class="landing-header">
+        <div class="landing-title">
+            <span data-i18n="site_title">CNNDetection Research</span>
+        </div>
+        <nav>
+            <a href="index.html" class="btn btn-outline" style="margin-right: 10px;" data-i18n="nav_home">Quay về Trang chủ</a>
+            <a href="login.html" class="btn btn-primary" data-i18n="btn_access_portal">Truy cập Cổng Phân Tích</a>
+        </nav>
+    </header>
+
+    <section class="page-header">
+        <h1 data-i18n="about_title">Về Dự Án CNNDetection</h1>
+        <p data-i18n="about_tag">Nghiên cứu khoa học về phát hiện ảnh giả mạo sử dụng Mạng Nơ-ron Tích chập Đa luồng (Dual-Stream CNN).</p>
+    </section>
+
+    <div class="section-container">
+        
+        <div class="figure-panel text-content">
+            <h2 class="figure-title" data-i18n="about_mission_title">1. Tóm tắt Nhiệm vụ Nghiên cứu (Mission Abstract)</h2>
+            <p data-i18n="about_mission_desc">Trong kỷ nguyên của Trí tuệ Nhân tạo tạo sinh (Generative AI), ranh giới giữa hình ảnh thật và ảnh được tổng hợp/chỉnh sửa bởi AI (Deepfake) đang trở nên mong manh. Dự án <strong>CNNDetection Research</strong> được phát triển nhằm cung cấp một giải pháp pháp y kỹ thuật số (digital forensics) mạnh mẽ, giúp các chuyên gia, nhà báo và người dùng phân định tính xác thực của dữ liệu hình ảnh trực tuyến.</p>
+        </div>
+
+        <div class="figure-panel text-content">
+            <h2 class="figure-title" data-i18n="about_tech_title">2. Kiến trúc Kỹ thuật (Technical Architecture)</h2>
+            <p data-i18n="about_tech_desc">Hệ thống ứng dụng kiến trúc mạng nơ-ron đa luồng (Dual-Stream Convolutional Neural Network). Khác với các phương pháp truyền thống chỉ phân tích ở miền không gian (RGB), mô hình của chúng tôi khai thác đồng thời đặc trưng ở miền tần số thông qua Biến đổi Fourier Nhanh (FFT). Bằng cách này, hệ thống có thể phát hiện những dấu vết vi mô (artifacts) do quá trình Upsampling của GAN và Diffusion Models tạo ra, vốn vô hình trước mắt thường.</p>
+            <ul>
+                <li><strong>Spatial Stream:</strong> Trích xuất đặc trưng kết cấu và quang sai hình học sử dụng ResNet-50.</li>
+                <li><strong>Frequency Stream:</strong> Trích xuất quang phổ nhiễu (noise spectrum) để phát hiện sự phân bố năng lượng bất thường.</li>
+            </ul>
+        </div>
+
+        <div class="figure-panel">
+            <h2 class="figure-title" data-i18n="about_team_title">3. Đội ngũ Triển khai (Research Team)</h2>
+            <p class="text-muted text-center" data-i18n="about_team_desc">Dự án được khởi xướng và phát triển bởi Nhóm nghiên cứu Khoá luận Tốt nghiệp (DSC2F).</p>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar"><i class="fa-solid fa-user-graduate"></i></div>
+                    <h3>Nguyễn Trí Vinh</h3>
+                    <p class="text-muted">Research Lead / AI Engineer</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                    <h3>Đội ngũ DSC2F</h3>
+                    <p class="text-muted">Software & System Architecture</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="figure-panel">
+            <h2 class="figure-title"><i class="fa-solid fa-book"></i> Chính sách & Hỗ trợ (Policies & Support)</h2>
+            <p class="text-muted mb-3">Các tài liệu, chính sách và hướng dẫn sử dụng liên quan đến hệ thống CNNDetection.</p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <a href="page.html?slug=chinh-sach-quyen-rieng-tu" class="btn btn-outline" style="text-align: left; padding: 1rem;"><i class="fa-solid fa-shield-halved text-primary mb-2" style="font-size: 1.5rem; display: block;"></i> Quyền riêng tư</a>
+                <a href="page.html?slug=dieu-khoan-su-dung" class="btn btn-outline" style="text-align: left; padding: 1rem;"><i class="fa-solid fa-file-contract text-primary mb-2" style="font-size: 1.5rem; display: block;"></i> Điều khoản Sử dụng</a>
+                <a href="page.html?slug=chinh-sach-ai" class="btn btn-outline" style="text-align: left; padding: 1rem;"><i class="fa-solid fa-microchip text-primary mb-2" style="font-size: 1.5rem; display: block;"></i> Chính sách AI</a>
+                <a href="page.html?slug=xoa-du-lieu" class="btn btn-outline" style="text-align: left; padding: 1rem; border-color: var(--danger);"><i class="fa-solid fa-user-slash text-danger mb-2" style="font-size: 1.5rem; display: block;"></i> Yêu cầu Xóa Dữ liệu</a>
+                <a href="page.html?slug=ho-tro-lien-he" class="btn btn-outline" style="text-align: left; padding: 1rem;"><i class="fa-solid fa-headset text-primary mb-2" style="font-size: 1.5rem; display: block;"></i> Hỗ trợ & Liên hệ</a>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="landing-header" style="border-top: 1px solid var(--border-color); border-bottom: none; text-align: center; padding: 2rem; flex-direction: column;">
+        <p style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="footer_copyright">&copy; 2026 CNNDetection Research Project. All rights reserved.</p>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;" data-i18n="footer_contact">Contact: support@cnndetection.com | Phone: +1 800 123 4567</p>
+        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem;">
+            <a href="index.html" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Trang chủ</a>
+            <a href="page.html?slug=chinh-sach-quyen-rieng-tu" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Chính sách Quyền riêng tư</a>
+            <a href="page.html?slug=dieu-khoan-su-dung" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Điều khoản Sử dụng</a>
+            <a href="page.html?slug=xoa-du-lieu" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Xóa Dữ liệu</a>
+            <a href="page.html?slug=chinh-sach-ai" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Chính sách AI</a>
+            <a href="page.html?slug=ho-tro-lien-he" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem;">Hỗ trợ & Liên hệ</a>
+        </div>
+    </footer>
+
+    <script src="academic_i18n.js"></script>
+</body>
+</html>

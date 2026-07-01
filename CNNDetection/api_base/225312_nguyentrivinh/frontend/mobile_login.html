@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Đăng nhập Google</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #FCFAF7; margin: 0; }
+        .container { background: white; padding: 36px 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; max-width: 360px; width: 90%; }
+        h2 { color: #374151; margin-bottom: 8px; font-size: 1.3rem; }
+        .subtitle { color: #6b7280; font-size: 0.9rem; margin-bottom: 24px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #0ea5a4; border-radius: 50%; width: 36px; height: 36px; animation: spin 0.8s linear infinite; margin: 24px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #error-msg { color: #ef4444; margin-top: 15px; font-size: 0.9rem; }
+        .success-container { text-align: center; }
+        .success-icon { font-size: 56px; color: #0ea5a4; margin-bottom: 16px; }
+        .success-text { color: #162437; font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+        .success-sub { color: #64748b; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Đăng nhập Google <small style="font-size: 11px; color: #cbd5e1;">(v2)</small></h2>
+        <p class="subtitle">Đăng nhập để tiếp tục sử dụng ứng dụng</p>
+        <div id="google-btn"></div>
+        <div id="loading" class="spinner" style="display: none;"></div>
+        <div id="success-view" class="success-container" style="display: none;">
+            <div class="success-icon">✅</div>
+            <div class="success-text">Đăng nhập thành công!</div>
+            <div class="success-sub">Đang chuyển về ứng dụng...</div>
+        </div>
+        <div id="error-msg"></div>
+    </div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        const API_URL = "https://cnn-detection-api.onrender.com";
+
+        window.onload = async function () {
+            try {
+                const res = await fetch(`${API_URL}/auth/google/config`);
+                const cfg = await res.json();
+
+                if (!cfg.enabled || !cfg.client_id) {
+                    document.getElementById('error-msg').innerText = "Google Sign-In chưa được bật trên server.";
+                    return;
+                }
+
+                window.google.accounts.id.initialize({
+                    client_id: cfg.client_id,
+                    callback: handleCredentialResponse
+                });
+
+                window.google.accounts.id.renderButton(
+                    document.getElementById("google-btn"),
+                    { theme: "outline", size: "large", width: 280 }
+                );
+            } catch (e) {
+                document.getElementById('error-msg').innerText = "Lỗi tải cấu hình Google Sign-In.";
+            }
+        };
+
+        async function handleCredentialResponse(response) {
+            document.getElementById('google-btn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-msg').innerText = "";
+
+            try {
+                const res = await fetch(`${API_URL}/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+                
+                const data = await res.json();
+                if (res.ok && data.access_token) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('success-view').style.display = 'block';
+                    
+                    const callbackUrl = 'cnndetection://callback?token=' + encodeURIComponent(data.access_token);
+                    
+                    // Đặt fallback trước để đảm bảo nó vẫn hiện ra nếu redirect có văng lỗi
+                    setTimeout(() => {
+                        document.getElementById('success-view').innerHTML = `
+                            <div style="font-size:56px; color:#0ea5a4; margin-bottom:16px;">✅</div>
+                            <div style="color:#162437; font-size:1.2rem; font-weight:600; margin-bottom:8px;">Đăng nhập thành công!</div>
+                            <p style="color:#6b7280; font-size: 0.9rem; margin-bottom: 20px;">Hệ thống đang chuyển hướng. Nếu không tự động về ứng dụng, vui lòng bấm nút bên dưới.</p>
+                            <a href="${callbackUrl}" 
+                               style="display:inline-block; padding:12px 28px; background:linear-gradient(135deg, #0ea5a4, #f59e0b); color:white; border-radius:50px; text-decoration:none; font-weight:700; font-size:15px;">
+                               Quay lại Ứng dụng
+                            </a>
+                        `;
+                    }, 500);
+
+                    // Chuyển hướng an toàn (không dùng replace vì Chrome Custom Tab dễ crash với Custom Scheme)
+                    try {
+                        window.location.href = callbackUrl;
+                    } catch (e) {
+                        console.error("Lỗi chuyển hướng:", e);
+                    }
+                } else {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('google-btn').style.display = 'block';
+                    let errText = data.detail || "Đăng nhập thất bại.";
+                    if (typeof errText === 'object') errText = JSON.stringify(errText);
+                    document.getElementById('error-msg').innerText = errText;
+                }
+            } catch (e) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('google-btn').style.display = 'block';
+                document.getElementById('error-msg').innerText = "Lỗi kết nối máy chủ.";
+            }
+        }
+    </script>
+</body>
+</html>
